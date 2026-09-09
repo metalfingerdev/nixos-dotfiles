@@ -103,19 +103,30 @@ Scope {
     Variants {
         model: Quickshell.screens
         PanelWindow {
+            id: panelWin
             required property var modelData
             screen: modelData
             anchors { top: true; left: true; right: true; bottom: true }
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: BarState.autohide ? WlrLayer.Overlay : WlrLayer.Top
-            // only steal keyboard input while an island is open, so the bar
-            // doesn't swallow keystrokes system-wide the rest of the time
+            // grant keyboard focus only while an island is open; the focus
+            // grab below is what keeps it even after the pointer leaves
             WlrLayershell.keyboardFocus: BarState.isExpanded ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
             color: "transparent"
 
             Component.onCompleted: root.screenW = modelData.width
 
             mask: Region { item: BarState.catchOutsideClicks ? fullScreenMask : bar }
+
+            // Hyprland-specific: retains keyboard focus on this window even
+            // when the mouse moves off it, and reports outside clicks/touches
+            // via onCleared -- this is what OnDemand alone can't do.
+            HyprlandFocusGrab {
+                id: focusGrab
+                windows: [ panelWin ]
+                active: BarState.isExpanded
+                onCleared: BarState.transition("outsideClick")
+            }
 
             Item {
                 id: fullScreenMask
