@@ -56,7 +56,6 @@ Scope {
         function toggleHidden(): void   { BarState.toggleHidden() }
         function toggleAutohide(): void { BarState.toggleAutohide() }
         function collapse(): void       { BarState.collapse() }
-        function escapeKey(): void      { BarState.transition("escape") }
 
         function setView(view: string): void {
             if (view === "tabs") {
@@ -109,17 +108,26 @@ Scope {
             anchors { top: true; left: true; right: true; bottom: true }
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: BarState.autohide ? WlrLayer.Overlay : WlrLayer.Top
+            // only steal keyboard input while an island is open, so the bar
+            // doesn't swallow keystrokes system-wide the rest of the time
+            WlrLayershell.keyboardFocus: BarState.isExpanded ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
             color: "transparent"
 
             Component.onCompleted: root.screenW = modelData.width
 
             mask: Region { item: BarState.catchOutsideClicks ? fullScreenMask : bar }
-            Item { id: fullScreenMask; anchors.fill: parent }
 
-            MouseArea {
+            Item {
+                id: fullScreenMask
                 anchors.fill: parent
-                enabled: BarState.catchOutsideClicks
-                onClicked: BarState.transition("outsideClick")
+                focus: BarState.isExpanded
+                Keys.onEscapePressed: BarState.transition("escape")
+
+                MouseArea {
+                    anchors.fill: parent
+                    enabled: BarState.catchOutsideClicks
+                    onClicked: BarState.transition("outsideClick")
+                }
             }
 
             Rectangle {

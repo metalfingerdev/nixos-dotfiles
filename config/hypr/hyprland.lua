@@ -249,7 +249,6 @@ hl.bind(mainMod .. " + Y",                hl.dsp.exec_cmd("quickshell ipc call b
 hl.bind(mainMod .. " + U",                hl.dsp.exec_cmd("quickshell ipc call bar setView power"))
 hl.bind(mainMod .. " + I",                hl.dsp.exec_cmd("quickshell ipc call bar setView bluetooth"))
 hl.bind(mainMod .. " + O",                hl.dsp.exec_cmd("quickshell ipc call bar setView network"))
-hl.bind(mainMod .. " + ESCAPE",            hl.dsp.exec_cmd("quickshell ipc call bar escapeKey"))
 
 hl.bind(mainMod .. " + SPACE", function()
     hl.dispatch(hl.dsp.window.cycle_next({
