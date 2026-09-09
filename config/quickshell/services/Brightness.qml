@@ -12,6 +12,12 @@ Singleton {
     // Current brightness as a 0–100 integer, kept in sync by polling.
     property int percent: 0
 
+    // Any real brightness change -> flash the compact bar view.
+    // Fires no matter what caused percent to change (this service, a
+    // physical key handled elsewhere, another tool, etc.), same as
+    // Volume.qml reacting to onVolumeChanged.
+    onPercentChanged: BarState.showBarView("brightness")
+
     // ── internal helpers ──────────────────────────────────────────────────────
 
     // Read current brightness on startup and after every write.
@@ -49,7 +55,6 @@ Singleton {
         const clamped = Math.max(1, Math.min(100, v))
         setProc.command = ["brightnessctl", "set", clamped + "%"]
         setProc.running = true
-        BarState.showBarView("brightness")
     }
 
     function increase(step: int): void { set(percent + (step > 0 ? step : 5)) }

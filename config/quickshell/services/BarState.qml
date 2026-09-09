@@ -41,6 +41,7 @@ QtObject {
         case normal:
             if (event === "surfaceClick")   { if (isExpanded) collapse() }
             if (event === "outsideClick")   { collapse() }
+            if (event === "escape")         { collapse() }
             if (event === "toggleAutohide") { mode = peeking }
             break
 
@@ -49,6 +50,7 @@ QtObject {
             else if (event === "unhover")        { hovered = false }
             else if (event === "surfaceClick")   { if (isExpanded) collapse(); else mode = hidden }
             else if (event === "outsideClick")   { collapse() }
+            else if (event === "escape")         { collapse() }
             else if (event === "toggleAutohide") { mode = normal }
             else if (event === "toggleHidden")   { mode = hidden }
             break
@@ -56,6 +58,7 @@ QtObject {
         case hidden:
             if (event === "hover")          { mode = peeking; hovered = true }
             if (event === "unhover")        { hovered = false }
+            if (event === "escape")         { collapse() }
             if (event === "toggleHidden")   { mode = peeking }
             if (event === "toggleAutohide") { mode = normal }
             break

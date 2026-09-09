@@ -34,12 +34,10 @@ Singleton {
 
         stdout: StdioCollector {
             onStreamFinished: {
-                const parts = this.text.trim().split(" ")
-                if (parts.length >= 2) {
-                    const pct   = parseInt(parts[0], 10)
-                    const state = parts[1]
-                    if (!isNaN(pct)) root.percent  = pct
-                    root.charging = (state === "charging" || state === "fully-charged")
+                const v = parseInt(this.text, 10)
+                if (!isNaN(v) && v !== root.percent) {
+                    root.percent = v
+                    BarState.showBarView("brightness")
                 }
             }
         }

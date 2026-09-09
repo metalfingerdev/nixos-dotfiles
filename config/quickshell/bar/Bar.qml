@@ -33,13 +33,6 @@ Scope {
         }
     }
 
-    MouseArea {
-        anchors.fill: parent
-        enabled: BarState.catchOutsideClicks
-        focus: BarState.catchOutsideClicks
-        onClicked: BarState.transition("outsideClick")
-        Keys.onEscapePressed: BarState.collapse()
-    }
 
     Timer {
         id: hideTimer
@@ -57,18 +50,29 @@ Scope {
         function onShowBarViewTickChanged() { hideTimer.restart() }
     }
 
-    // -- IPC --
     IpcHandler {
         target: "bar"
 
         function toggleHidden(): void   { BarState.toggleHidden() }
         function toggleAutohide(): void { BarState.toggleAutohide() }
         function collapse(): void       { BarState.collapse() }
+        function escapeKey(): void      { BarState.transition("escape") }
 
         function setView(view: string): void {
+            if (view === "tabs") {
+                BarState.collapse()
+                return
+            }
+
+            // Pressing the bind for the island that's already open closes it
+            if (BarState.viewKind === "island" && BarState.currentView === view) {
+                BarState.collapse()
+                return
+            }
+
             BarState.wake()
             BarState.currentView = view
-            BarState.viewKind    = view === "tabs" ? "tabs" : "island"
+            BarState.viewKind    = "island"
         }
 
         function getMode(): string {

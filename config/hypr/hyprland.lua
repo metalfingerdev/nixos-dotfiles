@@ -245,10 +245,11 @@ hl.bind(mainMod .. " + B",                hl.dsp.exec_cmd("quickshell ipc call b
 hl.bind(mainMod .. " + TAB",              hl.dsp.exec_cmd("quickshell ipc call bar setView workspaces"))
 hl.bind(mainMod .. " + SHIFT + D",        hl.dsp.exec_cmd("quickshell ipc call bar setView launcher"))
 hl.bind(mainMod .. " + T",                hl.dsp.exec_cmd("quickshell ipc call bar setView clock"))
-hl.bind(mainMod .. " + Y",                hl.dsp.exec_cmd("quickshell ipc call bar setView volume"))
+hl.bind(mainMod .. " + Y",                hl.dsp.exec_cmd("quickshell ipc call bar setView audio"))
 hl.bind(mainMod .. " + U",                hl.dsp.exec_cmd("quickshell ipc call bar setView power"))
 hl.bind(mainMod .. " + I",                hl.dsp.exec_cmd("quickshell ipc call bar setView bluetooth"))
 hl.bind(mainMod .. " + O",                hl.dsp.exec_cmd("quickshell ipc call bar setView network"))
+hl.bind(mainMod .. " + ESCAPE",            hl.dsp.exec_cmd("quickshell ipc call bar escapeKey"))
 
 hl.bind(mainMod .. " + SPACE", function()
     hl.dispatch(hl.dsp.window.cycle_next({
