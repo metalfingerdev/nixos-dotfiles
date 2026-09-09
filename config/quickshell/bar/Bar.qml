@@ -32,6 +32,14 @@ Scope {
         }
     }
 
+    MouseArea {
+        anchors.fill: parent
+        enabled: BarState.catchOutsideClicks
+        focus: BarState.catchOutsideClicks
+        onClicked: BarState.transition("outsideClick")
+        Keys.onEscapePressed: BarState.collapse()
+    }
+
     Timer {
         id: hideTimer
         interval: 1000
