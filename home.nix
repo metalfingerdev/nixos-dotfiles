@@ -60,6 +60,12 @@
     };
   };
 
+  programs.git = {
+    enable = true;
+    userName = "mfdev";
+    userEmail = "prajwalpal@protonmail.com";
+  };
+
   programs.bash = {
     enable = true;
     shellAliases = {
