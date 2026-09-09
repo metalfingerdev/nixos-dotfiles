@@ -9,6 +9,8 @@ import QtQuick
 import QtQuick.Layouts
 
 import qs.bar.buttons
+import qs.bar.views
+import qs.bar.islands
 import qs.services
 
 Scope {
@@ -16,14 +18,34 @@ Scope {
 
     property real screenW: 0
 
-    // -- timers: restart()/stop() only, never bound to "running" --
-    Timer { id: peekTimer;    interval: 2000; repeat: false; onTriggered: BarState.transition("timerFired") }
-    Timer { id: barViewTimer; interval: 3000; repeat: false; onTriggered: BarState.transition("barViewTimeout") }
+    function resolveComp(view, kind) {
+        switch (view + "|" + kind) {
+            case "audio|bar":         return audioBarComp
+            case "audio|island":      return audioIslandComp
+            case "clock|island":      return clockComp
+            case "bluetooth|island":  return bluetoothComp
+            case "network|island":    return networkComp
+            case "power|island":      return powerComp
+            case "launcher|island":   return launcherComp
+            case "workspaces|island": return workspacesComp
+            default:                  return tabsComp
+        }
+    }
+
+    Timer {
+        id: hideTimer
+        interval: 1000
+        repeat: false
+        onTriggered: {
+            if (BarState.viewKind === "bar") BarState.collapse()
+            if (BarState.shouldHide) BarState.mode = BarState.hidden
+        }
+    }
 
     Connections {
         target: BarState
-        function onTimerShouldRunChanged()       { BarState.timerShouldRun       ? peekTimer.restart()    : peekTimer.stop() }
-        function onBarViewTimerShouldRunChanged() { BarState.barViewTimerShouldRun ? barViewTimer.restart() : barViewTimer.stop() }
+        function onShouldHideChanged()      { BarState.shouldHide ? hideTimer.restart() : hideTimer.stop() }
+        function onShowBarViewTickChanged() { hideTimer.restart() }
     }
 
     // -- IPC --
@@ -120,22 +142,10 @@ Scope {
                     onHoveredChanged: BarState.transition(hovered ? "hover" : "unhover")
                 }
 
-                // -- content lookup: one declared slot per id, no switch to grow --
-                readonly property var contentMap: ({
-                    tabs:       tabsComp,
-                    clock:      clockComp,
-                    launcher:   launcherComp,
-                    workspaces: workspacesComp,
-                    audio:      audioComp,
-                    bluetooth:  bluetoothComp,
-                    network:    networkComp,
-                    power:      powerComp
-                })
-
                 Loader {
                     id: views
                     anchors.fill: parent
-                    sourceComponent: bar.contentMap[BarState.currentView] ?? tabsComp
+                    sourceComponent: root.resolveComp(BarState.currentView, BarState.viewKind)
                 }
             }
         }
@@ -184,60 +194,12 @@ Scope {
         }
     }
 
-    Component { id: clockComp;      Item { property int targetWidth: 420;  property int targetHeight: 220 } }
-    Component { id: bluetoothComp;  Item { property int targetWidth: 420;  property int targetHeight: 220 } }
-    
-    Component {
-        id: audioComp
-        Item {
-            readonly property bool isIsland: BarState.viewKind === "island"
-            property int targetWidth:  isIsland ? 420 : 420
-            property int targetHeight: isIsland ? 220 : 48
-
-            Row {
-                visible: !isIsland
-                anchors.centerIn: parent
-                spacing: 8
-                Text { color: "white"; text: Volume.muted ? "Muted" : Volume.percent + "%" }
-            }
-
-            Column {
-                visible: isIsland
-                anchors.centerIn: parent
-                spacing: 12
-
-                Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    color: "white"
-                    font.pixelSize: 32
-                    text: Volume.muted ? "Muted" : Volume.percent + "%"
-                }
-
-                Rectangle {
-                    id: track
-                    width: 280; height: 8; radius: 4
-                    color: "#3a3540"
-                    anchors.horizontalCenter: parent.horizontalCenter
-
-                    Rectangle {
-                        width: track.width * Volume.volume
-                        height: track.height
-                        radius: 4
-                        color: "#8a7fff"
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onPressed:   (m) => Volume.setVolume(m.x / track.width)
-                        onPositionChanged: (m) => { if (pressed) Volume.setVolume(m.x / track.width) }
-                    }
-                }
-            }
-        }
-    }
-    
-    Component { id: powerComp;      Item { property int targetWidth: 420;  property int targetHeight: 220 } }
-    Component { id: networkComp;    Item { property int targetWidth: 420;  property int targetHeight: 220 } }
-    Component { id: launcherComp;   Item { property int targetWidth: 600;  property int targetHeight: 600 } }
-    Component { id: workspacesComp; Item { property int targetWidth: 1080; property int targetHeight: 720 } }
+    Component { id: clockComp;       Item { property int targetWidth: 420;  property int targetHeight: 220 } }
+    Component { id: bluetoothComp;   Item { property int targetWidth: 420;  property int targetHeight: 220 } }
+    Component { id: audioIslandComp; AudioIsland {} }
+    Component { id: audioBarComp;    AudioBar    {} }
+    Component { id: powerComp;       Item { property int targetWidth: 420;  property int targetHeight: 220 } }
+    Component { id: networkComp;     Item { property int targetWidth: 420;  property int targetHeight: 220 } }
+    Component { id: launcherComp;    Item { property int targetWidth: 600;  property int targetHeight: 600 } }
+    Component { id: workspacesComp;  Item { property int targetWidth: 1080; property int targetHeight: 720 } }
 }

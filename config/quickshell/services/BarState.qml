@@ -13,15 +13,15 @@ QtObject {
     property int mode: normal
 
     property string currentView: "tabs"
-    property string viewKind:    "tabs"   // "tabs" | "island" | "bar"
+    property string viewKind:    "tabs"
     property real originX: 0
+    property int showBarViewTick: 0
 
-    readonly property bool autohide:              mode === peeking || mode === hidden
-    readonly property bool isHidden:              mode === hidden
-    readonly property bool isExpanded:            viewKind === "island"
-    readonly property bool catchOutsideClicks:    isExpanded
-    readonly property bool timerShouldRun:        mode === peeking && viewKind === "tabs" && !hovered
-    readonly property bool barViewTimerShouldRun: viewKind === "bar"
+    readonly property bool autohide:           mode === peeking || mode === hidden
+    readonly property bool isHidden:           mode === hidden
+    readonly property bool isExpanded:         viewKind === "island"
+    readonly property bool catchOutsideClicks: isExpanded
+    readonly property bool shouldHide:         (mode === peeking && !hovered) && (viewKind === "tabs" || viewKind === "bar")
 
     property bool hovered: false
 
@@ -31,8 +31,6 @@ QtObject {
         originX     = 0
     }
 
-    // Pulls the bar out of "hidden" without touching autohide itself.
-    // mode -> peeking (not normal), so the autohide cycle stays live.
     function wake() {
         if (mode === hidden) mode = peeking
     }
@@ -43,22 +41,16 @@ QtObject {
         case normal:
             if (event === "surfaceClick")   { if (isExpanded) collapse() }
             if (event === "outsideClick")   { collapse() }
-            if (event === "barViewTimeout") { collapse() }
             if (event === "toggleAutohide") { mode = peeking }
             break
 
         case peeking:
-            if (event === "hover")          { hovered = true }
-            if (event === "unhover")        { hovered = false }
-            if (event === "timerFired")     { mode = hidden }
-            if (event === "barViewTimeout") { collapse() }
-            if (event === "surfaceClick")   {
-                if (isExpanded) collapse()
-                else mode = hidden
-            }
-            if (event === "outsideClick")   { collapse() }
-            if (event === "toggleAutohide") { mode = normal }
-            if (event === "toggleHidden")   { mode = hidden }
+            if      (event === "hover")          { hovered = true }
+            else if (event === "unhover")        { hovered = false }
+            else if (event === "surfaceClick")   { if (isExpanded) collapse(); else mode = hidden }
+            else if (event === "outsideClick")   { collapse() }
+            else if (event === "toggleAutohide") { mode = normal }
+            else if (event === "toggleHidden")   { mode = hidden }
             break
 
         case hidden:
@@ -79,8 +71,9 @@ QtObject {
 
     function showBarView(viewName) {
         wake()
-        currentView = viewName
-        viewKind    = "bar"
+        currentView      = viewName
+        viewKind         = "bar"
+        showBarViewTick += 1
     }
 
     function toggleHidden()   { transition("toggleHidden") }
