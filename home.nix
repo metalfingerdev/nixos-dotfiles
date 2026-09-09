@@ -62,8 +62,10 @@
 
   programs.git = {
     enable = true;
-    userName = "mfdev";
-    userEmail = "prajwalpal@protonmail.com";
+    settings.user = {
+      name = "mfdev";
+      email = "prajwalpal@protonmail.com";
+    };
   };
 
   programs.bash = {
