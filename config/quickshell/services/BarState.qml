@@ -68,8 +68,9 @@ QtObject {
         viewKind    = kind
         originX     = X - W / 2
     }
-
+    
     function showBarView(viewName) {
+        if (isExpanded) return
         wake()
         currentView      = viewName
         viewKind         = "bar"

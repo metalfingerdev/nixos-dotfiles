@@ -29,6 +29,7 @@
     grimblast
     libnotify
     nixpkgs-fmt
+    brightnessctl
     fastfetch
     nodejs
     gcc

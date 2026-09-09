@@ -28,6 +28,7 @@ Scope {
             case "power|island":      return powerComp
             case "launcher|island":   return launcherComp
             case "workspaces|island": return workspacesComp
+            case "brightness|bar":    return brightnessBarComp
             default:                  return tabsComp
         }
     }
@@ -206,7 +207,8 @@ Scope {
     Component { id: bluetoothComp;   Item { property int targetWidth: 420;  property int targetHeight: 220 } }
     Component { id: audioIslandComp; AudioIsland {} }
     Component { id: audioBarComp;    AudioBar    {} }
-    Component { id: powerComp;       Item { property int targetWidth: 420;  property int targetHeight: 220 } }
+    Component { id: powerComp;       PowerIsland {} }
+    Component { id: brightnessBarComp; BrightnessBar {} }
     Component { id: networkComp;     Item { property int targetWidth: 420;  property int targetHeight: 220 } }
     Component { id: launcherComp;    Item { property int targetWidth: 600;  property int targetHeight: 600 } }
     Component { id: workspacesComp;  Item { property int targetWidth: 1080; property int targetHeight: 720 } }
