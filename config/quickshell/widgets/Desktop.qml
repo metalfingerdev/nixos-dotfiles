@@ -88,7 +88,7 @@ PanelWindow {
                         "size": 48
                     }] : [{
                         "icon": "⌘",
-                        "cmd": ["sh", "-c", "kitty --directory \"$HOME\""],
+                        "cmd": ["sh", "-c", "kitty --hold --directory \"$HOME\" fastfetch"],
                         "hover": "#ac82e9",
                         "active": "#634a88",
                         "size": 50
