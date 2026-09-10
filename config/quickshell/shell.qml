@@ -1,10 +1,6 @@
 import Quickshell
-import qs.bar
+import qs.widgets
 
 Scope {
-
-    Bar {
-        id: bar
-    }
-
+    Desktop {}
 }
