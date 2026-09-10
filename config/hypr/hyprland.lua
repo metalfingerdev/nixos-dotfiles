@@ -257,6 +257,7 @@ hl.bind(mainMod .. " + SPACE", function()
 end, { description = "Switch focus between tiled and floating windows" })
 
 hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))
+hl.bind(mainMod .. " + SHIFT + Return", hl.dsp.exec+cmd(terminal .. " --hold fastfetch"))
 hl.bind(mainMod .. " + E",      hl.dsp.exec_cmd(terminal .. " -e " .. fileManager))
 hl.bind(mainMod .. " + D",      hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + W",      hl.dsp.exec_cmd(browser))
