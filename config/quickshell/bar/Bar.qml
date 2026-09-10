@@ -109,8 +109,6 @@ Scope {
             anchors { top: true; left: true; right: true; bottom: true }
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: BarState.autohide ? WlrLayer.Overlay : WlrLayer.Top
-            // grant keyboard focus only while an island is open; the focus
-            // grab below is what keeps it even after the pointer leaves
             WlrLayershell.keyboardFocus: BarState.isExpanded ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
             color: "transparent"
 
@@ -118,9 +116,6 @@ Scope {
 
             mask: Region { item: BarState.catchOutsideClicks ? fullScreenMask : bar }
 
-            // Hyprland-specific: retains keyboard focus on this window even
-            // when the mouse moves off it, and reports outside clicks/touches
-            // via onCleared -- this is what OnDemand alone can't do.
             HyprlandFocusGrab {
                 id: focusGrab
                 windows: [ panelWin ]

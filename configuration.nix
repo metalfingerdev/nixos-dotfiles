@@ -43,6 +43,9 @@
     pulse.enable = true;
   };
   services.libinput.enable = true;
+  hardware.bluetooth.enable = true;
+  hardware.bluetooth.powerOnBoot = true;
+  services.blueman.enable = true;
   users.users."admin" = {
     isNormalUser = true;
     description = "admin";
