@@ -18,6 +18,7 @@
     maple-mono.NF
     inter
     quickshell
+    material-symbols
     awww
     fuzzel
     nemo
