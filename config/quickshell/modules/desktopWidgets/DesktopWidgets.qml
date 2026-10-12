@@ -88,13 +88,13 @@ PanelWindow {
                         "size": 48
                     }] : [{
                         "icon": "⌘",
-                        "cmd": ["sh", "-c", "kitty --directory \"$HOME\""],
+                        "cmd": ["sh", "-c", "kitty --directory \"$HOME\" --hold fastfetch"]
                         "hover": "#ac82e9",
                         "active": "#634a88",
                         "size": 50
                     }, {
                         "icon": "",
-                        "cmd": ["sh", "-c", "thunar"],
+                        "cmd": ["sh", "-c", "yazi"],
                         "hover": "#ac82e9",
                         "active": "#634a88",
                         "size": 45
