@@ -240,16 +240,9 @@ hl.bind(mainMod .. " + ALT + SPACE",      hl.dsp.layout("togglesplit"))
 hl.bind(mainMod .. " + F",                hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + A",                hl.dsp.window.pin())
 
-hl.bind(mainMod .. " + SHIFT + B",        hl.dsp.exec_cmd("quickshell ipc call bar toggleAutohide"))
-hl.bind(mainMod .. " + B",                hl.dsp.exec_cmd("quickshell ipc call bar toggleHidden"))
-
-hl.bind(mainMod .. " + TAB",              hl.dsp.exec_cmd("quickshell ipc call bar setView workspaces"))
-hl.bind(mainMod .. " + SHIFT + D",        hl.dsp.exec_cmd("quickshell ipc call bar setView launcher"))
-hl.bind(mainMod .. " + T",                hl.dsp.exec_cmd("quickshell ipc call bar setView clock"))
-hl.bind(mainMod .. " + Y",                hl.dsp.exec_cmd("quickshell ipc call bar setView audio"))
-hl.bind(mainMod .. " + U",                hl.dsp.exec_cmd("quickshell ipc call bar setView power"))
-hl.bind(mainMod .. " + I",                hl.dsp.exec_cmd("quickshell ipc call bar setView bluetooth"))
-hl.bind(mainMod .. " + O",                hl.dsp.exec_cmd("quickshell ipc call bar setView network"))
+hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("quickshell ipc call dynamciGlacier toggleHandle"))
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("quickshell ipc call dynamciGlacier bluetooth"))
+hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("quickshell ipc call dynamciGlacier battery"))
 
 hl.bind(mainMod .. " + SPACE", function()
     hl.dispatch(hl.dsp.window.cycle_next({
