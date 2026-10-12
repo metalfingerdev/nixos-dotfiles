@@ -31,7 +31,6 @@ in
   security.polkit.enable = true;
   services.displayManager.ly.enable = true;
   security.pam.services.ly.enableGnomeKeyring = true;
-  services.xserver.desktopManager.xfce.enable = true;
   services.xserver.xkb = {
     layout = "us";
     variant = "";
