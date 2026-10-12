@@ -5,11 +5,15 @@
 import QtQuick
 import Quickshell
 import "modules/dynamicGlacier" as Island
+import "modules/desktopWidgets" as Apps
 
 ShellRoot {
     id: root
 
     Island.DynamicGlacier {
+    }
+
+    Apps.DesktopWidgets {
     }
 
 }
