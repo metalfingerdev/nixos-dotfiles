@@ -240,9 +240,9 @@ hl.bind(mainMod .. " + ALT + SPACE",      hl.dsp.layout("togglesplit"))
 hl.bind(mainMod .. " + F",                hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + A",                hl.dsp.window.pin())
 
-hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("quickshell ipc call dynamciGlacier toggleHandle"))
-hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("quickshell ipc call dynamciGlacier bluetooth"))
-hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("quickshell ipc call dynamciGlacier battery"))
+hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("quickshell ipc call dynamicGlacier toggleHandle"))
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("quickshell ipc call dynamicGlacier bluetooth"))
+hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("quickshell ipc call dynamicGlacier battery"))
 
 hl.bind(mainMod .. " + SPACE", function()
     hl.dispatch(hl.dsp.window.cycle_next({
