@@ -94,7 +94,7 @@ PanelWindow {
                         "size": 50
                     }, {
                         "icon": "",
-                        "cmd": ["sh", "-c", "yazi"],
+                        "cmd": ["sh", "-c", "kitty --directory \"$HOME\" --hold yazi"],
                         "hover": "#ac82e9",
                         "active": "#634a88",
                         "size": 45
