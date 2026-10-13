@@ -18,6 +18,7 @@
     maple-mono.NF
     inter
     quickshell
+    pavucontrol
     material-symbols
     awww
     fuzzel
