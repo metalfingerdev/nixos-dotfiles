@@ -43,23 +43,7 @@ in
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    wireplumber = {
-      enable = true;
-      extraConfig = {
-        "10-bluetooth-codecs" = {
-          "monitor.bluez.properties" = {
-            # Enable high-quality codecs including AAC, LDAC, aptX, aptX-HD, and SBC-XQ
-            "bluez5.codecs" = [ "sbc" "sbc_xq" "aac" "ldac" "aptx" "aptx_hd" "aptx_ll" ];
-            
-            # Enable hardware volume control for Bluetooth devices
-            "bluez5.enable-hw-volume" = true;
-            
-            # Automatically switch to high quality A2DP profile for audio playback
-            "bluez5.roles" = [ "a2dp_sink" "a2dp_source" ];
-          };
-        };
-      };
-    };
+    wireplumber.enable = true;
   };
 
   services.libinput.enable = true;
