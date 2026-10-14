@@ -51,14 +51,8 @@ in
     pulse.enable = true;
     wireplumber.enable = true;
 
-    # NEW: Bluetooth audio fixes
+    # idle-suspend fix
     wireplumber.extraConfig."51-bluez" = {
-      "monitor.bluez.properties" = {
-        "bluez5.roles" = [ "a2dp_sink" ];   # A2DP only, no call profile
-        "bluez5.codecs" = [ "sbc" ];        # plain SBC codec
-        "bluez5.enable-sbc-xq" = false;
-        "bluez5.hfphsp-backend" = "none";   # stops the HFP retry spam
-      };
       "monitor.bluez.rules" = [
         {
           matches = [
@@ -66,7 +60,7 @@ in
             { "node.name" = "~bluez_input.*"; }
           ];
           actions.update-props = {
-            "session.suspend-timeout-seconds" = 0;  # never suspend idle BT stream
+            "session.suspend-timeout-seconds" = 0;
             "node.pause-on-idle" = false;
           };
         }
