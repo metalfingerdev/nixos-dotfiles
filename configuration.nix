@@ -50,22 +50,6 @@ in
     alsa.support32Bit = true;
     pulse.enable = true;
     wireplumber.enable = true;
-
-    # idle-suspend fix
-    wireplumber.extraConfig."51-bluez" = {
-      "monitor.bluez.rules" = [
-        {
-          matches = [
-            { "node.name" = "~bluez_output.*"; }
-            { "node.name" = "~bluez_input.*"; }
-          ];
-          actions.update-props = {
-            "session.suspend-timeout-seconds" = 0;
-            "node.pause-on-idle" = false;
-          };
-        }
-      ];
-    };
   };
 
   services.libinput.enable = true;
