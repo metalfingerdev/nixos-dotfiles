@@ -19,6 +19,8 @@
     inter
     quickshell
     pavucontrol
+    pulseaudio
+    usbutils
     material-symbols
     awww
     fuzzel

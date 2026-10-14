@@ -13,6 +13,12 @@ in
   # HP bios warning suppress
   boot.blacklistedKernelModules = [ "hp_bioscfg" ];
 
+  # stop the Bluetooth USB radio from auto-suspending
+  boot.extraModprobeConfig = ''
+    options btusb enable_autosuspend=0
+  '';
+  boot.kernelParams = [ "usbcore.autosuspend=-1" ];
+
   boot.loader.systemd-boot.enable = lib.mkForce false;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.lanzaboote = {
@@ -44,6 +50,28 @@ in
     alsa.support32Bit = true;
     pulse.enable = true;
     wireplumber.enable = true;
+
+    # NEW: Bluetooth audio fixes
+    wireplumber.extraConfig."51-bluez" = {
+      "monitor.bluez.properties" = {
+        "bluez5.roles" = [ "a2dp_sink" ];   # A2DP only, no call profile
+        "bluez5.codecs" = [ "sbc" ];        # plain SBC codec
+        "bluez5.enable-sbc-xq" = false;
+        "bluez5.hfphsp-backend" = "none";   # stops the HFP retry spam
+      };
+      "monitor.bluez.rules" = [
+        {
+          matches = [
+            { "node.name" = "~bluez_output.*"; }
+            { "node.name" = "~bluez_input.*"; }
+          ];
+          actions.update-props = {
+            "session.suspend-timeout-seconds" = 0;  # never suspend idle BT stream
+            "node.pause-on-idle" = false;
+          };
+        }
+      ];
+    };
   };
 
   services.libinput.enable = true;
