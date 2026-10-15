@@ -66,7 +66,7 @@
 
   programs.ssh = {
     enable = true;
-    addKeysToAgent = "yes";
+    settings.*.AddKeysToAgent = true;
   };
 
   programs.git = {
