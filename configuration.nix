@@ -36,8 +36,6 @@ in
   };
   services.printing.enable = true;
   
-  # Ensure legacy PulseAudio daemon is completely off
-  hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
 
   services.pipewire = {
