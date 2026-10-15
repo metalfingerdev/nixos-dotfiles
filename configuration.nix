@@ -49,8 +49,12 @@ in
   # XDG Portals for PipeWire screen sharing on Hyprland
   xdg.portal = {
     enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    extraPortals = [
+      pkgs.xdg-desktop-portal-gtk 
+      pkgs.xdg-desktop-portal-hyprland
+    ];
   };
+
 
   services.libinput.enable = true;
   services.blueman.enable = true;
@@ -65,7 +69,6 @@ in
       };
       Policy = {
         AutoEnable = true;
-        AutoConnect = true;
       };
     };
   };
