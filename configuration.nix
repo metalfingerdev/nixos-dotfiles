@@ -61,9 +61,11 @@ in
     settings = {
       General = {
         FastConnectable = true;
+        Enable = "Source,Sink,Media";
       };
       Policy = {
         AutoEnable = true;
+        AutoConnect = true;
       };
     };
   };
