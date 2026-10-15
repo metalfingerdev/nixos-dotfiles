@@ -50,30 +50,6 @@ in
     alsa.support32Bit = true;
     pulse.enable = true;
     wireplumber.enable = true;
-    wireplumber.extraConfig = {
-      "10-bluez" = {
-        "monitor.bluez.properties" = {
-          # Force plain SBC to rule out codec negotiation failures
-          "bluez5.codecs" = [ "sbc" ];
-          "bluez5.enable-sbc-xq" = false;
-          "bluez5.enable-hw-volume" = false;
-        };
-      };
-      # Stop the Bluetooth sink from suspending when idle
-      "51-bluez-no-suspend" = {
-        "monitor.bluez.rules" = [
-          {
-            matches = [ { "node.name" = "~bluez_output.*"; } ];
-            actions = {
-              update-props = {
-                "session.suspend-timeout-seconds" = 0;
-                "node.pause-on-idle" = false;
-              };
-            };
-          }
-        ];
-      };
-    };
   };
 
   services.libinput.enable = true;
