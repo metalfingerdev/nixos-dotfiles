@@ -43,7 +43,47 @@ in
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    wireplumber.enable = true;
+    
+    # Modern NixOS configures WirePlumber explicitly through this sub-module
+    wireplumber = {
+      enable = true;
+      extraConfig = {
+        # 1. Override the bluetooth policy settings directly
+        "11-bluetooth-policy" = {
+          "wireplumber.settings" = {
+            # Explicitly prevent WirePlumber from force-switching your profile 
+            # down to a low-quality headset (HSP/HFP) profile when an app asks for a mic
+            "bluetooth.autoswitch-to-headset-profile" = false;
+          };
+        };
+
+        # 2. Configure BlueZ device management properties and power rules
+        "10-bluez" = {
+          "monitor.bluez.properties" = {
+            # Strictly use high-quality profiles for audio streaming and recording
+            "bluez5.roles" = [ "a2dp_sink" "a2dp_source" ];
+            "bluez5.auto-connect" = [ "a2dp_sink" ];
+            "bluez5.experimental-features" = [ "battery-provider" ];
+          };
+          
+          "monitor.bluez.rules" = [
+            {
+              matches = [
+                { "node.name" = "~bluez_output.*"; }
+              ];
+              actions = {
+                update-props = {
+                  # Disable power-saving states that cause audio pops or delay when resuming streams
+                  "session.suspend-timeout-seconds" = 0;
+                  "node.pause-on-idle" = false;
+                  "node.suspend-on-idle" = false;
+                };
+              };
+            }
+          ];
+        };
+      };
+    };
   };
 
   # XDG Portals for PipeWire screen sharing on Hyprland
@@ -55,7 +95,6 @@ in
     ];
   };
 
-
   services.libinput.enable = true;
   services.blueman.enable = true;
 
@@ -65,7 +104,6 @@ in
     settings = {
       General = {
         FastConnectable = true;
-        Enable = "Source,Sink,Media";
       };
       Policy = {
         AutoEnable = true;
