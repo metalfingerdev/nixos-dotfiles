@@ -64,6 +64,11 @@
     };
   };
 
+  programs.ssh = {
+    enable = true;
+    addKeysToAgent = "yes";
+  };
+
   programs.git = {
     enable = true;
     settings.user = {
