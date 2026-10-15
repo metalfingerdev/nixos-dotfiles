@@ -19,7 +19,7 @@
     inter
     quickshell
     pavucontrol
-    pulseaudio
+    pulsemixer
     usbutils
     material-symbols
     awww

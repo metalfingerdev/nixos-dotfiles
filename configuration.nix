@@ -13,12 +13,6 @@ in
   # HP bios warning suppress
   boot.blacklistedKernelModules = [ "hp_bioscfg" ];
 
-  # stop the Bluetooth USB radio from auto-suspending
-  boot.extraModprobeConfig = ''
-    options btusb enable_autosuspend=0
-  '';
-  boot.kernelParams = [ "usbcore.autosuspend=-1" ];
-
   boot.loader.systemd-boot.enable = lib.mkForce false;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.lanzaboote = {
@@ -41,7 +35,9 @@ in
     variant = "";
   };
   services.printing.enable = true;
-  services.pulseaudio.enable = false;
+  
+  # Ensure legacy PulseAudio daemon is completely off
+  hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
 
   services.pipewire = {
@@ -50,6 +46,12 @@ in
     alsa.support32Bit = true;
     pulse.enable = true;
     wireplumber.enable = true;
+  };
+
+  # XDG Portals for PipeWire screen sharing on Hyprland
+  xdg.portal = {
+    enable = true;
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
   };
 
   services.libinput.enable = true;
@@ -74,18 +76,22 @@ in
     extraGroups = [ "networkmanager" "wheel" ];
   };
   programs.firefox.enable = true;
+  
   programs.hyprland = {
     enable = true;
     xwayland.enable = true;
     withUWSM = true;
   };
+  
   nixpkgs.config.allowUnfree = true;
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  
   environment.systemPackages = with pkgs; [
-    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    vim
     wget
     git
     kitty
   ];
-  system.stateVersion = "26.05"; # Did you read the comment?
+  
+  system.stateVersion = "26.05"; 
 }
