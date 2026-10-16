@@ -259,7 +259,7 @@ hl.bind(mainMod .. " + W",                hl.dsp.exec_cmd(browser))
 -- Screenshots
 hl.bind("PRINT",                          hl.dsp.exec_cmd("grimblast --notify copy area"),   { locked = true })
 hl.bind(mainMod .. " + PRINT",            hl.dsp.exec_cmd("grimblast --notify copy screen"), { locked = true })
-hl.bind(mainMod .. + SHIFT + PRINT ,      hl.dsp.exec_cmd("mkdir -p ~/Pictures/Screenshots && grimblast --notify save area ~/Pictures/Screenshots/$(date +%s).png"), { locked = true })
+hl.bind(mainMod .. " + SHIFT + PRINT",     hl.dsp.exec_cmd("mkdir -p ~/Pictures/Screenshots && grimblast --notify save area ~/Pictures/Screenshots/$(date +%s).png"), { locked = true })
 
 -- Move focus
 hl.bind(mainMod .. " + Left",             hl.dsp.focus({ direction = "left" }))
