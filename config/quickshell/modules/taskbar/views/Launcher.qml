@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
 import qs.modules.taskbar
+import qs.config
 
 FocusScope {
     id: launcherRoot
@@ -14,16 +15,6 @@ FocusScope {
 
     property string searchQuery: ""
     property bool clickActivated: false
-
-    // Local configuration fallbacks since qs.config is unavailable
-    QtObject {
-        id: config
-        property string font: "inter"
-        property int fontSize: 14
-        property color foreground: "#f7f7f7"
-        property color bgLight: "#222222"
-        property color accent: "#3a86ff"
-    }
 
     readonly property bool isActive: searchQuery.length > 0 || hoverHandler.hovered || appList.searchBarKeyboardFocus
 
@@ -54,7 +45,7 @@ FocusScope {
             Layout.fillWidth: true
             implicitHeight: 52
             radius: 8
-            color: isActive ? config.bgLight : "transparent"
+            color: isActive ? Config.bgLight : "transparent"
 
             HoverHandler {
                 id: hoverHandler
@@ -78,9 +69,9 @@ FocusScope {
                 anchors.leftMargin: 12
                 anchors.verticalCenter: parent.verticalCenter
                 text: "\uf002"
-                font.family: config.font
-                font.pixelSize: config.fontSize
-                color: config.foreground
+                font.family: Config.font
+                font.pixelSize: Config.fontSize
+                color: Config.foreground
             }
 
             TextInput {
@@ -92,9 +83,9 @@ FocusScope {
                 anchors.leftMargin: 8
                 anchors.rightMargin: 12
                 verticalAlignment: TextInput.AlignVCenter
-                font.family: config.font
+                font.family: Config.font
                 font.pixelSize: 18
-                color: config.foreground
+                color: Config.foreground
                 focus: true
                 Keys.forwardTo: [appList]
                 Keys.onPressed: (event) => {
@@ -114,16 +105,16 @@ FocusScope {
 
                 Text {
                     text: "Search | 검색 | Поиск | Sök"
-                    font.family: config.font
+                    font.family: Config.font
                     font.pixelSize: 18
-                    color: config.foreground
+                    color: Config.foreground
                     opacity: 0.4
                     visible: searchInput.text.length === 0
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
                 cursorDelegate: Rectangle {
-                    color: config.foreground
+                    color: Config.foreground
                     width: 1
                     visible: isActive && (clickActivated || keyboardActive || searchInput.text.length > 0)
                     SequentialAnimation on opacity {
@@ -139,7 +130,7 @@ FocusScope {
 
             Rectangle {
                 height: 1
-                color: isActive ? config.accent : config.foreground
+                color: isActive ? Config.accent : Config.foreground
                 anchors {
                     left: parent.left
                     right: parent.right
@@ -219,7 +210,7 @@ FocusScope {
                 width: ListView.view.width
                 height: 48
                 radius: 12
-                color: isCurrent ? config.bgLight : "transparent"
+                color: isCurrent ? Config.bgLight : "transparent"
 
                 RowLayout {
                     anchors.fill: parent
@@ -237,9 +228,9 @@ FocusScope {
 
                     Text {
                         text: modelData.name
-                        font.family: config.font
+                        font.family: Config.font
                         font.pixelSize: 16
-                        color: isCurrent ? config.accent : config.foreground
+                        color: isCurrent ? Config.accent : Config.foreground
                         Layout.fillWidth: true
                     }
                 }

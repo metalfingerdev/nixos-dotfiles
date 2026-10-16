@@ -218,7 +218,7 @@ hl.device({
 
 local terminal    = "kitty"
 local fileManager = "yazi"
-local menu        = "quickshell icp call island open launcher"
+local menu        = "quickshell ipc call island open launcher"
 local browser     = "firefox"
 local fastfetch   = "fastfetch"
 
