@@ -66,12 +66,7 @@
 
   programs.ssh = {
     enable = true;
-    enableDefaultConfig = false; # Silences the warning by turning off legacy defaults
-    settings = {
-      "*" = {
-        AddKeysToAgent = "yes"; # BlueZ/OpenSSH expects strings like "yes", "no", or "confirm"
-      };
-    };
+    enableDefaultConfig = false;
   };
 
 

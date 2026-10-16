@@ -34,8 +34,8 @@ in
     layout = "us";
     variant = "";
   };
-  services.printing.enable = true;
   
+  services.printing.enable = true;
   security.rtkit.enable = true;
 
   services.pipewire = {
@@ -46,16 +46,6 @@ in
     wireplumber.enable = true;
   };
 
-  # XDG Portals for PipeWire screen sharing on Hyprland
-  xdg.portal = {
-    enable = true;
-    extraPortals = [
-      pkgs.xdg-desktop-portal-gtk 
-      pkgs.xdg-desktop-portal-hyprland
-    ];
-  };
-
-
   services.libinput.enable = true;
   services.blueman.enable = true;
 
@@ -65,7 +55,6 @@ in
     settings = {
       General = {
         FastConnectable = true;
-        Enable = "Source,Sink,Media";
       };
       Policy = {
         AutoEnable = true;
