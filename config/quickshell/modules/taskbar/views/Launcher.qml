@@ -2,8 +2,11 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
+import qs.modules.taskbar
 
 FocusScope {
+    id: launcherRoot
+
     // ---- view contract with Island.qml (both optional) ----
     signal closeRequested()
     readonly property bool engaged: searchQuery.length > 0 || keyboardActive   // pauses the island timeout
@@ -28,6 +31,17 @@ FocusScope {
 
     implicitWidth: 500
     implicitHeight: 500
+
+    function executeApp(entry) {
+        if (entry.runInTerminal) {
+            Quickshell.execDetached({
+                command: ["kitty", "-e"].concat(entry.command),
+                workingDirectory: entry.workingDirectory
+            })
+        } else {
+            entry.execute()
+        }
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -85,7 +99,12 @@ FocusScope {
                 Keys.forwardTo: [appList]
                 Keys.onPressed: (event) => {
                     keyboardActive = true
-                    event.accepted = false      // observe only; TextInput still handles the key
+                    if (event.key === Qt.Key_Backspace && text.length === 0) {
+                        IslandState.send(IslandState.Event.Back)
+                        event.accepted = true
+                    } else {
+                        event.accepted = false     // observe only; TextInput still handles the key
+                    }
                 }
                 onTextChanged: {
                     searchQuery = text
@@ -163,7 +182,7 @@ FocusScope {
 
             Keys.onReturnPressed: {
                 if (currentIndex >= 0 && currentItem) {
-                    currentItem.modelData.execute()
+                    executeApp(currentItem.modelData)
                     closeRequested()
                 }
             }
@@ -230,7 +249,7 @@ FocusScope {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        modelData.execute()
+                        executeApp(modelData)
                         closeRequested()
                     }
                     onPositionChanged: (mouse) => {

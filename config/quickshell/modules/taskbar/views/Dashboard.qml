@@ -1,10 +1,32 @@
 import QtQuick
+import QtQuick.Layouts
+import Quickshell
 import qs.modules.taskbar
 
 // Placeholder: what pinning Idle opens.
-Item {
+FocusScope {
+    id:root
+
+    Component.onCompleted: root.forceActiveFocus()
+    onVisibleChanged: {
+        if (visible) root.forceActiveFocus()
+    }
+
     implicitWidth: 520
     implicitHeight: 260
+
+    property bool keyboardActive: false
+    readonly property bool engaged: keyboardActive
+
+    Keys.onPressed: (event) => {
+        keyboardActive = true
+            if (event.key === Qt.Key_Backspace ) {
+                IslandState.send(IslandState.Event.Back)
+                event.accepted = true
+            } else {
+                event.accepted = false
+            }
+    }
 
     Column {
         anchors.centerIn: parent

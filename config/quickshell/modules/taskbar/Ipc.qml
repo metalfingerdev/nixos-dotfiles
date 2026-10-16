@@ -29,6 +29,14 @@ IpcHandler {
         else if (name === "notch") IslandState.mode = IslandState.Mode.Notch
     }
 
+    function toggleHandle(): void {
+        if (IslandState.phase === IslandState.Phase.Collapsed) {
+            open("idle") // Calls the open function defined above
+        } else {
+            IslandState.close()
+        }
+    }
+
     function compact(name: string): void {
         if (name === "clock")     IslandState.compactWidget = IslandState.Widget.Clock
         else if (name === "date") IslandState.compactWidget = IslandState.Widget.Date

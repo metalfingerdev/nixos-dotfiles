@@ -30,10 +30,9 @@ Scope {
                 IslandState.send(IslandState.Event.Alert, IslandState.View.Notify)
                 return
             }
-            // Already showing the center? It's live, so nothing to do. Without this guard,
-            // Open on the same pinned view toggles it closed.
+            // Already showing the notification view? Guard against toggling.
             if (IslandState.pinned && IslandState.view === IslandState.View.Notify) return
-            IslandState.send(IslandState.Event.Open, IslandState.View.Notify)
+            IslandState.alertCritical(IslandState.View.Notify)
         }
     }
 }

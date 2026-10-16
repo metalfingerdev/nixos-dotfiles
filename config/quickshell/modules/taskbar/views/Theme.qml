@@ -5,8 +5,26 @@ import qs.modules.services
 
 // Pinned view: a scrollable strip of thumbnails. Click / Enter applies, R = random,
 // Left/Right to move, Esc to close.
-Item {
+FocusScope {
     id: root
+
+    Component.onCompleted: root.forceActiveFocus()
+    onVisibleChanged: {
+        if (visible) root.forceActiveFocus()
+    }
+
+    property bool keyboardActive: false
+    readonly property bool engaged: keyboardActive
+
+    Keys.onPressed: (event) => {
+        keyboardActive = true
+            if (event.key === Qt.Key_Backspace ) {
+                IslandState.send(IslandState.Event.Back)
+                event.accepted = true
+            } else {
+                event.accepted = false
+            }
+    }
 
     readonly property int cellW: 160
     readonly property int cellH: 96
@@ -16,7 +34,6 @@ Item {
     implicitWidth: 560
     implicitHeight: headerH + (empty ? 40 : cellH + 20) + 4
 
-    Component.onCompleted: list.forceActiveFocus()
 
     // ---- header ----
     Item {
@@ -40,7 +57,7 @@ Item {
             spacing: 8
 
             Pill { text: "random"; onClicked: Wallpaper.random() }
-            Pill { text: "back";  onClicked: IslandState.send(IslandState.Event.Back) }
+            Pill { text: "back";  onClicked: IslandState.send(IslandState.openHome()) }
         }
     }
 

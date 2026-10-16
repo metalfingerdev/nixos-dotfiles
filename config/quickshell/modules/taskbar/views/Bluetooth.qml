@@ -4,8 +4,26 @@ import qs.modules.taskbar
 import qs.modules.services
 
 // Pinned view. implicitWidth/Height tell the island how big to morph.
-Item {
+FocusScope {
     id: root
+
+    Component.onCompleted: root.forceActiveFocus()
+    onVisibleChanged: {
+        if (visible) root.forceActiveFocus()
+    }
+
+    property bool keyboardActive: false
+    readonly property bool engaged: keyboardActive
+
+    Keys.onPressed: (event) => {
+        keyboardActive = true
+            if (event.key === Qt.Key_Backspace ) {
+                IslandState.send(IslandState.Event.Back)
+                event.accepted = true
+            } else {
+                event.accepted = false
+            }
+    }
 
     implicitWidth:  320
     implicitHeight: headerH + listH + footerH

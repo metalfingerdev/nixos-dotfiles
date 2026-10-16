@@ -87,7 +87,6 @@ Scope {
             MouseArea {
                 anchors.fill: parent
                 z: -1
-                enabled: !IslandState.keyboard
                 onClicked: IslandState.send(IslandState.Event.Click)
             }
 

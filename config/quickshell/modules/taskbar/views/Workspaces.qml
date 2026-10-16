@@ -195,6 +195,11 @@ FocusScope {
             event.accepted = true
             return
         }
+        if (event.key === Qt.Key_Backspace) {
+            IslandState.send(IslandState.Event.Back)
+            event.accepted = true
+            return
+        }
         if (handleGridNavigation(event.key)) {
             event.accepted = true
             return
@@ -236,7 +241,7 @@ FocusScope {
 
                 Pill { text: "prev"; onClicked: Workspaces.stepWorkspace(-1, minWorkspaceId, maxWorkspaceId) }
                 Pill { text: "next"; onClicked: Workspaces.stepWorkspace(1, minWorkspaceId, maxWorkspaceId) }
-                Pill { text: "back"; onClicked: IslandState.send(IslandState.Event.Back) }
+                Pill { text: "back"; onClicked: IslandState.send(IslandState.openHome()) }
             }
         }
 

@@ -4,7 +4,7 @@ import QtQuick
 
 QtObject {
     readonly property var entries: [
-        { view: IslandState.View.Idle,       name: "idle",       url: Qt.resolvedUrl("views/Idle.qml"),          hold: 0,    priority: 0, timeout: 140 },
+        { view: IslandState.View.Idle,       name: "idle",       url: Qt.resolvedUrl("views/Idle.qml"),          hold: 0,    priority: 0, timeout: 3000, keys: true },
         { view: IslandState.View.Media,      name: "media",      url: Qt.resolvedUrl("views/Media.qml"),         hold: 0,    priority: 1, timeout: 2000 },
         { view: IslandState.View.Notify,     name: "notify",     url: Qt.resolvedUrl("views/Notify.qml"),        hold: 3500, priority: 2, timeout: 2000, defer: true },
         { view: IslandState.View.Volume,     name: "volume",     url: Qt.resolvedUrl("views/Volume.qml"),        hold: 1500, priority: 1, timeout: 0 },
@@ -14,7 +14,7 @@ QtObject {
         { view: IslandState.View.Theme,      name: "theme",      url: Qt.resolvedUrl("views/Theme.qml"),         hold: 0,    priority: 1, timeout: 0 },
         { view: IslandState.View.Bluetooth,  name: "bluetooth",  url: Qt.resolvedUrl("views/Bluetooth.qml"),     hold: 0,    priority: 1, timeout: 0 },
         { view: IslandState.View.Launcher,   name: "launcher",   url: Qt.resolvedUrl("views/Launcher.qml"),      hold: 0,    priority: 1, timeout: 2000, keys: true },
-        { view: IslandState.View.Workspaces, name: "workspaces", url: Qt.resolvedUrl("views/Workspaces.qml"),   hold: 0,    priority: 1, timeout: 0 }
+        { view: IslandState.View.Workspaces, name: "workspaces", url: Qt.resolvedUrl("views/Workspaces.qml"),    hold: 0,    priority: 1, timeout: 0 }
     ]
 
     function get(view)      { return entries.find(e => e.view === view) || null }
