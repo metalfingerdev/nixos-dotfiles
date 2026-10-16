@@ -1,19 +1,15 @@
-//@ pragma UseQApplication
-//@ pragma Env QS_NO_RELOAD_POPUP=1
-//@ pragma Env QT_QUICK_CONTROLS_STYLE=Basic
-
 import QtQuick
 import Quickshell
-import "modules/dynamicGlacier" as Island
-import "modules/desktopWidgets" as Apps
+import qs.modules.taskbar
+import qs.modules.desktopWidgets
 
 ShellRoot {
     id: root
 
-    Island.DynamicGlacier {
+    Bar {
     }
 
-    Apps.DesktopWidgets {
+    DesktopWidgets {
     }
 
 }

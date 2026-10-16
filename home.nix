@@ -23,7 +23,6 @@
     usbutils
     material-symbols
     awww
-    fuzzel
     nemo
     yazi
     neovim
@@ -38,7 +37,16 @@
     gcc
     file
     jq
+    papirus-icon-theme
   ];
+
+  gtk = {
+    enable = true;
+    iconTheme = {
+      name = "Papirus";
+      package = pkgs.papirus-icon-theme;
+    };
+  };
 
   home.pointerCursor = {
     enable = true;
@@ -67,9 +75,7 @@
 
   programs.ssh = {
     enable = true;
-    enableDefaultConfig = false;
   };
-
 
   programs.git = {
     enable = true;

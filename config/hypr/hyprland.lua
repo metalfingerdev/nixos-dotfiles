@@ -218,7 +218,7 @@ hl.device({
 
 local terminal    = "kitty"
 local fileManager = "yazi"
-local menu        = "fuzzel"
+local menu        = "quickshell icp call island open launcher"
 local browser     = "firefox"
 local fastfetch   = "fastfetch"
 
@@ -240,9 +240,9 @@ hl.bind(mainMod .. " + ALT + SPACE",      hl.dsp.layout("togglesplit"))
 hl.bind(mainMod .. " + F",                hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + A",                hl.dsp.window.pin())
 
-hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("quickshell ipc call dynamicGlacier toggleHandle"))
-hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("quickshell ipc call dynamicGlacier bluetooth"))
-hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("quickshell ipc call dynamicGlacier battery"))
+hl.bind(mainMod .. " + T",                hl.dsp.exec_cmd("quickshell ipc call island toggleHandle"))
+hl.bind(mainMod .. " + B",                hl.dsp.exec_cmd("quickshell ipc call island open bluetooth"))
+hl.bind(mainMod .. " + P",                hl.dsp.exec_cmd("quickshell ipc call island battery"))
 
 hl.bind(mainMod .. " + SPACE", function()
     hl.dispatch(hl.dsp.window.cycle_next({
@@ -250,27 +250,27 @@ hl.bind(mainMod .. " + SPACE", function()
     }))
 end, { description = "Switch focus between tiled and floating windows" })
 
-hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))
-hl.bind(mainMod .. " + SHIFT + Return", hl.dsp.exec_cmd(terminal .. " --hold -e " .. fastfetch))
-hl.bind(mainMod .. " + E",      hl.dsp.exec_cmd(terminal .. " -e " .. fileManager))
-hl.bind(mainMod .. " + D",      hl.dsp.exec_cmd(menu))
-hl.bind(mainMod .. " + W",      hl.dsp.exec_cmd(browser))
+hl.bind(mainMod .. " + SHIFT + Return",   hl.dsp.exec_cmd(terminal .. " --hold -e " .. fastfetch))
+hl.bind(mainMod .. " + Return",           hl.dsp.exec_cmd(terminal))
+hl.bind(mainMod .. " + E",                hl.dsp.exec_cmd(terminal .. " -e " .. fileManager))
+hl.bind(mainMod .. " + D",                hl.dsp.exec_cmd(menu))
+hl.bind(mainMod .. " + W",                hl.dsp.exec_cmd(browser))
 
 -- Screenshots
-hl.bind("PRINT",                       hl.dsp.exec_cmd("grimblast --notify copy area"),   { locked = true })
-hl.bind(mainMod .. " + PRINT",         hl.dsp.exec_cmd("grimblast --notify copy screen"), { locked = true })
-hl.bind(mainMod .. " + SHIFT + PRINT", hl.dsp.exec_cmd("grimblast --notify save area ~/Pictures/Screenshots/$(date +%s).png"), { locked = true })
+hl.bind("PRINT",                          hl.dsp.exec_cmd("grimblast --notify copy area"),   { locked = true })
+hl.bind(mainMod .. " + PRINT",            hl.dsp.exec_cmd("grimblast --notify copy screen"), { locked = true })
+hl.bind(mainMod .. + SHIFT + PRINT ,      hl.dsp.exec_cmd("mkdir -p ~/Pictures/Screenshots && grimblast --notify save area ~/Pictures/Screenshots/$(date +%s).png"), { locked = true })
 
 -- Move focus
-hl.bind(mainMod .. " + Left",  hl.dsp.focus({ direction = "left" }))
-hl.bind(mainMod .. " + Right", hl.dsp.focus({ direction = "right" }))
-hl.bind(mainMod .. " + Up",    hl.dsp.focus({ direction = "up" }))
-hl.bind(mainMod .. " + Down",  hl.dsp.focus({ direction = "down" }))
+hl.bind(mainMod .. " + Left",             hl.dsp.focus({ direction = "left" }))
+hl.bind(mainMod .. " + Right",            hl.dsp.focus({ direction = "right" }))
+hl.bind(mainMod .. " + Up",               hl.dsp.focus({ direction = "up" }))
+hl.bind(mainMod .. " + Down",             hl.dsp.focus({ direction = "down" }))
 
-hl.bind(mainMod .. " + H", hl.dsp.focus({ direction = "left" }))
-hl.bind(mainMod .. " + L", hl.dsp.focus({ direction = "right" }))
-hl.bind(mainMod .. " + K", hl.dsp.focus({ direction = "up" }))
-hl.bind(mainMod .. " + J", hl.dsp.focus({ direction = "down" }))
+hl.bind(mainMod .. " + H",                hl.dsp.focus({ direction = "left" }))
+hl.bind(mainMod .. " + L",                hl.dsp.focus({ direction = "right" }))
+hl.bind(mainMod .. " + K",                hl.dsp.focus({ direction = "up" }))
+hl.bind(mainMod .. " + J",                hl.dsp.focus({ direction = "down" }))
 
 -- Move windows around in the tiling layout
 hl.bind(mainMod .. " + SHIFT + Left", hl.dsp.window.swap({ direction = "left" }))
