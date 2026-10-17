@@ -25,6 +25,7 @@ in
 
   time.timeZone = "Asia/Kolkata";
 
+  services.gvfs.enable = true;
   services.xserver.enable = true;
   services.gnome.gnome-keyring.enable = true;
   security.polkit.enable = true;
