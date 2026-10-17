@@ -154,6 +154,7 @@ FocusScope {
             property bool searchBarKeyboardFocus: false
 
             Keys.onUpPressed: (event) => {
+                keyboardActive = true
                 if (currentIndex <= 0) {
                     currentIndex = -1
                     searchBarKeyboardFocus = true
@@ -164,6 +165,7 @@ FocusScope {
             }
 
             Keys.onDownPressed: (event) => {
+                keyboardActive = true
                 searchBarKeyboardFocus = false
                 if (count > 0) {
                     currentIndex = currentIndex >= count - 1 ? 0 : currentIndex + 1
