@@ -1,0 +1,45 @@
+{ inputs, self, ... }:
+{
+  flake.nixosConfigurations.omen = inputs.nixpkgs.lib.nixosSystem {
+    modules = [ self.modules.nixos.omen ];
+  };
+
+  flake.modules.nixos.omen = {
+    imports = (with self.modules.nixos; [
+      base
+      desktop
+      hyprland
+      audio
+      bluetooth
+      secure-boot
+      home-manager
+    ]) ++ [ ../../hardware-configuration.nix ];
+
+    nixpkgs.hostPlatform = "x86_64-linux";
+    networking.hostName = "omen";
+    system.stateVersion = "26.05";
+
+    # Omen-specific bug fix: HP bios warning suppress
+    boot.blacklistedKernelModules = [ "hp_bioscfg" ];
+
+    home-manager.users.admin = {
+      imports = with self.modules.homeManager; [
+        hyprland
+        audio
+        kitty
+        neovim
+        yazi
+        fastfetch
+        utils
+        theme
+        git
+        shell
+        vscode
+      ];
+
+      home.username = "admin";
+      home.homeDirectory = "/home/admin";
+      home.stateVersion = "26.05";
+    };
+  };
+}
