@@ -11,6 +11,7 @@
       desktop
       hyprland
       audio
+      ssh
       networking
       bluetooth
       secure-boot

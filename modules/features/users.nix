@@ -5,6 +5,8 @@
       isNormalUser = true;
       description = "admin";
       extraGroups = [ "networkmanager" "wheel" ];
+      openssh.authorizedKeys.keys = [
+      ];
     };
   };
 }
