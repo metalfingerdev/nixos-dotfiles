@@ -7,14 +7,19 @@
       maple-mono.NF
       inter
       material-symbols
-      papirus-icon-theme
+      adwatia-icon-theme
     ];
+
+    home.sessionVariables = {
+      GTK_THEME = "Papirus";
+      XCURSOR_THEME = "macOS";
+    };
 
     gtk = {
       enable = true;
       iconTheme = {
-        name = "Papirus";
-        package = pkgs.papirus-icon-theme;
+        name = "Adwatia";
+        package = pkgs.adwatia-icon-theme;
       };
     };
 
