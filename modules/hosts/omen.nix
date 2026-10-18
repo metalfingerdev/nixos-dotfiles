@@ -7,9 +7,11 @@
   flake.modules.nixos.omen = {
     imports = (with self.modules.nixos; [
       base
+      users
       desktop
       hyprland
       audio
+      networking
       bluetooth
       secure-boot
       home-manager
