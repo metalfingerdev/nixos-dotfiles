@@ -1,94 +1,13 @@
-{ config, pkgs, ... }:
-
+{ ... }:
 {
+  imports = [
+    ./home/dotfiles.nix
+    ./home/packages.nix
+    ./home/theme.nix
+    ./home/programs.nix
+  ];
+
   home.username = "admin";
   home.homeDirectory = "/home/admin";
   home.stateVersion = "26.05";
-
-  fonts.fontconfig.enable = true;
-
-  home.file.".config/quickshell".source = ./config/quickshell;
-  home.file.".config/kitty".source      = ./config/kitty;
-  home.file.".config/hypr".source       = ./config/hypr;
-  home.file.".config/nvim".source       = ./config/nvim;
-  home.file.".config/yazi".source       = ./config/yazi;
-  home.file.".config/fastfetch".source  = ./config/fastfetch;
-  
-  home.packages = with pkgs; [
-    maple-mono.NF
-    inter
-    quickshell
-    pavucontrol
-    pulsemixer
-    usbutils
-    material-symbols
-    awww
-    nemo
-    yazi
-    neovim
-    ripgrep
-    nil
-    grimblast
-    libnotify
-    nixpkgs-fmt
-    brightnessctl
-    fastfetch
-    nodejs
-    gcc
-    file
-    jq
-    papirus-icon-theme
-  ];
-
-  gtk = {
-    enable = true;
-    iconTheme = {
-      name = "Papirus";
-      package = pkgs.papirus-icon-theme;
-    };
-  };
-
-  home.pointerCursor = {
-    enable = true;
-    name = "macOS";
-    package = pkgs.apple-cursor;
-    size = 24;
-    gtk.enable = true;
-    x11.enable = true;
-    hyprcursor = {
-      enable = true;
-      size = 24;
-    };
-  };
-
-  programs.vscode = {
-    enable = true;
-    package = pkgs.vscode-fhs; # Fixes marketplace extension binary crashes
-    
-    profiles.default = {
-      extensions = with pkgs.vscode-extensions; [
-        jnoortheen.nix-ide
-        mkhl.direnv
-      ];
-    };
-  };
-
-  programs.ssh = {
-    enable = true;
-  };
-
-  programs.git = {
-    enable = true;
-    settings.user = {
-      name = "mfdev";
-      email = "prajwalpal@protonmail.com";
-    };
-  };
-
-  programs.bash = {
-    enable = true;
-    shellAliases = {
-      btw = "echo I use NixOS btw";
-      };
-  };
 }
