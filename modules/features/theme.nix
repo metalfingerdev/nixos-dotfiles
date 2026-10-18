@@ -7,7 +7,7 @@
       maple-mono.NF
       inter
       material-symbols
-      adwatia-icon-theme
+      adwaita-icon-theme
     ];
 
     home.sessionVariables = {
@@ -19,7 +19,7 @@
       enable = true;
       iconTheme = {
         name = "Adwatia";
-        package = adwatia-icon-theme;
+        package = pkgs.adwaita-icon-theme;
       };
     };
 
