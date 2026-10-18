@@ -19,7 +19,7 @@
       enable = true;
       iconTheme = {
         name = "Adwatia";
-        package = pkgs.adwatia-icon-theme;
+        package = adwatia-icon-theme;
       };
     };
 
