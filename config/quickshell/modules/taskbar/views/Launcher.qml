@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
 import qs.modules.taskbar
-import qs.config
+import qs.modules.config
 
 FocusScope {
     id: launcherRoot
