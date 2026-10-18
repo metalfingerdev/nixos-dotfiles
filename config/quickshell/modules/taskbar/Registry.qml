@@ -13,8 +13,10 @@ QtObject {
         { view: IslandState.View.Brightness, name: "brightness", url: Qt.resolvedUrl("views/Backlight.qml"),     hold: 1500, priority: 1, timeout: 0 },
         { view: IslandState.View.Theme,      name: "theme",      url: Qt.resolvedUrl("views/Theme.qml"),         hold: 0,    priority: 1, timeout: 0 },
         { view: IslandState.View.Bluetooth,  name: "bluetooth",  url: Qt.resolvedUrl("views/Bluetooth.qml"),     hold: 0,    priority: 1, timeout: 0 },
+        { view: IslandState.View.Network,    name: "network",    url: Qt.resolvedUrl("views/Network.qml"),       hold: 0,    priority: 1, timeout: 0 },
         { view: IslandState.View.Launcher,   name: "launcher",   url: Qt.resolvedUrl("views/Launcher.qml"),      hold: 0,    priority: 1, timeout: 2000, keys: true },
-        { view: IslandState.View.Workspaces, name: "workspaces", url: Qt.resolvedUrl("views/Workspaces.qml"),    hold: 0,    priority: 1, timeout: 0 }
+        { view: IslandState.View.Workspaces, name: "workspaces", url: Qt.resolvedUrl("views/Workspaces.qml"),    hold: 0,    priority: 1, timeout: 0 },
+        { view: IslandState.View.Power,      name: "power",      url: Qt.resolvedUrl("views/Power.qml"),         hold: 0,    priority: 1, timeout: 2000 },
     ]
 
     function get(view)      { return entries.find(e => e.view === view) || null }

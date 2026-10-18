@@ -13,7 +13,7 @@ FocusScope {
     }
 
     implicitWidth: 1080
-    implicitHeight: 72
+    implicitHeight: 54
 
     // Allows the parent window to know if keyboard routing is active
     property bool keyboardActive: false
@@ -56,16 +56,15 @@ FocusScope {
         anchors.centerIn: parent
         spacing: 16
 
-        Text {
+        Pill {
             property int itemIndex: 0
             anchors.verticalCenter: parent.verticalCenter
             text: Qt.formatDateTime(clock.date, "HH:mm")
-            color: (keyboardActive && root.currentIndex === itemIndex) ? "#3a86ff" : "#f7f7f7"
-            font.pixelSize: 22
-            function triggered() {
-                // Optional: Action when Enter is pressed on the clock
-            }
+            keyboardSelected: keyboardActive && (root.currentIndex === itemIndex)
+
+            function triggered() { clicked() }
         }
+
 
         Pill {
             property int itemIndex: 1
@@ -118,7 +117,7 @@ FocusScope {
         Pill {
             property int itemIndex: 5
             anchors.verticalCenter: parent.verticalCenter
-            text: "notify"
+            text: "notifications"
             keyboardSelected: keyboardActive && (root.currentIndex === itemIndex)
             onClicked: {
                 keyboardActive = false
@@ -154,7 +153,10 @@ FocusScope {
             property int itemIndex: 8
             text: "network"
             keyboardSelected: keyboardActive && (root.currentIndex === itemIndex)
-            onClicked: keyboardActive = false
+            onClicked: {
+                keyboardActive = false
+                IslandState.send(IslandState.Event.Open, IslandState.View.Network)
+            }
             function triggered() { clicked() }
         }
 
@@ -162,7 +164,10 @@ FocusScope {
             property int itemIndex: 9
             text: "power"
             keyboardSelected: keyboardActive && (root.currentIndex === itemIndex)
-            onClicked: keyboardActive = false
+            onClicked: {
+                keyboardActive = false
+                IslandState.send(IslandState.Event.Open, IslandState.View.Power)
+            }
             function triggered() { clicked() }
         }
     }

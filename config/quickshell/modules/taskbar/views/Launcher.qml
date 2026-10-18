@@ -225,7 +225,18 @@ FocusScope {
                     IconImage {
                         implicitSize: 32
                         asynchronous: true
-                        source: Quickshell.iconPath(modelData.icon, "application-x-executable")
+                        
+                        // Check if the primary icon exists. If not, try a reliable fallback name.
+                        // If that also fails, fallback to a generic executable icon.
+                        source: {
+                            let primary = Quickshell.iconPath(modelData.icon, "")
+                            if (primary !== "") return primary
+                    
+                            let fallback = Quickshell.iconPath("application-x-executable", "")
+                            if (fallback !== "") return fallback
+                    
+                            return "" 
+                        }
                     }
 
                     Text {

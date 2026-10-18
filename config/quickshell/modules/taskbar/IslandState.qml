@@ -12,7 +12,7 @@ QtObject {
     id: root
 
     enum Phase  { Collapsed, Peek, Pinned, Transient }
-    enum View   { Idle, Media, Notify, Compact, Dashboard, Volume, Brightness, Theme, Bluetooth, Launcher, Workspaces }
+    enum View   { Idle, Media, Notify, Compact, Dashboard, Volume, Brightness, Theme, Bluetooth, Launcher, Workspaces, Network, Power }
     enum Event  { HoverIn, HoverOut, Click, Outside, Escape, Open, Back, Alert, Expire, Close, Engage, Release }
     enum Mode   { Pill, Notch }
     enum Widget { Clock, Date }
@@ -25,7 +25,7 @@ QtObject {
     property bool engaged: false                       // the current view says "the user is working in me" (keyboard etc.)
 
     // ---- config ----
-    property int mode: IslandState.Mode.Notch
+    property int mode: IslandState.Mode.Pill
     property bool space: true                          // reserve screen space; rest shows the default view instead of the handle
     property int compactWidget: IslandState.Widget.Clock   // the default view's content
     readonly property int compactHeight: 28
