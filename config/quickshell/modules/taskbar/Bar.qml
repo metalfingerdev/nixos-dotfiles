@@ -71,13 +71,14 @@ Scope {
 
             readonly property int pad: 8
 
-            anchors.horizontalCenter: parent.horizontalCenter
+            x: (1920 - island.width) / 2
+
             anchors.top: parent.top
             anchors.topMargin: 0  // Locked at 0 to maintain continuous mouse hit testing
 
-            width: island.width + pad * 2
+            width: island.width
             // Height spans from the screen top through the gap offset down to the bottom padding
-            height: (island.open ? island.topGap : 0) + island.height + pad
+            height: (island.open ? island.topGap : 0) + island.height
 
             // Escape from a focused view bubbles up to here (screenArea no longer holds focus then)
             Keys.onEscapePressed: IslandState.send(IslandState.Event.Escape)

@@ -1,0 +1,7 @@
+module qs.modules.taskbar.views.workspaces
+WorkspaceTile 1.0 WorkspaceTile.qml
+SpecialStrip 1.0 SpecialStrip.qml
+SpecialTile 1.0 SpecialTile.qml
+WindowTip 1.0 WindowTip.qml
+RoundedImage 1.0 RoundedImage.qml
+WindowPreview 1.0 WindowPreview.qml

@@ -1,509 +1,359 @@
 import QtQuick
-import QtQuick.Layouts
-import qs.modules.services
+import Quickshell
+import Quickshell.Hyprland
 import qs.modules.taskbar
 
+
+import qs.modules.services
+import qs.modules.taskbar.views.workspaces
+
+// Workspace overview, after quickshell-overview: a grid of monitor-shaped tiles with live window
+// previews, drag & drop between workspaces, and a strip of special workspaces.
+//
+// Island contract (see Island.qml): implicitWidth/Height drive the morph, closeRequested() asks to close.
+// Registry marks this view `keys: true`, so it owns the keyboard the moment it opens.
 FocusScope {
     id: root
 
-    readonly property int rows: 2
-    readonly property int columns: 5
-    readonly property bool hideEmptyRows: true
-    readonly property bool orderRightLeft: false
-    readonly property bool orderBottomUp: false
+    signal closeRequested()
 
+    readonly property var cfg: OverviewConfig
+
+    // ---- which monitor this island sits on ----
+    readonly property var screen: QsWindow.window?.screen ?? null
+    readonly property var monitor: (screen ? Hyprland.monitorFor(screen) : null) ?? Hyprland.focusedMonitor
+    readonly property var monitorData: Workspaces.monitorById(monitor?.id)
+
+    // Usable area of that monitor in logical px (what a window's `at`/`size` are measured in).
+    readonly property real monitorScale: monitorData?.scale ?? monitor?.scale ?? 1
+    readonly property bool rotated: (monitorData?.transform ?? 0) % 2 === 1
+    readonly property var reserved: monitorData?.reserved ?? [0, 0, 0, 0]
+    readonly property real physicalW: monitorData?.width ?? monitor?.width ?? 1920
+    readonly property real physicalH: monitorData?.height ?? monitor?.height ?? 1080
+    readonly property real usableW: Math.max(1, (rotated ? physicalH : physicalW) / monitorScale - reserved[0] - reserved[2])
+    readonly property real usableH: Math.max(1, (rotated ? physicalW : physicalH) / monitorScale - reserved[1] - reserved[3])
+
+    // ---- grid ----
+    readonly property int rows: cfg.rows
+    readonly property int columns: cfg.columns
     readonly property int workspacesShown: rows * columns
-    readonly property int workspaceOffset: 0
-    readonly property int activeWorkspaceId: Math.max(1, Workspaces.activeId > 0 ? Workspaces.activeId : 1)
+    readonly property int gap: cfg.workspaceSpacing
+    readonly property int pad: cfg.padding
+
+    // Configured scale, shrunk when the island would not fit on the screen.
+    readonly property real maxContentWidth: (screen?.width ?? usableW) * cfg.maxWidthFraction - pad * 2
+    readonly property real previewScale: Math.max(0.02, Math.min(cfg.scale,
+        (maxContentWidth - (columns - 1) * gap) / (columns * usableW)))
+    readonly property real tileW: Math.round(usableW * previewScale)
+    readonly property real tileH: Math.round(usableH * previewScale)
+    readonly property real numberSize: cfg.workspaceNumberBaseSize * monitorScale * previewScale
+
+    // ---- which workspaces are shown: the group of `workspacesShown` ids around the active one ----
+    readonly property int workspaceOffset: cfg.useWorkspaceMap ? Number(cfg.workspaceMap[monitor?.id] ?? 0) : 0
+    readonly property int activeWorkspaceId: Math.max(1, Math.min(100, monitor?.activeWorkspace?.id ?? Workspaces.activeId))
     readonly property int workspaceGroup: Math.floor((activeWorkspaceId - workspaceOffset - 1) / workspacesShown)
     readonly property int minWorkspaceId: workspaceGroup * workspacesShown + 1 + workspaceOffset
     readonly property int maxWorkspaceId: minWorkspaceId + workspacesShown - 1
 
-    readonly property int headerH: 44
-    readonly property int spacing: 8
-    readonly property int cellW: 98
-    readonly property int cellH: 62
-    readonly property int specialCellW: 98
-    readonly property int specialCellH: 46
+    // Wheel steps through every workspace, not only the visible group.
+    readonly property int stepMin: workspaceOffset + 1
+    readonly property int stepMax: Math.max(stepMin + workspacesShown - 1, Workspaces.highestId(stepMin), activeWorkspaceId)
 
-    property int draggingTargetWorkspace: -1
-    property string draggingTargetSpecialWorkspace: ""
-    readonly property string createSpecialWorkspaceTarget: "__create_special_workspace__"
+    function toVisualRow(normalRow)       { return cfg.orderBottomUp ? rows - normalRow - 1 : normalRow }
+    function toVisualColumn(normalColumn) { return cfg.orderRightLeft ? columns - normalColumn - 1 : normalColumn }
 
-    readonly property var monitorSpecialWorkspaceNames: {
-        const out = []
-        const seen = ({})
-        for (let i = 0; i < Workspaces.allWorkspaces.length; i++) {
-            const ws = Workspaces.allWorkspaces[i]
-            const name = String(ws?.name ?? "")
-            if (!name.startsWith("special:")) continue
-            const special = name.slice(8)
-            if (special.length === 0 || seen[special]) continue
-            seen[special] = true
-            out.push(special)
-        }
-        return out
+    function rowOf(workspaceId) {
+        const normal = Math.floor((workspaceId - workspaceOffset - 1) / columns) % rows
+        return toVisualRow(normal)
+    }
+    function columnOf(workspaceId) {
+        return toVisualColumn((workspaceId - workspaceOffset - 1) % columns)
+    }
+    function workspaceInCell(rowIndex, colIndex) {
+        return minWorkspaceId + toVisualRow(rowIndex) * columns + toVisualColumn(colIndex)
     }
 
-    readonly property var specialWorkspaceNamesFromWindows: {
-        const out = []
-        const seen = ({})
-        for (let i = 0; i < Workspaces.windowList.length; i++) {
-            const name = Workspaces.specialWorkspaceName(Workspaces.windowList[i])
-            if (name.length === 0 || seen[name]) continue
-            seen[name] = true
-            out.push(name)
-        }
-        return out
-    }
-
-    readonly property var visibleSpecialWorkspaces: {
-        const out = []
-        const seen = ({})
-        for (let i = 0; i < monitorSpecialWorkspaceNames.length; i++) {
-            const n1 = String(monitorSpecialWorkspaceNames[i] || "").trim()
-            if (n1.length > 0 && !seen[n1]) { seen[n1] = true; out.push(n1) }
-        }
-        for (let j = 0; j < specialWorkspaceNamesFromWindows.length; j++) {
-            const n2 = String(specialWorkspaceNamesFromWindows[j] || "").trim()
-            if (n2.length > 0 && !seen[n2]) { seen[n2] = true; out.push(n2) }
-        }
-        return out
-    }
-
+    // Rows that have a window or the active workspace (empty rows are hidden when hideEmptyRows is on).
     readonly property var rowsWithContent: {
-        if (!hideEmptyRows) return null
+        if (!cfg.hideEmptyRows) return null
         const used = ({})
-        used[getWorkspaceRow(activeWorkspaceId)] = true
+        if (activeWorkspaceId >= minWorkspaceId && activeWorkspaceId <= maxWorkspaceId)
+            used[rowOf(activeWorkspaceId)] = true
         for (let i = 0; i < Workspaces.windowList.length; i++) {
-            const win = Workspaces.windowList[i]
-            const wsId = Number(win?.workspace?.id ?? -1)
-            if (!Number.isFinite(wsId)) continue
-            if (wsId < minWorkspaceId || wsId > maxWorkspaceId) continue
-            used[getWorkspaceRow(wsId)] = true
+            const id = Number(Workspaces.windowList[i]?.workspace?.id ?? -1)
+            if (id >= minWorkspaceId && id <= maxWorkspaceId) used[rowOf(id)] = true
         }
         return used
     }
-
     readonly property int visibleRowCount: {
-        if (!hideEmptyRows || !rowsWithContent) return rows
-        let c = 0
-        for (let i = 0; i < rows; i++) if (rowsWithContent[i]) c++
-        return Math.max(1, c)
+        if (!rowsWithContent) return rows
+        let count = 0
+        for (let i = 0; i < rows; i++) if (rowsWithContent[i]) count++
+        return Math.max(1, count)
+    }
+    function rowVisible(rowIndex) { return !rowsWithContent || !!rowsWithContent[rowIndex] }
+    function visibleRowPosition(rowIndex) {
+        if (!rowsWithContent) return rowIndex
+        let position = 0
+        for (let i = 0; i < rowIndex; i++) if (rowsWithContent[i]) position++
+        return position
     }
 
-    function toVisualRow(normalRow) {
-        return orderBottomUp ? (rows - normalRow - 1) : normalRow
-    }
+    // ---- special workspaces ----
+    readonly property var specialNames: cfg.showSpecialWorkspaces
+        ? Workspaces.specialWorkspaceNames(monitor?.name, monitor?.id, cfg.specialWorkspaces)
+        : []
 
-    function toVisualColumn(normalColumn) {
-        return orderRightLeft ? (columns - normalColumn - 1) : normalColumn
-    }
+    // ---- content geometry ----
+    readonly property real gridW: columns * tileW + (columns - 1) * gap
+    readonly property real gridH: visibleRowCount * tileH + (visibleRowCount - 1) * gap
+    readonly property real stripGap: gap * 1.8 + gap
 
-    function toNormalRow(visualRow) {
-        return orderBottomUp ? (rows - visualRow - 1) : visualRow
-    }
+    implicitWidth: content.width + pad * 2
+    implicitHeight: content.height + pad * 2
 
-    function toNormalColumn(visualColumn) {
-        return orderRightLeft ? (columns - visualColumn - 1) : visualColumn
-    }
-
-    function getWorkspaceRow(workspaceId) {
-        const adjusted = workspaceId - workspaceOffset
-        const normal = Math.floor((adjusted - 1) / columns) % rows
-        return orderBottomUp ? (rows - normal - 1) : normal
-    }
-
-    function getWorkspaceColumn(workspaceId) {
-        const adjusted = workspaceId - workspaceOffset
-        const normal = (adjusted - 1) % columns
-        return orderRightLeft ? (columns - normal - 1) : normal
-    }
-
-    function getWorkspaceInCell(rowIndex, colIndex) {
-        const mappedRow = orderBottomUp ? (rows - rowIndex - 1) : rowIndex
-        const mappedCol = orderRightLeft ? (columns - colIndex - 1) : colIndex
-        return workspaceGroup * workspacesShown + mappedRow * columns + mappedCol + 1 + workspaceOffset
-    }
-
-    function getVisibleRowPosition(rowIndex) {
-        if (!hideEmptyRows || !rowsWithContent) return rowIndex
-        let visibleRow = 0
-        for (let i = 0; i < rowIndex; i++) if (rowsWithContent[i]) visibleRow++
-        return visibleRow
-    }
-
-    function workspaceHasWindows(workspaceId) {
-        for (let i = 0; i < Workspaces.windowList.length; i++) {
-            const wsId = Number(Workspaces.windowList[i]?.workspace?.id ?? -1)
-            if (wsId === workspaceId && Workspaces.specialWorkspaceName(Workspaces.windowList[i]) === "") return true
-        }
-        return false
-    }
-
+    // ---- actions ----
     function selectWorkspace(workspaceId) {
         Workspaces.focus(workspaceId)
-        IslandState.send(IslandState.Event.Close)
+        closeRequested()
     }
-
     function selectWindow(address) {
         Workspaces.focusWindow(address)
-        IslandState.send(IslandState.Event.Close)
+        closeRequested()
+    }
+    function toggleSpecial(name) {
+        Workspaces.toggleSpecial(name)
+        closeRequested()
+    }
+    function createSpecial() {
+        Workspaces.toggleSpecial(Workspaces.nextSpecialWorkspaceName(specialNames))
+        closeRequested()
     }
 
-    function handleGridNavigation(key) {
-        const clampedIndex = Math.max(0, Math.min(workspacesShown - 1, activeWorkspaceId - minWorkspaceId))
-        const currentNormalRow = Math.floor(clampedIndex / columns)
-        const currentNormalColumn = clampedIndex % columns
-
-        let targetVisualRow = toVisualRow(currentNormalRow)
-        let targetVisualColumn = toVisualColumn(currentNormalColumn)
+    // arrows / hjkl move the focus around the grid, 1-9 and 0 jump to a position in the group
+    function navigate(key) {
+        const index = Math.max(0, Math.min(workspacesShown - 1, activeWorkspaceId - minWorkspaceId))
+        let row = toVisualRow(Math.floor(index / columns))
+        let column = toVisualColumn(index % columns)
         let targetId = -1
 
-        if (key === Qt.Key_Left || key === Qt.Key_H) targetVisualColumn = (targetVisualColumn - 1 + columns) % columns
-        else if (key === Qt.Key_Right || key === Qt.Key_L) targetVisualColumn = (targetVisualColumn + 1) % columns
-        else if (key === Qt.Key_Up || key === Qt.Key_K) targetVisualRow = (targetVisualRow - 1 + rows) % rows
-        else if (key === Qt.Key_Down || key === Qt.Key_J) targetVisualRow = (targetVisualRow + 1) % rows
+        if (key === Qt.Key_Left || key === Qt.Key_H)       column = (column - 1 + columns) % columns
+        else if (key === Qt.Key_Right || key === Qt.Key_L) column = (column + 1) % columns
+        else if (key === Qt.Key_Up || key === Qt.Key_K)    row = (row - 1 + rows) % rows
+        else if (key === Qt.Key_Down || key === Qt.Key_J)  row = (row + 1) % rows
         else if (key >= Qt.Key_1 && key <= Qt.Key_9) {
             const position = key - Qt.Key_0
-            if (position <= workspacesShown) targetId = minWorkspaceId + position - 1
+            if (position > workspacesShown) return false
+            targetId = minWorkspaceId + position - 1
         } else if (key === Qt.Key_0 && workspacesShown >= 10) {
             targetId = minWorkspaceId + 9
         } else {
             return false
         }
 
-        if (targetId === -1) {
-            const targetNormalRow = toNormalRow(targetVisualRow)
-            const targetNormalColumn = toNormalColumn(targetVisualColumn)
-            targetId = minWorkspaceId + targetNormalRow * columns + targetNormalColumn
-        }
+        if (targetId === -1)
+            targetId = minWorkspaceId + toVisualRow(row) * columns + toVisualColumn(column)
 
-        const clampedTarget = Math.max(minWorkspaceId, Math.min(maxWorkspaceId, targetId))
-        Workspaces.focus(clampedTarget)
+        Workspaces.focus(Math.max(minWorkspaceId, Math.min(maxWorkspaceId, targetId)))
         return true
     }
 
-    implicitWidth: 560
-    implicitHeight: headerH + visibleRowCount * cellH + Math.max(0, visibleRowCount - 1) * spacing + (visibleSpecialWorkspaces.length > 0 ? (spacing + specialCellH) : 0) + 28
+    // ---- shared drag state (read by tiles, written by window previews) ----
+    QtObject {
+        id: dragState
 
+        readonly property string createTarget: "__create_special_workspace__"
+        property int fromWorkspace: -1
+        property int targetWorkspace: -1
+        property string targetSpecial: ""
+        property var specialNames: root.specialNames
+        readonly property bool idle: targetWorkspace === -1 && targetSpecial === ""
+
+        function reset() {
+            fromWorkspace = -1
+            targetWorkspace = -1
+            targetSpecial = ""
+        }
+    }
+
+    // ---- snapshot mode: ask previews to re-capture when windows change ----
+    property int recaptureToken: 0
+
+    Connections {
+        target: Hyprland
+        enabled: root.cfg.eventPreviews
+
+        function onRawEvent(event) {
+            const name = String(event?.name ?? event?.event ?? event?.type ?? "")
+            if (name === "openwindow" || name === "closewindow" || name === "movewindow")
+                root.recaptureToken += 1
+        }
+    }
+
+    // ---- input ----
     Component.onCompleted: forceActiveFocus()
 
     Keys.onPressed: event => {
         if (event.key === Qt.Key_Escape || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-            IslandState.send(IslandState.Event.Close)
+            root.closeRequested()
             event.accepted = true
-            return
-        }
-        if (event.key === Qt.Key_Backspace) {
+        } else if (event.key === Qt.Key_Backspace) {
             IslandState.send(IslandState.Event.Back)
             event.accepted = true
-            return
-        }
-        if (handleGridNavigation(event.key)) {
+        } else if (root.navigate(event.key)) {
             event.accepted = true
-            return
         }
     }
 
     WheelHandler {
+        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
         onWheel: event => {
             const dy = event.angleDelta.y
             if (!dy) return
-            Workspaces.stepWorkspace(dy > 0 ? -1 : 1, minWorkspaceId, maxWorkspaceId)
+            Workspaces.stepWorkspace(dy > 0 ? -1 : 1, root.stepMin, root.stepMax)
             event.accepted = true
         }
     }
 
-    Column {
+    // Clicks on the padding between tiles belong to the view; only a click *outside* the island closes it.
+    MouseArea {
         anchors.fill: parent
-        anchors.margins: 8
-        spacing: root.spacing
+        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+        onPressed: mouse => mouse.accepted = true
+    }
 
+    // ---- content ----
+    Item {
+        id: content
+
+        x: root.pad
+        y: root.pad
+        width: root.gridW
+        height: root.gridH + (strip.visible ? root.stripGap + strip.height : 0)
+
+        // workspace tiles
         Item {
-            width: parent.width
-            height: root.headerH
+            id: grid
+            width: root.gridW
+            height: root.gridH
 
-            Text {
-                x: 12
-                anchors.verticalCenter: parent.verticalCenter
-                text: "Workspaces"
-                color: "#f7f7f7"
-                font.pixelSize: 14
-                font.bold: true
-            }
+            Repeater {
+                model: root.workspacesShown
 
-            Row {
-                anchors.right: parent.right
-                anchors.rightMargin: 10
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 8
+                delegate: WorkspaceTile {
+                    required property int index
 
-                Pill { text: "prev"; onClicked: Workspaces.stepWorkspace(-1, minWorkspaceId, maxWorkspaceId) }
-                Pill { text: "next"; onClicked: Workspaces.stepWorkspace(1, minWorkspaceId, maxWorkspaceId) }
-                Pill { text: "back"; onClicked: IslandState.send(IslandState.openHome()) }
-            }
-        }
+                    readonly property int rowIndex: Math.floor(index / root.columns)
+                    readonly property int colIndex: index % root.columns
 
-        Rectangle {
-            id: gridBox
-            width: parent.width
-            height: visibleRowCount * cellH + Math.max(0, visibleRowCount - 1) * root.spacing
-            radius: 12
-            color: "#131313"
-            border.width: 1
-            border.color: "#2a2a2a"
+                    visible: root.rowVisible(rowIndex)
+                    x: colIndex * (root.tileW + root.gap)
+                    y: root.visibleRowPosition(rowIndex) * (root.tileH + root.gap)
+                    width: root.tileW
+                    height: root.tileH
+                    workspaceId: root.workspaceInCell(rowIndex, colIndex)
+                    previewScale: root.previewScale
+                    numberSize: root.numberSize
+                    dnd: dragState
 
-            Grid {
-                id: workspaceGrid
-                anchors.centerIn: parent
-                rows: root.rows
-                columns: root.columns
-                rowSpacing: root.spacing
-                columnSpacing: root.spacing
-
-                Repeater {
-                    model: root.rows * root.columns
-                    delegate: Rectangle {
-                        required property int index
-                        readonly property int rowIndex: Math.floor(index / root.columns)
-                        readonly property int colIndex: index % root.columns
-                        readonly property int workspaceValue: root.getWorkspaceInCell(rowIndex, colIndex)
-                        readonly property bool visibleRow: !root.hideEmptyRows || !!root.rowsWithContent[rowIndex]
-                        readonly property bool active: workspaceValue === Workspaces.activeId
-                        readonly property bool hasWindows: root.workspaceHasWindows(workspaceValue)
-                        property bool hoveredWhileDragging: false
-
-                        width: root.cellW
-                        height: visibleRow ? root.cellH : 0
-                        visible: visibleRow
-                        radius: 10
-                        color: active ? "#1d3b5d" : (hoveredWhileDragging ? "#1f252f" : "#101010")
-                        border.width: active ? 2 : 1
-                        border.color: active ? "#70a7ff" : (hoveredWhileDragging ? "#5c6f89" : "#2a2a2a")
-
-                        MouseArea {
-                            anchors.fill: parent
-                            acceptedButtons: Qt.LeftButton
-                            onClicked: root.selectWorkspace(parent.workspaceValue)
-                        }
-
-                        DropArea {
-                            anchors.fill: parent
-                            onEntered: {
-                                root.draggingTargetSpecialWorkspace = ""
-                                root.draggingTargetWorkspace = parent.workspaceValue
-                                parent.hoveredWhileDragging = true
-                            }
-                            onExited: {
-                                if (root.draggingTargetWorkspace === parent.workspaceValue)
-                                    root.draggingTargetWorkspace = -1
-                                parent.hoveredWhileDragging = false
-                            }
-                        }
-
-                        Text {
-                            anchors.left: parent.left
-                            anchors.leftMargin: 8
-                            anchors.top: parent.top
-                            anchors.topMargin: 6
-                            text: parent.workspaceValue
-                            color: "#f7f7f7"
-                            font.pixelSize: 12
-                            font.bold: true
-                        }
-
-                        Text {
-                            anchors.right: parent.right
-                            anchors.rightMargin: 8
-                            anchors.top: parent.top
-                            anchors.topMargin: 6
-                            text: hasWindows ? "active" : "empty"
-                            color: hasWindows ? "#9bd18f" : "#808080"
-                            font.pixelSize: 10
-                        }
-
-                        Repeater {
-                            model: Workspaces.windowList.filter(w => {
-                                if (Workspaces.specialWorkspaceName(w) !== "") return false
-                                return Number(w?.workspace?.id ?? -1) === parent.workspaceValue
-                            })
-                            delegate: Rectangle {
-                                required property var modelData
-                                readonly property string address: String(modelData?.address ?? "")
-                                readonly property int monitorId: Number(modelData?.monitor ?? -1)
-                                readonly property var monitor: Workspaces.monitors.find(m => m.id === monitorId)
-                                readonly property real posBaseX: Number(monitor?.x ?? 0) + Number(monitor?.reserved?.[0] ?? 0)
-                                readonly property real posBaseY: Number(monitor?.y ?? 0) + Number(monitor?.reserved?.[1] ?? 0)
-                                readonly property real monW: Math.max(1, Number(monitor?.width ?? 1))
-                                readonly property real monH: Math.max(1, Number(monitor?.height ?? 1))
-                                readonly property real wx: Number(modelData?.at?.[0] ?? 0)
-                                readonly property real wy: Number(modelData?.at?.[1] ?? 0)
-                                readonly property real ww: Number(modelData?.size?.[0] ?? 120)
-                                readonly property real wh: Number(modelData?.size?.[1] ?? 80)
-                                readonly property real scaleX: parent.width / monW
-                                readonly property real scaleY: parent.height / monH
-
-                                x: Math.max(2, Math.min(parent.width - width - 2, (wx - posBaseX) * scaleX))
-                                y: Math.max(18, Math.min(parent.height - height - 2, (wy - posBaseY) * scaleY))
-                                width: Math.max(16, Math.min(parent.width - 4, ww * scaleX))
-                                height: Math.max(12, Math.min(parent.height - 20, wh * scaleY))
-                                radius: 6
-                                color: "#2a2a2a"
-                                border.width: 1
-                                border.color: "#4a4a4a"
-
-                                Text {
-                                    anchors.left: parent.left
-                                    anchors.leftMargin: 4
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: parent.width - 8
-                                    text: String(modelData?.class ?? "window")
-                                    elide: Text.ElideRight
-                                    color: "#dcdcdc"
-                                    font.pixelSize: 9
-                                }
-
-                                MouseArea {
-                                    id: dragArea
-                                    anchors.fill: parent
-                                    acceptedButtons: Qt.LeftButton | Qt.MiddleButton
-                                    drag.target: parent
-                                    hoverEnabled: true
-                                    onPressed: {
-                                        parent.z = 10000
-                                        root.draggingTargetSpecialWorkspace = ""
-                                        root.draggingTargetWorkspace = -1
-                                    }
-                                    onReleased: {
-                                        const targetWorkspace = root.draggingTargetWorkspace
-                                        const targetSpecial = root.draggingTargetSpecialWorkspace
-                                        parent.z = 0
-
-                                        if (targetSpecial === root.createSpecialWorkspaceTarget) {
-                                            const created = Workspaces.nextSpecialWorkspaceName(root.visibleSpecialWorkspaces)
-                                            Workspaces.moveWindowToSpecial(parent.address, created)
-                                        } else if (targetSpecial.length > 0) {
-                                            Workspaces.moveWindowToSpecial(parent.address, targetSpecial)
-                                        } else if (targetWorkspace > 0 && targetWorkspace !== parent.workspaceValue) {
-                                            Workspaces.moveWindowToWorkspace(parent.address, targetWorkspace)
-                                        }
-
-                                        root.draggingTargetSpecialWorkspace = ""
-                                        root.draggingTargetWorkspace = -1
-                                        parent.x = Qt.binding(function() { return Math.max(2, Math.min(parent.parent.width - parent.width - 2, (parent.wx - parent.posBaseX) * parent.scaleX)) })
-                                        parent.y = Qt.binding(function() { return Math.max(18, Math.min(parent.parent.height - parent.height - 2, (parent.wy - parent.posBaseY) * parent.scaleY)) })
-                                    }
-                                    onClicked: mouse => {
-                                        if (mouse.button === Qt.LeftButton) root.selectWindow(parent.address)
-                                        else if (mouse.button === Qt.MiddleButton) Workspaces.closeWindow(parent.address)
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    onActivated: wsId => root.selectWorkspace(wsId)
                 }
             }
         }
 
-        Rectangle {
-            visible: root.visibleSpecialWorkspaces.length > 0
-            width: parent.width
-            height: root.specialCellH
-            radius: 10
-            color: "#151515"
-            border.width: 1
-            border.color: "#2a2a2a"
+        // special workspaces
+        SpecialStrip {
+            id: strip
 
-            Row {
-                anchors.fill: parent
-                anchors.margins: 6
-                spacing: 6
+            visible: root.cfg.showSpecialWorkspaces
+            y: root.gridH + root.stripGap
+            names: root.specialNames
+            sectionWidth: root.gridW
+            tileHeight: root.tileH
+            fallbackTileWidth: root.tileW
+            previewScale: root.previewScale
+            spacing: root.gap
+            monitorData: root.monitorData
+            monitorId: root.monitor?.id ?? 0
+            dnd: dragState
+            tip: sharedTip
+            dragLayer: floatLayer
+            recaptureToken: root.recaptureToken
 
-                Repeater {
-                    model: root.visibleSpecialWorkspaces
-                    delegate: Rectangle {
-                        required property string modelData
-                        readonly property string name: modelData
-                        width: root.specialCellW
-                        height: root.specialCellH - 12
-                        radius: 8
-                        color: root.draggingTargetSpecialWorkspace === name ? "#20334e" : "#101010"
-                        border.width: 1
-                        border.color: root.draggingTargetSpecialWorkspace === name ? "#70a7ff" : "#2a2a2a"
+            onToggleRequested: name => root.toggleSpecial(name)
+            onCreateRequested: root.createSpecial()
+            onWindowActivated: address => root.selectWindow(address)
+        }
 
-                        Text {
-                            anchors.centerIn: parent
-                            text: name
-                            color: "#dcdcdc"
-                            elide: Text.ElideRight
-                            width: parent.width - 10
-                            horizontalAlignment: Text.AlignHCenter
-                            font.pixelSize: 11
-                        }
+        // Windows of the visible workspaces. One layer over the whole grid (not one per tile) so a
+        // thumbnail can be dragged from any tile onto any other, or onto the special strip.
+        Item {
+            id: windowSpace
+            width: content.width
+            height: content.height
+            z: root.cfg.windowZ
 
-                        MouseArea {
-                            anchors.fill: parent
-                            acceptedButtons: Qt.LeftButton
-                            onClicked: {
-                                Workspaces.toggleSpecial(parent.name)
-                                IslandState.send(IslandState.Event.Close)
-                            }
-                        }
-
-                        DropArea {
-                            anchors.fill: parent
-                            onEntered: {
-                                root.draggingTargetWorkspace = -1
-                                root.draggingTargetSpecialWorkspace = parent.name
-                            }
-                            onExited: {
-                                if (root.draggingTargetSpecialWorkspace === parent.name)
-                                    root.draggingTargetSpecialWorkspace = ""
-                            }
-                        }
-                    }
+            Repeater {
+                model: ScriptModel {
+                    values: Toplevels.inRange(root.minWorkspaceId, root.maxWorkspaceId)
                 }
 
-                Rectangle {
-                    width: 42
-                    height: root.specialCellH - 12
-                    radius: 8
-                    color: root.draggingTargetSpecialWorkspace === root.createSpecialWorkspaceTarget ? "#28445f" : "#101010"
-                    border.width: 1
-                    border.color: root.draggingTargetSpecialWorkspace === root.createSpecialWorkspaceTarget ? "#70a7ff" : "#2a2a2a"
+                delegate: WindowPreview {
+                    id: win
+                    required property var modelData
+                    required property int index
 
-                    Text {
-                        anchors.centerIn: parent
-                        text: "+"
-                        color: "#dcdcdc"
-                        font.pixelSize: 18
-                        font.bold: true
-                    }
+                    readonly property int tileColumn: root.columnOf(workspaceId)
+                    readonly property int tileRow: root.visibleRowPosition(root.rowOf(workspaceId))
 
-                    MouseArea {
-                        anchors.fill: parent
-                        acceptedButtons: Qt.LeftButton
-                        onClicked: {
-                            const name = Workspaces.nextSpecialWorkspaceName(root.visibleSpecialWorkspaces)
-                            Workspaces.toggleSpecial(name)
-                            IslandState.send(IslandState.Event.Close)
-                        }
-                    }
+                    toplevel: modelData
+                    dnd: dragState
+                    tip: sharedTip
+                    widgetMonitorData: root.monitorData
+                    widgetMonitorId: root.monitor?.id ?? 0
+                    previewScale: root.previewScale
+                    availableWorkspaceWidth: root.tileW
+                    availableWorkspaceHeight: root.tileH
+                    xOffset: (root.tileW + root.gap) * tileColumn
+                    yOffset: (root.tileH + root.gap) * tileRow
+                    baseZ: root.cfg.windowZ + index
+                    recaptureToken: root.recaptureToken
 
-                    DropArea {
-                        anchors.fill: parent
-                        onEntered: {
-                            root.draggingTargetWorkspace = -1
-                            root.draggingTargetSpecialWorkspace = root.createSpecialWorkspaceTarget
-                        }
-                        onExited: {
-                            if (root.draggingTargetSpecialWorkspace === root.createSpecialWorkspaceTarget)
-                                root.draggingTargetSpecialWorkspace = ""
-                        }
-                    }
+                    onActivated: address => root.selectWindow(address)
                 }
             }
+
+            // focused workspace
+            Rectangle {
+                readonly property int column: root.columnOf(root.activeWorkspaceId)
+                readonly property int row: root.visibleRowPosition(root.rowOf(root.activeWorkspaceId))
+
+                visible: root.activeWorkspaceId >= root.minWorkspaceId && root.activeWorkspaceId <= root.maxWorkspaceId
+                x: (root.tileW + root.gap) * column
+                y: (root.tileH + root.gap) * row
+                z: root.cfg.dragZ - 1
+                width: root.tileW
+                height: root.tileH
+                color: "transparent"
+                radius: Math.max(4, root.cfg.screenRounding * root.previewScale)
+                border.width: 2
+                border.color: root.cfg.colors.accent
+
+                Behavior on x { NumberAnimation { duration: root.cfg.moveFastMs; easing.type: Easing.OutCubic } }
+                Behavior on y { NumberAnimation { duration: root.cfg.moveFastMs; easing.type: Easing.OutCubic } }
+            }
         }
+    }
+
+    // Thumbnails dragged out of a special tile live here (its container clips them).
+    Item {
+        id: floatLayer
+        anchors.fill: parent
+        z: root.cfg.dragZ + 1
+    }
+
+    WindowTip {
+        id: sharedTip
+        z: root.cfg.dragZ + 2
     }
 }
