@@ -61,6 +61,7 @@ FocusScope {
             anchors.verticalCenter: parent.verticalCenter
             text: Qt.formatDateTime(clock.date, "HH:mm")
             keyboardSelected: keyboardActive && (root.currentIndex === itemIndex)
+            pointerTracking: true
 
             function triggered() { clicked() }
         }
@@ -75,6 +76,8 @@ FocusScope {
                 keyboardActive = false
                 IslandState.send(IslandState.Event.Open, IslandState.View.Workspaces)
             }
+            pointerTracking: true
+
             function triggered() { clicked() }
         }
 
@@ -87,6 +90,8 @@ FocusScope {
                 keyboardActive = false
                 IslandState.send(IslandState.Event.Open, IslandState.View.Launcher)
             }
+            pointerTracking: true
+
             function triggered() { clicked() }
         } 
 
@@ -99,6 +104,8 @@ FocusScope {
                 keyboardActive = false
                 IslandState.send(IslandState.Event.Open, IslandState.View.Dashboard)
             }
+            pointerTracking: true
+
             function triggered() { clicked() }
         }    
 
@@ -111,6 +118,8 @@ FocusScope {
                 keyboardActive = false
                 IslandState.send(IslandState.Event.Open, IslandState.View.Media)
             }
+            pointerTracking: true
+
             function triggered() { clicked() }
         }
 
@@ -123,6 +132,8 @@ FocusScope {
                 keyboardActive = false
                 IslandState.send(IslandState.Event.Open, IslandState.View.Notify)
             }
+            pointerTracking: true
+
             function triggered() { clicked() }
         }
 
@@ -146,6 +157,8 @@ FocusScope {
                 keyboardActive = false
                 IslandState.send(IslandState.Event.Open, IslandState.View.Bluetooth)
             }
+            pointerTracking: true
+
             function triggered() { clicked() }
         }
 
@@ -157,6 +170,8 @@ FocusScope {
                 keyboardActive = false
                 IslandState.send(IslandState.Event.Open, IslandState.View.Network)
             }
+            pointerTracking: true
+
             function triggered() { clicked() }
         }
 
@@ -168,6 +183,7 @@ FocusScope {
                 keyboardActive = false
                 IslandState.send(IslandState.Event.Open, IslandState.View.Power)
             }
+            pointerTracking: true
             function triggered() { clicked() }
         }
     }

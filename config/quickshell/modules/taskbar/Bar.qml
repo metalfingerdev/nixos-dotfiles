@@ -71,7 +71,23 @@ Scope {
 
             readonly property int pad: 8
 
-            x: (1920 - island.width) / 2
+            // where the island wants its centre: under the captured click, otherwise mid-screen
+            readonly property real targetCenter: IslandState.pointerAnchored
+                                                ? IslandState.xApplied
+                                                : parent.width / 2
+            // Animate the centre, not x. If x animated, the island would lag behind its own width
+            // morph and look off-centre mid-transition.
+            property real centerX: targetCenter
+            property bool armed: false
+            Behavior on centerX {
+                enabled: hitArea.armed
+                NumberAnimation { duration: 320; easing.type: Easing.OutCubic }
+            }
+            // keeps the first layout (window width going 0 -> real size) from sliding in at startup
+            Timer { running: true; interval: 500; onTriggered: hitArea.armed = true }
+
+            // centred on centerX, clamped so the island stays fully on screen at any view width
+            x: Math.max(pad, Math.min(parent.width - width - pad, centerX - width / 2))
 
             anchors.top: parent.top
             anchors.topMargin: 0  // Locked at 0 to maintain continuous mouse hit testing

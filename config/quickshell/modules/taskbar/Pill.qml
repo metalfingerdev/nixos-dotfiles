@@ -11,6 +11,7 @@ Rectangle {
     property alias fontSize: label.font.pixelSize
     property int hPad: 24
     property bool keyboardSelected: false
+    property bool pointerTracking: false
     property bool active: true
     signal clicked
 
@@ -31,6 +32,15 @@ Rectangle {
         id: area
         anchors.fill: parent
         hoverEnabled: true
-        onClicked: if (root.active) root.clicked()
+        onClicked: mouse => {
+            if (!root.active) return
+            // capture BEFORE emitting clicked(): the handler usually opens a view, and the
+            // island must already know where to go when that transition starts
+            if (root.pointerTracking) {
+                const p = area.mapToItem(null, mouse.x, mouse.y)
+                IslandState.setPointer(p.x)
+            }
+            root.clicked()
+        }
     }
 }

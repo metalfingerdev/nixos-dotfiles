@@ -30,6 +30,35 @@ QtObject {
     property int compactWidget: IslandState.Widget.Clock   // the default view's content
     readonly property int compactHeight: 28
     readonly property int settleMs: 2000              // Back -> Idle stays open this long, hover or not
+    
+    // ---- pointer anchoring ----
+    // xPointer: where the click happened (window x, -1 = none).
+    // xApplied: what Bar actually uses. It only follows xPointer once the island has finished
+    //           resizing, so the edge clamp is computed against the final width.
+    property real xPointer: -1
+    property real xApplied: -1
+    readonly property bool pointerAnchored: xApplied >= 0
+
+    function setPointer(sceneX) {
+        xPointer = sceneX
+        positionTimer.restart()
+    }
+
+    function resetPosition() {
+        positionTimer.stop()
+        xPointer = -1
+        xApplied = -1
+    }
+
+    property Timer positionTimer: Timer {
+        interval: root.transitionMs
+        onTriggered: root.xApplied = root.xPointer
+    }
+
+        // ---- transition timing (Island.qml reads these, so the timer can't drift from the animations) ----
+    readonly property int fadeOutMs: 90
+    readonly property int morphMs: 320
+    readonly property int transitionMs: fadeOutMs + morphMs + 20   // fade-out + width morph + loader margin
 
     readonly property bool pinned: phase === IslandState.Phase.Pinned
     readonly property bool holding: hovered || engaged                     // either one pauses the state timer
@@ -189,6 +218,10 @@ QtObject {
             engaged = false
         if (newView !== undefined) view = newView
         phase = newPhase
+
+        // back at rest or on the default view -> return to centre
+        if (phase === IslandState.Phase.Collapsed || view === IslandState.View.Idle)
+            resetPosition()
 
         // Notifications in transient mode should stay open until explicitly dismissed/cleared
         if (newPhase === IslandState.Phase.Transient && view === IslandState.View.Notify) {
