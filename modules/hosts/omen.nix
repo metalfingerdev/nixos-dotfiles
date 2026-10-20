@@ -32,6 +32,7 @@
         kitty
         neovim
         yazi
+        steam
         fastfetch
         utils
         theme

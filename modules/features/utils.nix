@@ -4,6 +4,7 @@
     home.packages = with pkgs; [
       usbutils
       thunar
+      p7zip
       file
       jq
     ];
