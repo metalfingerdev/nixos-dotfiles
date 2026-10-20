@@ -1,8 +1,6 @@
 { ... }:
 {
-  flake.modules.homeManager.steam = { ... }: {
-    programs.steam = {
-      enable = true;
-    };
+  flake.modules.nixos.steam = { ... }: {
+    programs.steam.enable = true;
   };
 }
