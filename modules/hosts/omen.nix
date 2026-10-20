@@ -12,6 +12,7 @@
       hyprland
       audio
       ssh
+      steam
       networking
       bluetooth
       secure-boot
@@ -32,7 +33,6 @@
         kitty
         neovim
         yazi
-        steam
         fastfetch
         utils
         theme
