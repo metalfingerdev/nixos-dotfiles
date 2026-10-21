@@ -12,7 +12,6 @@
       hyprland
       audio
       ssh
-      steam
       networking
       bluetooth
       secure-boot
