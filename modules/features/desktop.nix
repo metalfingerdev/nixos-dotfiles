@@ -15,7 +15,5 @@
 
     services.libinput.enable = true;
     services.printing.enable = true;
-
-    programs.firefox.enable = true;
   };
 }

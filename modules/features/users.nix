@@ -9,4 +9,9 @@
       ];
     };
   };
+
+  flake.modules.homeManager.users = { ... }: {
+    home.username = "admin";
+    home.homeDirectory = "/home/admin";
+  };
 }

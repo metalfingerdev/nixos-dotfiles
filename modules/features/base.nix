@@ -9,8 +9,6 @@
     environment.systemPackages = with pkgs; [
       vim-full
       wget
-      git
-      kitty
     ];
   };
 }

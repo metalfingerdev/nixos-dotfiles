@@ -16,6 +16,9 @@
       bluetooth
       secure-boot
       home-manager
+      git
+      kitty
+      firefox
     ]) ++ [ ../../hardware-configuration.nix ];
 
     nixpkgs.hostPlatform = "x86_64-linux";
@@ -27,7 +30,10 @@
 
     home-manager.users.admin = {
       imports = with self.modules.homeManager; [
+        users
         hyprland
+        quickshell
+        awww
         audio
         kitty
         neovim
@@ -40,8 +46,6 @@
         vscode
       ];
 
-      home.username = "admin";
-      home.homeDirectory = "/home/admin";
       home.stateVersion = "26.05";
     };
   };
