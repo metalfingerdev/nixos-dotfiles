@@ -44,6 +44,7 @@
         git
         shell
         vscode
+        claude-code
       ];
 
       home.stateVersion = "26.05";
