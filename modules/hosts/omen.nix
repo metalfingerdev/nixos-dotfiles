@@ -30,6 +30,7 @@
     home-manager.users.admin = {
       imports = with self.modules.homeManager; [
         users
+        git
         hyprland
         quickshell
         awww
