@@ -1,7 +1,7 @@
 { ... }:
 {
   # server: system-wide sshd
-  flake.modules.nixos.ssh = { ... }: {
+  flake.modules.nixos.ssh = { config, lib, ... }: {
     services.openssh = {
       enable = true;
       openFirewall = true;
@@ -9,7 +9,7 @@
         PasswordAuthentication = false;
         KbdInteractiveAuthentication = false;
         PermitRootLogin = "no";
-        AllowUsers = [ "admin" ];
+        AllowUsers = lib.attrNames (lib.filterAttrs (_: u: u.isNormalUser) config.users.users);
         MaxAuthTries = 3;
         PerSourcePenalties = "crash:3600s authfail:3600s max:86400s";
       };

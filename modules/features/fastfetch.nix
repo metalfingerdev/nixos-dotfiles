@@ -1,10 +1,10 @@
 { ... }:
 {
-  flake.modules.homeManager.fastfetch = { config, ... }: {
+  flake.modules.homeManager.fastfetch = { ... }: {
     programs.fastfetch = {
       enable = true;
+      # logo.source is set per user
       settings.logo = {
-        source = "${config.home.homeDirectory}/Pictures/marin-kitagawa.gif";
         type = "kitty-icat";
         width = 60;
         height = 20;

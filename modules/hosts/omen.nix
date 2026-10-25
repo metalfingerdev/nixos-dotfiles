@@ -7,7 +7,7 @@
   flake.modules.nixos.omen = {
     imports = (with self.modules.nixos; [
       base
-      users
+      admin
       desktop
       hyprland
       audio
@@ -22,6 +22,7 @@
 
     nixpkgs.hostPlatform = "x86_64-linux";
     networking.hostName = "omen";
+    time.timeZone = "Asia/Kolkata";
     system.stateVersion = "26.05";
 
     # Omen-specific bug fix: HP bios warning suppress
@@ -29,7 +30,7 @@
 
     home-manager.users.admin = {
       imports = with self.modules.homeManager; [
-        users
+        admin
         git
         hyprland
         quickshell
