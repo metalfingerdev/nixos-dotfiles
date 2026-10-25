@@ -45,6 +45,7 @@
         shell
         vscode
         claude-code
+        python3
       ];
 
       home.stateVersion = "26.05";
