@@ -11,14 +11,13 @@
     ];
 
     home.sessionVariables = {
-      GTK_THEME = "Papirus";
       XCURSOR_THEME = "macOS";
     };
 
     gtk = {
       enable = true;
       iconTheme = {
-        name = "Adwatia";
+        name = "Adwaita";
         package = pkgs.adwaita-icon-theme;
       };
     };

@@ -11,7 +11,6 @@
       desktop
       hyprland
       audio
-      ssh
       networking
       bluetooth
       secure-boot
@@ -41,11 +40,11 @@
         fastfetch
         utils
         theme
-        git
         shell
         vscode
         claude-code
         python3
+        webdev
       ];
 
       home.stateVersion = "26.05";

@@ -12,11 +12,5 @@
   # so import the `awww` and `quickshell` features alongside this one.
   flake.modules.homeManager.hyprland = { pkgs, ... }: {
     home.file.".config/hypr".source = ../../config/hypr;
-
-    home.packages = with pkgs; [
-      grimblast
-      libnotify
-      brightnessctl
-    ];
   };
 }
