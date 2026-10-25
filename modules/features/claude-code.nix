@@ -1,6 +1,6 @@
 { ... }:
 {
-  flake.modules.homeManager.claude-code = { pks, ... }: {
+  flake.modules.homeManager.claude-code = { pkgs, ... }: {
     home.packages = [ pkgs.claude-code ];
   };
 }
