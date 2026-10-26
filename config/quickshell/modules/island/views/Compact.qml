@@ -1,4 +1,4 @@
- inputs import QtQuick
+import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import qs.modules.island
