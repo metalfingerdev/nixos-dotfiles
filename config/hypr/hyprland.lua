@@ -19,7 +19,7 @@ hl.monitor({
 -- See https://wiki.hypr.land/Configuring/Basics/Autostart/
 hl.on("hyprland.start", function () 
     hl.exec_cmd("awww-daemon")
-    hl.exec_cmd("quickshell -vp ~/Projects/quickshell")
+    hl.exec_cmd("quickshell")
 end)
 
 
@@ -218,7 +218,7 @@ hl.device({
 
 local terminal    = "kitty"
 local fileManager = "yazi"
-local menu        = "quickshell -vp ~/Projects/quickshell ipc call island open launcher"
+local menu        = "quickshell ipc call island open launcher"
 local browser     = "firefox"
 local fastfetch   = "fastfetch"
 
@@ -240,18 +240,27 @@ hl.bind(mainMod .. " + ALT + SPACE",      hl.dsp.layout("togglesplit"))
 hl.bind(mainMod .. " + F",                hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + A",                hl.dsp.window.pin())
 
-hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island toggleHandle"))
-hl.bind(mainMod .. " + TAB",              hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open workspaces"))
-hl.bind(mainMod .. " + B",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open bluetooth"))
-hl.bind(mainMod .. " + N",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open network"))
-hl.bind(mainMod .. " + M",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open dashboard"))
-hl.bind(mainMod .. " + I",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open settings"))
-hl.bind(mainMod .. " + A",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open media"))
-hl.bind(mainMod .. " + U",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open battery"))
-hl.bind(mainMod .. " + P",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open notifications"))
-hl.bind(mainMod .. " + T",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open theme"))
-hl.bind(mainMod .. " + C",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open clock"))
-hl.bind(mainMod .. " + X",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open power"))
+-- Quickshell island
+hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd("quickshell ipc call island toggleAutohide"))
+hl.bind(mainMod .. " + B",                hl.dsp.exec_cmd("quickshell ipc call island open bluetooth"))
+hl.bind(mainMod .. " + N",                hl.dsp.exec_cmd("quickshell ipc call island open network"))
+hl.bind(mainMod .. " + P",                hl.dsp.exec_cmd("quickshell ipc call island open notifications"))
+hl.bind(mainMod .. " + O",                hl.dsp.exec_cmd("quickshell ipc call island open expanded"))   -- keyboard entry: Tab to a pill, Enter
+
+-- Hold to peek: the island shows its peek view while Super+G is down (Escape closes it if the release is missed)
+hl.bind(mainMod .. " + G",                hl.dsp.exec_cmd("quickshell ipc call island peek true"))
+hl.bind(mainMod .. " + G",                hl.dsp.exec_cmd("quickshell ipc call island peek false"), { release = true })
+
+-- Not registered in the island's Registry.qml yet (`open` ignores unknown names). Uncomment once they are.
+-- Super+A is also window.pin() above, so pick another key for media.
+-- hl.bind(mainMod .. " + TAB",              hl.dsp.exec_cmd("quickshell ipc call island open workspaces"))
+-- hl.bind(mainMod .. " + M",                hl.dsp.exec_cmd("quickshell ipc call island open dashboard"))
+-- hl.bind(mainMod .. " + I",                hl.dsp.exec_cmd("quickshell ipc call island open settings"))
+-- hl.bind(mainMod .. " + A",                hl.dsp.exec_cmd("quickshell ipc call island open media"))
+-- hl.bind(mainMod .. " + U",                hl.dsp.exec_cmd("quickshell ipc call island open battery"))
+-- hl.bind(mainMod .. " + T",                hl.dsp.exec_cmd("quickshell ipc call island open theme"))
+-- hl.bind(mainMod .. " + C",                hl.dsp.exec_cmd("quickshell ipc call island open clock"))
+-- hl.bind(mainMod .. " + X",                hl.dsp.exec_cmd("quickshell ipc call island open power"))
 
 hl.bind(mainMod .. " + SPACE", function()
     hl.dispatch(hl.dsp.window.cycle_next({
