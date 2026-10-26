@@ -1,4 +1,14 @@
 module qs.modules.components
 
-Pill  1.0 Pill.qml
-Meter 1.0 Meter.qml
+singleton Theme 1.0 Theme.qml
+
+Pill         1.0 Pill.qml
+Meter        1.0 Meter.qml
+Icon         1.0 Icon.qml
+Toggle       1.0 Toggle.qml
+Header       1.0 Header.qml
+ListEntry    1.0 ListEntry.qml
+Tile         1.0 Tile.qml
+SignalBars   1.0 SignalBars.qml
+Progress     1.0 Progress.qml
+CalendarGrid 1.0 CalendarGrid.qml

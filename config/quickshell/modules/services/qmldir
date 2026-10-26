@@ -1,5 +1,11 @@
 module qs.modules.services
 
 singleton Audio      1.0 Audio.qml
-singleton Backlight 1.0 Backlight.qml
+singleton Backlight  1.0 Backlight.qml
 singleton Notifier   1.0 Notifier.qml
+singleton Net        1.0 Net.qml
+singleton Bluez      1.0 Bluez.qml
+singleton Players    1.0 Players.qml
+singleton Energy     1.0 Energy.qml
+singleton Session    1.0 Session.qml
+singleton Desktops   1.0 Desktops.qml

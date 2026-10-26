@@ -241,15 +241,15 @@ hl.bind(mainMod .. " + F",                hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + A",                hl.dsp.window.pin())
 
 -- Quickshell island
-hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd("quickshell ipc call island toggleAutohide"))
+hl.bind(mainMod .. " + SHIFT + Z",        hl.dsp.exec_cmd("quickshell ipc call island toggleAutohide"))
 hl.bind(mainMod .. " + B",                hl.dsp.exec_cmd("quickshell ipc call island open bluetooth"))
 hl.bind(mainMod .. " + N",                hl.dsp.exec_cmd("quickshell ipc call island open network"))
 hl.bind(mainMod .. " + P",                hl.dsp.exec_cmd("quickshell ipc call island open notifications"))
 hl.bind(mainMod .. " + O",                hl.dsp.exec_cmd("quickshell ipc call island open expanded"))   -- keyboard entry: Tab to a pill, Enter
 
--- Hold to peek: the island shows its peek view while Super+G is down (Escape closes it if the release is missed)
-hl.bind(mainMod .. " + G",                hl.dsp.exec_cmd("quickshell ipc call island peek true"))
-hl.bind(mainMod .. " + G",                hl.dsp.exec_cmd("quickshell ipc call island peek false"), { release = true })
+-- Hold to peek: the island shows its peek view while Super+Z is down
+hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd("quickshell ipc call island peek true"))
+hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd("quickshell ipc call island peek false"))
 
 -- Not registered in the island's Registry.qml yet (`open` ignores unknown names). Uncomment once they are.
 -- Super+A is also window.pin() above, so pick another key for media.

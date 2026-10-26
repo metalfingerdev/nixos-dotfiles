@@ -18,21 +18,22 @@ Item {
             width: 36
             anchors.verticalCenter: parent.verticalCenter
             text: root.label
-            color: "#f7f7f7"
-            font.pixelSize: 13
+            color: Theme.text
+            font.family: Theme.font
+            font.pixelSize: Theme.body
         }
 
         Rectangle {
             id: track
             width: 130; height: 6; radius: 3
             anchors.verticalCenter: parent.verticalCenter
-            color: "#2a2a2a"
+            color: Theme.track
 
             Rectangle {
                 width: track.width * Math.max(0, Math.min(1, root.fraction))
                 height: parent.height
                 radius: parent.radius
-                color: "#f7f7f7"
+                color: Theme.text
                 Behavior on width { NumberAnimation { duration: 80 } }
             }
         }
@@ -42,8 +43,9 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             horizontalAlignment: Text.AlignRight
             text: root.valueText
-            color: "#f7f7f7"
-            font.pixelSize: 13
+            color: Theme.text
+            font.family: Theme.font
+            font.pixelSize: Theme.body
         }
     }
 }
