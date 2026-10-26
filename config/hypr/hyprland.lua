@@ -19,7 +19,7 @@ hl.monitor({
 -- See https://wiki.hypr.land/Configuring/Basics/Autostart/
 hl.on("hyprland.start", function () 
     hl.exec_cmd("awww-daemon")
-    hl.exec_cmd("quickshell")
+    hl.exec_cmd("quickshell -vp ~/Projects/quickshells")
 end)
 
 
