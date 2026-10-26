@@ -39,6 +39,10 @@ Singleton {
         const w = liveWorkspace(id)
         return !!w && (w.toplevels?.values?.length ?? w.lastIpcObject?.windows ?? 0) > 0
     }
+    // How many workspaces the indicators show (the switcher's dots, the numbered buttons), like
+    // GNOME: every one up to the last in use (or the focused one), then one empty one after it.
+    readonly property int shown: Math.max(1, Math.min(Math.max(10, activeId), span(1) + 1))
+
     // how many workspaces an indicator shows: every existing one and the focused one, at least
     // `least`, at most 10 (more only when the focused one is further out)
     function span(least) {

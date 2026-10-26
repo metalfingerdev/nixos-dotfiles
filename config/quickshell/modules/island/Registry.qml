@@ -15,8 +15,11 @@ QtObject {
         { name: "network",    priority: 2, timeout: 5000, view: Engine.View.Network,    url: Qt.resolvedUrl("views/Network.qml") },
         { name: "launcher",   priority: 2, timeout: 8000, view: Engine.View.Launcher,   url: Qt.resolvedUrl("views/Launcher.qml") },
         { name: "bluetooth",  priority: 2, timeout: 5000, view: Engine.View.Bluetooth,  url: Qt.resolvedUrl("views/Bluetooth.qml") },
-        { name: "volume",     priority: 1, timeout: 1500, view: Engine.View.Volume,     url: Qt.resolvedUrl("views/Volume.qml"),     queue: false },
-        { name: "brightness", priority: 1, timeout: 1500, view: Engine.View.Brightness, url: Qt.resolvedUrl("views/Brightness.qml"), queue: false },
+        // a click on these toasts opens the dashboard (both sliders, and everything else)
+        { name: "volume",     priority: 1, timeout: 1500, view: Engine.View.Volume,     url: Qt.resolvedUrl("views/Volume.qml"),     queue: false,
+          opens: Engine.View.Dashboard },
+        { name: "brightness", priority: 1, timeout: 1500, view: Engine.View.Brightness, url: Qt.resolvedUrl("views/Brightness.qml"), queue: false,
+          opens: Engine.View.Dashboard },
         // Toast = popups, Pinned = the center. timeout 0: Notifier times each popup, and Triggers
         // closes the view when the last one goes. `critical`: the priority a critical one alerts with.
         { name: "notifications", priority: 2, critical: 3, timeout: 0, view: Engine.View.Notifications, url: Qt.resolvedUrl("views/Notification.qml"), queue: true },
@@ -28,7 +31,9 @@ QtObject {
         { name: "theme",      priority: 2, timeout: 8000, view: Engine.View.Theme,      url: Qt.resolvedUrl("views/Theme.qml"), aliases: ["settings"] },
         { name: "workspaces", priority: 2, timeout: 8000, view: Engine.View.Workspaces, url: Qt.resolvedUrl("views/Workspaces.qml") },
         // Toast = the workspace changed (GNOME-style dots). Transient: never interrupts, never waits.
-        { name: "switcher",   priority: 1, timeout: 1200, view: Engine.View.Switcher,   url: Qt.resolvedUrl("views/Switcher.qml"), queue: false }
+        // `opens`: a click on the toast opens this instead of pinning the toast (its full view)
+        { name: "switcher",   priority: 1, timeout: 1200, view: Engine.View.Switcher,   url: Qt.resolvedUrl("views/Switcher.qml"), queue: false,
+          opens: Engine.View.Workspaces }
     ]
 
     // A non-number (e.g. an enum name that doesn't exist yet: Qt keeps a singleton's old enum across a

@@ -18,7 +18,7 @@ Row {
 
     Repeater {
         // like GNOME: every workspace up to the last one in use, then one empty one after it
-        model: Math.max(root.least, Math.min(Math.max(10, Desktops.activeId), Desktops.span(1) + 1))
+        model: Math.max(root.least, Desktops.shown)
 
         Rectangle {
             id: pip

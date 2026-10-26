@@ -97,8 +97,11 @@ Item {
     readonly property real gridH: visibleRowCount * tileH + (visibleRowCount - 1) * gap
     readonly property real stripGap: gap * 2.8
 
+    // a header with back, like every view
+    readonly property real headerH: 52 + 12
+
     implicitWidth: content.width + pad * 2
-    implicitHeight: content.height + pad * 2
+    implicitHeight: content.height + headerH + pad * 2
 
     Component.onCompleted: Desktops.watch(true)
     Component.onDestruction: Desktops.watch(false)
@@ -186,11 +189,20 @@ Item {
         onPressed: mouse => mouse.accepted = true
     }
 
+    Header {
+        x: root.pad
+        y: root.pad
+        width: content.width
+        title: "Workspaces"
+        subtitle: "Click to go · drag a window to move it · middle-click closes it"
+        onBack: Engine.back()
+    }
+
     Item {
         id: content
 
         x: root.pad
-        y: root.pad
+        y: root.pad + root.headerH
         width: root.gridW
         height: root.gridH + (strip.visible ? root.stripGap + strip.height : 0)
 

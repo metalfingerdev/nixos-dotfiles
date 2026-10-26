@@ -5,26 +5,24 @@ import qs.modules.island.parts
 import qs.modules.components
 import qs.modules.services
 
-// Quick settings, like Android's, laid out wide for a laptop:
-//   top     the time and date; notifications (a count; opens the center), theme, power
-//   left    the tiles, two to a row: Wi-Fi and Bluetooth (the circle switches, the rest opens the
-//           list), then every quick setting this machine can do
-//   right   what's playing, volume and brightness, the power profile (with power-profiles-daemon)
+// Quick settings, in one column like Android's:
+//   the time and date; notifications (a count; opens the center), theme, power
+//   Wi-Fi and Bluetooth: a click switches them, the round arrow opens their list
+//   every other quick setting this machine can do, three to a row
+//   volume and brightness, the power profile (with power-profiles-daemon), what's playing
 // Keys: arrows/Tab move, Space flips a tile, Enter opens its list, each tile's letter flips it
 // from anywhere, + − volume, [ ] brightness, Escape/Backspace back.
-// Opened from the glance's status group (Expanded), from Tabs, and by `open dashboard`.
+// Opened from the glance, from Tabs, and by `open dashboard`.
 // View contract: set implicitWidth / implicitHeight. The island sizes itself to them.
 Item {
     id: root
 
     readonly property bool media: Players.active !== null && (Players.active.trackTitle ?? "") !== ""
     readonly property int pad: 24
-    readonly property int leftW: 480
-    readonly property int rightW: 420
-    readonly property int gutter: 20
-    readonly property real tileW: (leftW - 12) / 2
+    readonly property int contentW: 660
+    readonly property int gap: 12
 
-    implicitWidth: leftW + gutter + rightW + 2 * pad
+    implicitWidth: contentW + 2 * pad
     implicitHeight: column.implicitHeight + 2 * pad
 
     SystemClock {
@@ -34,14 +32,14 @@ Item {
 
     // ---- quick settings: a static list (so toggling one doesn't rebuild the grid); state is read live ----
     readonly property var tiles: [
-        { key: "dnd",        letter: "d", icon: "do_not_disturb_on", title: "Do not disturb" },
-        { key: "night",      letter: "l", icon: "nightlight",        title: "Night light",   tool: "hyprsunset" },
-        { key: "caffeine",   letter: "c", icon: "coffee",            title: "Caffeine",      tool: "systemd-inhibit" },
-        { key: "airplane",   letter: "a", icon: "flight",            title: "Airplane mode" },
-        { key: "mic",        letter: "m", icon: "mic",               title: "Microphone" },
-        { key: "dark",       letter: "k", icon: "dark_mode",         title: "Dark theme" },
-        { key: "record",     letter: "r", icon: "screen_record",     title: "Screen record", tool: "wf-recorder" },
-        { key: "screenshot", letter: "s", icon: "screenshot_region", title: "Screenshot",    tool: "grimblast" }
+        { key: "dnd",        letter: "d", icon: Config.symbol.dnd,        title: "Do not disturb" },
+        { key: "night",      letter: "l", icon: "nightlight",             title: "Night light",   tool: "hyprsunset" },
+        { key: "caffeine",   letter: "c", icon: "coffee",                 title: "Caffeine",      tool: "systemd-inhibit" },
+        { key: "airplane",   letter: "a", icon: "flight",                 title: "Airplane mode" },
+        { key: "mic",        letter: "m", icon: "mic",                    title: "Microphone" },
+        { key: "dark",       letter: "k", icon: "dark_mode",              title: "Dark theme" },
+        { key: "record",     letter: "r", icon: Config.symbol.record,     title: "Screen record", tool: "wf-recorder" },
+        { key: "screenshot", letter: "s", icon: Config.symbol.screenshot, title: "Screenshot",    tool: "grimblast" }
     ].filter(t => !t.tool || Toggles.has(t.tool))
 
     function isOn(key) {
@@ -103,17 +101,28 @@ Item {
         id: column
         x: root.pad
         y: root.pad
-        width: parent.width - 2 * root.pad
-        spacing: 20
+        width: root.contentW
+        spacing: 18
 
-        // ---- time, and the way to everything else ----
+        // ---- back, the time, and the way to everything else ----
         Item {
             width: parent.width
-            height: time.implicitHeight
+            height: Math.max(time.implicitHeight, 56)
+
+            Pill {
+                id: back
+                anchors { left: parent.left; verticalCenter: parent.verticalCenter }
+                kind: "text"
+                icon: Config.symbol.back
+                iconSize: 24
+                implicitHeight: 48
+                activeFocusOnTab: false             // Escape/Backspace go back
+                onClicked: Engine.back()
+            }
 
             Column {
                 id: time
-                anchors.left: parent.left
+                anchors { left: back.right; leftMargin: 12; verticalCenter: parent.verticalCenter }
                 spacing: -2
 
                 Text {
@@ -136,135 +145,110 @@ Item {
                 spacing: 10
 
                 Pill {
-                    id: bell
-                    icon: Notifier.dnd ? "notifications_off" : "notifications"
+                    icon: Notifier.dnd ? "notifications_off" : Config.symbol.notifications
                     text: Notifier.count > 0 ? String(Notifier.count) : ""
                     implicitHeight: 52
                     iconSize: 24
                     shortcut: "n"
                     onClicked: x => Engine.open(Engine.View.Notifications, x)
                 }
-                Pill { icon: "palette"; implicitHeight: 52; iconSize: 24; shortcut: "t"; onClicked: x => Engine.open(Engine.View.Theme, x) }
-                Pill { icon: "power_settings_new"; implicitHeight: 52; iconSize: 24; shortcut: "p"; onClicked: x => Engine.open(Engine.View.Power, x) }
+                Pill { icon: Config.symbol.theme; implicitHeight: 52; iconSize: 24; shortcut: "t"; onClicked: x => Engine.open(Engine.View.Theme, x) }
+                Pill { icon: Config.symbol.power; implicitHeight: 52; iconSize: 24; shortcut: "p"; onClicked: x => Engine.open(Engine.View.Power, x) }
             }
         }
 
+        // ---- Wi-Fi and Bluetooth: wide, with the way into their lists ----
         Row {
-            spacing: root.gutter
+            spacing: root.gap
 
-            // ================= left: the tiles =================
-            Grid {
-                id: grid
-                width: root.leftW
-                columns: 2
-                spacing: 12
+            QuickTile {
+                width: (root.contentW - root.gap) / 2
+                focus: true                              // the keyboard starts here
+                icon: Net.icon
+                title: Net.ethernet && !Net.current ? "Ethernet" : "Wi-Fi"
+                subtitle: Net.attempt ? "Connecting…" : Net.current ? Net.current.name
+                        : Net.ethernet ? (Net.linkSpeed > 0 ? "Connected  ·  " + Net.linkSpeed + " Mb/s" : "Connected") : Net.summary
+                on: Net.wifiEnabled || Net.ethernet
+                more: true
+                shortcut: "w"
+                enabled: Net.available
+                onToggled: Net.setWifi(!Net.wifiEnabled)
+                onClicked: x => Engine.open(Engine.View.Network, x)
+            }
+            QuickTile {
+                width: (root.contentW - root.gap) / 2
+                icon: Bluez.connected.length > 0 ? "bluetooth_connected" : Bluez.enabled ? "bluetooth" : "bluetooth_disabled"
+                title: "Bluetooth"
+                subtitle: Bluez.summary
+                on: Bluez.enabled
+                more: true
+                shortcut: "b"
+                enabled: Bluez.available && !Bluez.blocked
+                onToggled: Bluez.setEnabled(!Bluez.enabled)
+                onClicked: x => Engine.open(Engine.View.Bluetooth, x)
+            }
+        }
+
+        // ---- everything else, three to a row ----
+        Grid {
+            columns: 3
+            spacing: root.gap
+
+            Repeater {
+                model: root.tiles
 
                 QuickTile {
-                    width: root.tileW
-                    focus: true                              // the keyboard starts here
-                    icon: Net.icon
-                    title: Net.ethernet && !Net.current ? "Ethernet" : "Wi-Fi"
-                    subtitle: Net.attempt ? "Connecting…" : Net.current ? Net.current.name
-                            : Net.ethernet ? (Net.linkSpeed > 0 ? "Connected  ·  " + Net.linkSpeed + " Mb/s" : "Connected") : Net.summary
-                    on: Net.wifiEnabled || Net.ethernet
-                    split: true
-                    more: true
-                    shortcut: "w"
-                    enabled: Net.available
-                    onToggled: Net.setWifi(!Net.wifiEnabled)
-                    onClicked: x => Engine.open(Engine.View.Network, x)
-                }
-                QuickTile {
-                    width: root.tileW
-                    icon: Bluez.connected.length > 0 ? "bluetooth_connected" : Bluez.enabled ? "bluetooth" : "bluetooth_disabled"
-                    title: "Bluetooth"
-                    subtitle: Bluez.summary
-                    on: Bluez.enabled
-                    split: true
-                    more: true
-                    shortcut: "b"
-                    enabled: Bluez.available && !Bluez.blocked
-                    onToggled: Bluez.setEnabled(!Bluez.enabled)
-                    onClicked: x => Engine.open(Engine.View.Bluetooth, x)
-                }
-
-                Repeater {
-                    model: root.tiles
-
-                    QuickTile {
-                        required property var modelData
-                        width: root.tileW
-                        icon: root.glyph(modelData.key, modelData.icon)
-                        title: modelData.title
-                        subtitle: root.status(modelData.key)
-                        on: root.isOn(modelData.key)
-                        shortcut: modelData.letter
-                        onToggled: root.flip(modelData.key)
-                    }
+                    required property var modelData
+                    width: (root.contentW - 2 * root.gap) / 3
+                    icon: root.glyph(modelData.key, modelData.icon)
+                    title: modelData.title
+                    subtitle: root.status(modelData.key)
+                    on: root.isOn(modelData.key)
+                    shortcut: modelData.letter
+                    onToggled: root.flip(modelData.key)
                 }
             }
+        }
 
-            // ================= right: media and levels =================
-            Column {
-                width: root.rightW
-                spacing: 14
+        // ---- levels ----
+        Column {
+            width: parent.width
+            spacing: root.gap
 
-                MediaCard {
-                    visible: root.media
-                    width: parent.width
-                }
-                // nothing playing: a quiet card, so the column keeps its shape
-                Rectangle {
-                    visible: !root.media
-                    width: parent.width
-                    height: 164
-                    radius: Config.cardRadius
-                    color: Config.container
-
-                    Column {
-                        anchors.centerIn: parent
-                        spacing: 8
-                        Icon { anchors.horizontalCenter: parent.horizontalCenter; name: "music_off"; size: 32; color: Config.outline }
-                        Text {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            text: "Nothing is playing"
-                            color: Config.dim
-                            font.family: Config.font
-                            font.pixelSize: Config.body
-                        }
-                    }
-                }
-
-                Slider {
-                    width: parent.width
-                    icon: Audio.muted ? "volume_off" : Audio.volume < 34 ? "volume_mute" : Audio.volume < 67 ? "volume_down" : "volume_up"
-                    value: Audio.muted ? 0 : Audio.volume / 100
-                    valueText: Audio.muted ? "Muted" : Audio.volume + "%"
-                    iconClickable: true
-                    enabled: Audio.sink !== null
-                    onMoved: v => Audio.setVolume(v * 100)
-                    onIconClicked: Audio.toggleMute()
-                }
-                Slider {
-                    visible: Backlight.available
-                    width: parent.width
-                    icon: Backlight.percent < 34 ? "brightness_low" : Backlight.percent < 67 ? "brightness_medium" : "brightness_high"
-                    value: Backlight.percent / 100
-                    onMoved: v => Backlight.set(v * 100)
-                }
-
-                Segmented {
-                    visible: Toggles.profile !== ""
-                    width: parent.width
-                    options: [
-                        { key: "power-saver", label: "Saver",       icon: "eco" },
-                        { key: "balanced",    label: "Balanced",    icon: "balance" },
-                        { key: "performance", label: "Performance", icon: "speed" }
-                    ]
-                    current: Toggles.profile
-                    onPicked: key => Toggles.setProfile(key)
-                }
+            Slider {
+                width: parent.width
+                icon: Audio.muted ? Config.symbol.muted : Audio.volume < 34 ? "volume_mute" : Audio.volume < 67 ? "volume_down" : Config.symbol.sound
+                value: Audio.muted ? 0 : Audio.volume / 100
+                valueText: Audio.muted ? "Muted" : Audio.volume + "%"
+                iconClickable: true
+                enabled: Audio.sink !== null
+                onMoved: v => Audio.setVolume(v * 100)
+                onIconClicked: Audio.toggleMute()
             }
+            Slider {
+                visible: Backlight.available
+                width: parent.width
+                icon: Backlight.percent < 34 ? "brightness_low" : Backlight.percent < 67 ? "brightness_medium" : "brightness_high"
+                value: Backlight.percent / 100
+                onMoved: v => Backlight.set(v * 100)
+            }
+        }
+
+        Segmented {
+            visible: Toggles.profile !== ""
+            width: parent.width
+            options: [
+                { key: "power-saver", label: "Saver",       icon: "eco" },
+                { key: "balanced",    label: "Balanced",    icon: "balance" },
+                { key: "performance", label: "Performance", icon: "speed" }
+            ]
+            current: Toggles.profile
+            onPicked: key => Toggles.setProfile(key)
+        }
+
+        MediaCard {
+            visible: root.media
+            width: parent.width
         }
 
         KeyHints {

@@ -92,7 +92,22 @@ Item {
         visible: root.player !== null
         x: root.pad; y: root.pad
         width: parent.width - 2 * root.pad
-        spacing: 22
+        spacing: 18
+
+        Header {
+            width: parent.width
+            title: "Now playing"
+            subtitle: (root.player?.identity ?? "") + "  ·  " + Audio.label(Audio.sink)
+            onBack: Engine.back()
+
+            Equalizer {
+                count: 5
+                barWidth: 4
+                height: 20
+                running: Players.playing
+                color: Config.primary
+            }
+        }
 
         Row {
             width: parent.width
@@ -126,36 +141,8 @@ Item {
                 width: parent.width - art.width - parent.spacing
                 height: art.height
 
-                // the player, and bars while it plays
-                Row {
-                    id: source
-                    spacing: 8
-
-                    Icon {
-                        anchors.verticalCenter: parent.verticalCenter
-                        name: "graphic_eq"
-                        size: 18
-                        color: Config.primary
-                    }
-                    Text {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: (root.player?.identity ?? "") + "  ·  " + Audio.label(Audio.sink)
-                        color: Config.dim
-                        font.family: Config.font
-                        font.pixelSize: Config.body
-                    }
-                }
-                Equalizer {
-                    anchors { right: parent.right; verticalCenter: source.verticalCenter }
-                    count: 5
-                    barWidth: 4
-                    height: 20
-                    running: Players.playing
-                    color: Config.primary
-                }
-
                 Column {
-                    anchors { left: parent.left; right: parent.right; top: source.bottom; topMargin: 14 }
+                    anchors { left: parent.left; right: parent.right; top: parent.top; topMargin: 8 }
                     spacing: 4
 
                     Text {

@@ -8,12 +8,15 @@ surfaces, pill tiles with an icon circle, thick pill sliders, segmented buttons,
 How you move through it:
 
 ```
-Compact (rest) ──hover──► Expanded (the glance) ──click──► Tabs (the hub) ──► any view
-   clock + live              clock, what's on, media,       workspaces, one tab per view,
-   indicators                newest notification, search    status, clock
-                                  │                    │
-                       status group ──► Dashboard (everything)
-                       type / click ──► Launcher (apps, files, actions)
+Compact (rest) ──hover──► Expanded (the glance) ──click / Tab──► Tabs (the hub) ──► any view
+   clock + live              workspaces and round buttons │             back, workspaces, one tab per
+   indicators                · big clock · settings, each │             view, status, clock
+                             with an arrow to its view    │
+                             · search strip, Tabs, player │
+                                  │ type ──► Launcher (apps, files, actions)
+                                  └ arrow ──► Network, Bluetooth, Notifications, Media
+
+any service view ──timer or Back──► Tabs ──timer or Back──► home
 ```
 
 > **Status:** prototype. The morphing surface (pill or notch, optional frosted glass), hover/peek,

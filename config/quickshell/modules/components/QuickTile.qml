@@ -1,14 +1,13 @@
 import QtQuick
 
 // A quick settings tile (Android): a pill with an icon in a circle, a label and its state.
-//   on      the primary fill; off: the container fill
-//   split   the circle and the rest act apart: the circle flips the setting (toggled), the rest
-//           opens its details (clicked). Not split: the whole tile flips it (toggled).
-//   more    shows a chevron (the tile opens a view)
-//   showSwitch   shows a switch on the right (the big on/off tile atop Wi-Fi and Bluetooth)
-// Mouse: click. Keyboard: Tab/arrows reach it; Space flips it, Enter opens its details (split) or
-// flips it; its `shortcut` key flips it from anywhere in the view.
-//   QuickTile { icon: "wifi"; title: "Wi-Fi"; subtitle: Net.summary; on: Net.wifiEnabled; split: true
+//   on          the primary fill; off: the container fill
+//   more        a round arrow button inside the tile, on the right: it opens the setting's own view
+//               (clicked). The rest of the tile flips the setting (toggled)
+//   showSwitch  a switch on the right instead (the big on/off tile atop Wi-Fi and Bluetooth)
+// Mouse: click. Keyboard: Tab/arrows reach it; Space flips it, Enter opens its view (with `more`)
+// or flips it; its `shortcut` key flips it from anywhere in the view.
+//   QuickTile { icon: "wifi"; title: "Wi-Fi"; subtitle: Net.summary; on: Net.wifiEnabled; more: true
 //               onToggled: Net.setWifi(!on); onClicked: Engine.open(Engine.View.Network) }
 Rectangle {
     id: root
@@ -17,7 +16,6 @@ Rectangle {
     property string title: ""
     property string subtitle: ""
     property bool on: false
-    property bool split: false
     property bool more: false
     property bool showSwitch: false
     property string shortcut: ""
@@ -25,7 +23,7 @@ Rectangle {
     signal toggled()
     signal clicked(real sceneX)
 
-    function press() { if (split) clicked(-1); else toggled() }
+    function press() { if (more) clicked(-1); else toggled() }
     function activate() { toggled() }
 
     activeFocusOnTab: true
@@ -34,11 +32,12 @@ Rectangle {
     Keys.onSpacePressed:  toggled()
 
     readonly property color ink: on ? Config.primaryInk : Config.text
+    readonly property real inner: height - 24          // the icon circle and the arrow button
 
     implicitWidth: 220
     implicitHeight: 72
     radius: height / 2
-    color: Config.state(on ? Config.primary : Config.container, ink, body.containsMouse && !circleArea.containsMouse,
+    color: Config.state(on ? Config.primary : Config.container, ink, body.containsMouse && !arrowArea.containsMouse,
                         body.pressed || keyboardSelected)
     opacity: enabled ? 1 : 0.38
     Behavior on color { ColorAnimation { duration: 160 } }
@@ -48,39 +47,32 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: mouse => root.split ? root.clicked(body.mapToItem(null, mouse.x, mouse.y).x) : root.toggled()
+        onClicked: root.toggled()
     }
 
     Rectangle {
         id: circle
         x: 12
         anchors.verticalCenter: parent.verticalCenter
-        width: root.height - 24
+        width: root.inner
         height: width
         radius: width / 2
-        color: Config.state(root.on ? Config.primaryDeep : Config.high, root.ink, circleArea.containsMouse, circleArea.pressed)
+        color: root.on ? Config.primaryDeep : Config.high
         Behavior on color { ColorAnimation { duration: 160 } }
 
         Icon {
             anchors.centerIn: parent
             name: root.icon
-            size: 22
+            size: Math.min(24, root.inner * 0.5)
             filled: root.on
             color: root.ink
-        }
-
-        MouseArea {
-            id: circleArea
-            anchors.fill: parent
-            enabled: root.split
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: root.toggled()
         }
     }
 
     Column {
-        anchors { left: circle.right; leftMargin: 12; right: root.showSwitch ? knob.left : chevron.left; rightMargin: 6; verticalCenter: parent.verticalCenter }
+        anchors { left: circle.right; leftMargin: 12; verticalCenter: parent.verticalCenter
+                  right: root.showSwitch ? knob.left : root.more ? arrow.left : parent.right
+                  rightMargin: root.showSwitch || root.more ? 8 : 18 }
         spacing: 2
 
         Text {
@@ -103,14 +95,31 @@ Rectangle {
         }
     }
 
-    Icon {
-        id: chevron
-        anchors { right: parent.right; rightMargin: root.more ? 16 : 6; verticalCenter: parent.verticalCenter }
-        width: root.more ? implicitWidth : 0
+    // the way into the setting's own view: a button of its own, inside the tile
+    Rectangle {
+        id: arrow
         visible: root.more
-        name: "chevron_right"
-        size: 22
-        color: root.ink
+        anchors { right: parent.right; rightMargin: 12; verticalCenter: parent.verticalCenter }
+        width: root.inner
+        height: width
+        radius: width / 2
+        color: Config.state(root.on ? Config.primaryDeep : Config.high, root.ink, arrowArea.containsMouse, arrowArea.pressed)
+        Behavior on color { ColorAnimation { duration: 160 } }
+
+        Icon {
+            anchors.centerIn: parent
+            name: Config.symbol.open
+            size: Math.min(22, root.inner * 0.5)
+            color: root.ink
+        }
+
+        MouseArea {
+            id: arrowArea
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: mouse => root.clicked(arrowArea.mapToItem(null, mouse.x, mouse.y).x)
+        }
     }
 
     // the switch: on a primary tile its track takes the dark ink, so it still reads as "on"
@@ -137,5 +146,5 @@ Rectangle {
     }
 
     FocusRing { on: root.keyboardSelected }
-    KeyBadge { key: root.shortcut; anchors { right: parent.right; top: parent.top; rightMargin: 10; topMargin: -6 } }
+    KeyBadge { key: root.shortcut; anchors { right: parent.right; top: parent.top; rightMargin: root.more ? root.inner + 18 : 10; topMargin: -6 } }
 }

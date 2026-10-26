@@ -25,7 +25,7 @@ Item {
             visible: root.showBack
             Layout.alignment: Qt.AlignVCenter
             kind: "text"
-            icon: "arrow_back"
+            icon: Config.symbol.back
             iconSize: 24
             implicitHeight: 48
             activeFocusOnTab: false             // Escape/Backspace go back; Tab starts on the view itself

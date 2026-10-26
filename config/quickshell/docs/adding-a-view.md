@@ -84,6 +84,8 @@ Add an entry to `Registry.qml`:
 | `critical` | optional: the priority to alert with when the event is critical (`Registry.priority(view, true)`) |
 | `timeout` | ms before a Pinned/Toast view closes on its own while not held; `0` = never |
 | `queue` | `true` = a blocked alert of this view waits in the one-slot queue; otherwise it is dropped |
+| `opens` | optional: the view a click on this view's toast opens (default: this view, pinned) |
+| `aliases` | optional: other names IPC accepts |
 
 One view per *thing*, not per variant. Don't add a second view just to change urgency or layout:
 - **Urgency**: give the entry a `critical` priority, and have the trigger pass

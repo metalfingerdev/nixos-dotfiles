@@ -6,8 +6,10 @@ import qs.modules.components
 import qs.modules.services
 
 // The hub, opened by a click on the clock (Compact) or the glance (Expanded). One bar:
-//   workspaces   a button per workspace: the focused one is a wide primary pill, ones with windows
-//                are filled, empty ones only a number. Click to go there; the wheel steps through
+//   back         home (Tabs is where every service view comes back to; its own back closes)
+//   workspaces   numbered, with the switcher's logic: up to the last one in use and one empty; the
+//                focused one a wide primary pill, ones with windows filled, empty ones an outline.
+//                Click to go there; the wheel steps through
 //   tabs         one icon per view (and a screenshot), each opens it
 //   status       what's on (the same group as the glance): opens the dashboard
 //   clock        the time and date: opens the calendar
@@ -18,15 +20,15 @@ Item {
     id: root
 
     readonly property var tabs: [
-        { icon: "tune",               key: "d", view: Engine.View.Dashboard },
-        { icon: "calendar_month",     key: "c", view: Engine.View.Clock },
-        { icon: "music_note",         key: "m", view: Engine.View.Media },
-        { icon: "apps",               key: "a", view: Engine.View.Launcher },
-        { icon: "notifications",      key: "n", view: Engine.View.Notifications },
-        { icon: "grid_view",          key: "w", view: Engine.View.Workspaces },
-        { icon: "photo_camera",       key: "s", view: -1 },            // screenshot
-        { icon: "palette",            key: "t", view: Engine.View.Theme },
-        { icon: "power_settings_new", key: "p", view: Engine.View.Power }
+        { icon: Config.symbol.dashboard,     key: "d", view: Engine.View.Dashboard },
+        { icon: Config.symbol.calendar,      key: "c", view: Engine.View.Clock },
+        { icon: Config.symbol.media,         key: "m", view: Engine.View.Media },
+        { icon: Config.symbol.launcher,      key: "a", view: Engine.View.Launcher },
+        { icon: Config.symbol.notifications, key: "n", view: Engine.View.Notifications },
+        { icon: Config.symbol.overview,      key: "w", view: Engine.View.Workspaces },
+        { icon: Config.symbol.screenshot,    key: "s", view: -1 },            // screenshot
+        { icon: Config.symbol.theme,         key: "t", view: Engine.View.Theme },
+        { icon: Config.symbol.power,         key: "p", view: Engine.View.Power }
     ]
 
     function activate(tab, x) {
@@ -64,65 +66,22 @@ Item {
         anchors.centerIn: parent
         spacing: 14
 
-        // ---- workspaces ----
-        Row {
-            id: workspaces
+        // ---- back (the hub's back is home), then the workspaces: the switcher's logic, numbered ----
+        Pill {
             anchors.verticalCenter: parent.verticalCenter
+            kind: "text"
+            icon: Config.symbol.back
+            iconSize: 24
+            implicitHeight: 48
+            activeFocusOnTab: false             // Escape/Backspace go back
+            onClicked: Engine.back()
+        }
+
+        WorkspaceButtons {
+            anchors.verticalCenter: parent.verticalCenter
+            across: 0
+            size: 46
             spacing: 6
-
-            Repeater {
-                model: Desktops.span(5)
-
-                Rectangle {
-                    id: ws
-                    required property int index
-                    readonly property int wsId: index + 1
-                    readonly property bool current: wsId === Desktops.activeId
-                    readonly property bool used: Desktops.occupied(wsId)
-                    readonly property bool ring: activeFocus && Config.focusVisible
-
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: current ? 68 : 46
-                    height: 46
-                    radius: height / 2
-                    color: current ? Config.state(Config.primary, Config.primaryInk, area.containsMouse, area.pressed || ring)
-                         : used ? Config.state(Config.container, Config.text, area.containsMouse, area.pressed || ring)
-                         : Qt.rgba(Config.text.r, Config.text.g, Config.text.b, area.pressed || ring ? 0.12 : area.containsMouse ? 0.08 : 0)
-                    Behavior on width { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
-                    Behavior on color { ColorAnimation { duration: 160 } }
-
-                    activeFocusOnTab: true
-                    Keys.onReturnPressed: Desktops.focus(wsId)
-                    Keys.onEnterPressed:  Desktops.focus(wsId)
-                    Keys.onSpacePressed:  Desktops.focus(wsId)
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: ws.wsId
-                        color: ws.current ? Config.primaryInk : ws.used ? Config.text : Config.dim
-                        font.family: Config.font
-                        font.pixelSize: Config.body + 2
-                        font.weight: ws.current || ws.used ? Font.DemiBold : Font.Normal
-                    }
-
-                    FocusRing { on: ws.ring }
-
-                    MouseArea {
-                        id: area
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: Desktops.focus(ws.wsId)
-                    }
-                }
-            }
-
-            WheelHandler {
-                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-                onWheel: event => {
-                    if (event.angleDelta.y !== 0) Desktops.stepWorkspace(event.angleDelta.y > 0 ? -1 : 1, 1, Desktops.span(5))
-                }
-            }
         }
 
         Divider {}

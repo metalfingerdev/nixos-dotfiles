@@ -85,9 +85,10 @@ Loader item ──implicit size──► proxy (invisible, snaps instantly, the 
   **anti-corners** (Shapes outside the surface, from the same sprung rect) curve it into the screen
   edge. With `Config.glass` the colour is translucent, a 1 px rim lights its edge, and Bar asks Hyprland to
   blur the layer (`Desktops.blurLayer`).
-- A click on the surface's own background (under the view's controls), `pinShown()`: a toast is pinned
-  (its view opens Pinned); the clock (Compact, at rest) and the glance (Expanded, peeking or pinned) open
-  the hub, `Tabs`. Elsewhere it does nothing.
+- A click on the surface's own background (under the view's controls), `pinShown()`: a toast opens its
+  full view, the Registry's `opens` (the workspace dots open the overview, the volume and brightness
+  toasts the dashboard), or else its own view, Pinned; the clock (Compact, at rest) and the glance
+  (Expanded, peeking or pinned) open the hub, `Tabs`. Elsewhere it does nothing.
 - **Privacy dots** sit beside the surface while `Privacy.microphone` / `Privacy.camera` is true.
 - The **Loader** inside the surface (`ViewLoader.qml`) is always the view's *final* size. As the surface grows, it reveals
   the content instead of squashing it. It is centred horizontally (or pinned to its final screen position

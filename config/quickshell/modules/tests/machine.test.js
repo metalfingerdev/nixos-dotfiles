@@ -30,7 +30,7 @@ const REG = {
     [V.Switcher]:   { priority: 1, timeout: 1200, queue: false },
 }
 const cfg = {
-    restView: V.Compact, peekView: V.Expanded, graceMs: 140, hoverMs: 140, hideMs: 700,
+    restView: V.Compact, peekView: V.Expanded, hubView: V.Tabs, graceMs: 140, hoverMs: 140, hideMs: 700,
     known:    v => REG[v] !== undefined,
     priority: v => REG[v] ? REG[v].priority : -1,
     queues:   v => REG[v] ? !!REG[v].queue : false,
@@ -74,7 +74,8 @@ test("re-opening a different view restarts the countdown even with equal ms", ()
     assert.notStrictEqual(run(s, open(V.Bluetooth)).timer, s.timer)   // both 5000
 })
 test("expire clears the stale timer", () => {
-    let s = run(M.initial(V.Compact, false), open(V.Network))
+    let s = run(M.initial(V.Compact, false), open(V.Network), E.Expire)
+    assert.strictEqual(s.view, V.Tabs)                                         // a service view: the hub first
     assert.strictEqual(run(s, E.Expire).phase, P.Rest)
     const rest = run(M.initial(V.Compact, true), E.Reach, E.Retreat)           // Rest, linger armed
     assert.ok(rest.timer)
@@ -113,14 +114,14 @@ test("pinning the peeking view (a click on the peek) leaves no history entry", (
     assert.strictEqual(s.phase, P.Pinned); assert.strictEqual(s.history.length, 0)
     assert.strictEqual(run(s, E.Back).phase, P.Rest)                             // Back closes, no Expanded twice
     s = run(M.initial(V.Compact, false), E.Hover, E.Expire, open(V.Network))     // another view from the peek
-    assert.strictEqual(s.history.length, 1)
+    assert.strictEqual(s.history.length, 0)                                      // the glance is never stacked
 })
 
 console.log("anchor")
 test("Back restores the view's anchor x; the rest view always centres", () => {
-    let s = run(M.initial(V.Compact, false), open(V.Expanded, 120), open(V.Network, 300))
+    let s = run(M.initial(V.Compact, false), open(V.Tabs, 120), open(V.Network, 300))
     assert.strictEqual(s.x, 300)
-    s = run(s, E.Back); assert.strictEqual(s.view, V.Expanded); assert.strictEqual(s.x, 120)
+    s = run(s, E.Back); assert.strictEqual(s.view, V.Tabs); assert.strictEqual(s.x, 120)
     assert.strictEqual(run(s, E.Close).x, -1)
 })
 
@@ -187,7 +188,7 @@ test("the peek key never outlives its Rest", () => {
     }
 })
 test("a release whose press was ignored doesn't cut the linger short", () => {
-    let s = run(M.initial(V.Compact, true), open(V.Network), E.Peek, E.Expire)  // pressed while Pinned
+    let s = run(M.initial(V.Compact, true), open(V.Network), E.Peek, E.Expire, E.Expire)  // pressed while Pinned; hub, then home
     assert.strictEqual(s.phase, P.Rest); assert.ok(s.timer)
     assert.strictEqual(run(s, E.Unpeek).phase, P.Rest)
 })
@@ -299,15 +300,46 @@ test("auto-hide: toast end goes straight to Hidden", () => {
 })
 
 console.log("the hub (Tabs) and the workspace switcher")
-test("clicking the peek opens Tabs; back returns to the glance, then home", () => {
+test("clicking the peek opens Tabs; back from Tabs goes home (the glance is only the way in)", () => {
     let s = run(M.initial(V.Compact, false), E.Hover, E.Expire)            // hover intent -> peek
     assert.strictEqual(s.phase, P.Peek)
     s = run(s, open(V.Tabs))
     assert.strictEqual(s.phase, P.Pinned); assert.strictEqual(s.view, V.Tabs)
     s = run(s, E.Back)
-    assert.strictEqual(s.view, V.Expanded); assert.strictEqual(s.phase, P.Pinned)
-    s = run(s, E.Back)
     assert.strictEqual(s.phase, P.Rest)
+})
+test("a service view's countdown ends at the hub, and the hub's at rest", () => {
+    let s = run(M.initial(V.Compact, false), open(V.Bluetooth), E.Expire)
+    assert.strictEqual(s.phase, P.Pinned); assert.strictEqual(s.view, V.Tabs)
+    assert.strictEqual(s.timer.ms, REG[V.Tabs].timeout); assert.strictEqual(s.history.length, 0)
+    assert.strictEqual(run(s, E.Expire).phase, P.Rest)
+})
+test("Back with nothing behind a service view goes to the hub", () => {
+    let s = run(M.initial(V.Compact, false), open(V.Media), E.Back)
+    assert.strictEqual(s.view, V.Tabs)
+    s = run(M.initial(V.Compact, false), E.Hover, E.Expire, open(V.Network), E.Back)   // from the glance
+    assert.strictEqual(s.view, V.Tabs)
+})
+test("a view opened from Tabs comes back to Tabs, then home", () => {
+    let s = run(M.initial(V.Compact, false), open(V.Tabs), open(V.Clock), E.Back)
+    assert.strictEqual(s.view, V.Tabs); assert.strictEqual(s.phase, P.Pinned)
+    assert.strictEqual(run(s, E.Back).phase, P.Rest)
+})
+test("Close still goes straight home, from anywhere", () => {
+    assert.strictEqual(run(M.initial(V.Compact, false), open(V.Network), E.Close).phase, P.Rest)
+})
+test("the glance pinned (open expanded) times out home, not to the hub", () => {
+    assert.strictEqual(run(M.initial(V.Compact, false), open(V.Expanded), E.Expire).phase, P.Rest)
+})
+test("a parked alert still comes first when a service view times out", () => {
+    let s = run(M.initial(V.Compact, false), open(V.Network), alert(V.Notifications), E.Expire)
+    assert.strictEqual(s.phase, P.Toast); assert.strictEqual(s.view, V.Notifications)
+})
+test("no hub configured: the old way, straight home", () => {
+    const c = Object.assign({}, cfg, { hubView: -1 })
+    let s = M.reduce(M.initial(V.Compact, false), open(V.Network), c)
+    assert.strictEqual(M.reduce(s, { type: E.Expire }, c).phase, P.Rest)
+    assert.strictEqual(M.reduce(s, { type: E.Back }, c).phase, P.Rest)
 })
 test("a workspace switch never interrupts an open view, and isn't kept for later", () => {
     let s = run(M.initial(V.Compact, false), open(V.Tabs), alert(V.Switcher))

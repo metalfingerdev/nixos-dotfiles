@@ -81,21 +81,22 @@ Item {
     function view(v) { return () => Engine.open(v) }
     function quit(f) { return () => { Engine.close(); f() } }
     readonly property var actions: [
-        { name: "Dashboard", description: "Quick settings, media and notifications", icon: "dashboard", run: view(Engine.View.Dashboard) },
+        { name: "Tabs", description: "Every view, and the workspaces", icon: Config.symbol.hub, keys: "hub all views", run: view(Engine.View.Tabs) },
+        { name: "Dashboard", description: "Quick settings, media and notifications", icon: Config.symbol.dashboard, run: view(Engine.View.Dashboard) },
         { name: "Wi-Fi", description: "Networks and connections", icon: "wifi", keys: "network internet wlan ethernet", run: view(Engine.View.Network) },
         { name: "Bluetooth", description: "Devices", icon: "bluetooth", keys: "headphones pair", run: view(Engine.View.Bluetooth) },
-        { name: "Notifications", description: "Everything that arrived", icon: "notifications", run: view(Engine.View.Notifications) },
-        { name: "Media", description: "What's playing", icon: "music_note", keys: "music player song", run: view(Engine.View.Media) },
-        { name: "Workspaces", description: "Overview of every workspace", icon: "grid_view", keys: "overview windows", run: view(Engine.View.Workspaces) },
-        { name: "Calendar", description: "The month, with today", icon: "calendar_month", keys: "clock date time", run: view(Engine.View.Clock) },
-        { name: "Battery", description: "Charge, time left and health", icon: "battery_full", keys: "power energy", run: view(Engine.View.Battery) },
-        { name: "Theme", description: "Colours, the island's shape, wallpaper", icon: "palette", keys: "settings appearance colour color", run: view(Engine.View.Theme) },
+        { name: "Notifications", description: "Everything that arrived", icon: Config.symbol.notifications, run: view(Engine.View.Notifications) },
+        { name: "Media", description: "What's playing", icon: Config.symbol.media, keys: "music player song", run: view(Engine.View.Media) },
+        { name: "Workspaces", description: "Overview of every workspace", icon: Config.symbol.overview, keys: "overview windows", run: view(Engine.View.Workspaces) },
+        { name: "Calendar", description: "The month, with today", icon: Config.symbol.calendar, keys: "clock date time", run: view(Engine.View.Clock) },
+        { name: "Battery", description: "Charge, time left and health", icon: Config.symbol.battery, keys: "power energy", run: view(Engine.View.Battery) },
+        { name: "Theme", description: "Colours, the island's shape, wallpaper", icon: Config.symbol.theme, keys: "settings appearance colour color", run: view(Engine.View.Theme) },
         { name: "Random wallpaper", description: "From ~/Pictures/Wallpapers", icon: "wallpaper", keys: "background", run: () => Wallpaper.random() },
-        { name: "Do not disturb", description: Notifier.dnd ? "On: turn it off" : "Off: turn it on", icon: "do_not_disturb_on", keys: "dnd quiet silence", run: quit(() => Notifier.dnd = !Notifier.dnd) },
-        { name: "Screenshot", description: "Select an area; saved and copied", icon: "screenshot_region", keys: "capture grab", run: quit(() => Toggles.screenshot()) },
+        { name: "Do not disturb", description: Notifier.dnd ? "On: turn it off" : "Off: turn it on", icon: Config.symbol.dnd, keys: "dnd quiet silence", run: quit(() => Notifier.dnd = !Notifier.dnd) },
+        { name: "Screenshot", description: "Select an area; saved and copied", icon: Config.symbol.screenshot, keys: "capture grab", run: quit(() => Toggles.screenshot()) },
         { name: "Lock", description: "Lock the session", icon: "lock", run: quit(() => Session.run("lock")) },
         { name: "Suspend", description: "Sleep", icon: "bedtime", keys: "sleep", run: quit(() => Session.run("suspend")) },
-        { name: "Power", description: "Log out, restart, shut down", icon: "power_settings_new", keys: "logout reboot restart shutdown poweroff", run: view(Engine.View.Power) }
+        { name: "Power", description: "Log out, restart, shut down", icon: Config.symbol.power, keys: "logout reboot restart shutdown poweroff", run: view(Engine.View.Power) }
     ]
     readonly property var actionRows: {
         const q = query
@@ -225,10 +226,23 @@ Item {
     implicitWidth: 800
     implicitHeight: 20 + bar.height + 12 + (results.length > 0 ? list.height : 56) + 18
 
+    // back: to the hub (Tabs), like every other view
+    Pill {
+        id: back
+        x: 16
+        anchors.verticalCenter: bar.verticalCenter
+        kind: "text"
+        icon: Config.symbol.back
+        iconSize: 24
+        implicitHeight: 52
+        activeFocusOnTab: false             // Backspace on an empty field, or Escape, does the same
+        onClicked: Engine.back()
+    }
+
     SearchBar {
         id: bar
-        x: 20; y: 20
-        width: parent.width - 40
+        x: back.x + back.width + 8; y: 20
+        width: parent.width - x - 20
         implicitHeight: 60
         fieldSize: 18
         placeholder: "Search"
