@@ -97,6 +97,8 @@ because the durations match.
 - `back` pops the top entry and restores it as **Pinned**, with its anchor. If the history is empty, back
   closes the island.
 - Opening the view that is already pinned closes it (`toggle`).
+- Opening the view that is peeking (a click on the peek) pins it without stacking it: the history stays
+  as it was, so Back doesn't show the same view twice.
 
 ## Alerts, priority and the queue
 

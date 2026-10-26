@@ -14,6 +14,10 @@ default.
 | `qs ipc call island back` | go back one step in history |
 | `qs ipc call island autohide <true\|false>` | set auto-hide |
 | `qs ipc call island toggleAutohide` | toggle auto-hide |
+| `qs ipc call island palette <name>` | switch colours; `palettes` lists them |
+| `qs ipc call island style <pill\|notch>` | the island's shape |
+| `qs ipc call island glass <true\|false>` | frosted glass; `toggleGlass` flips it |
+| `qs ipc call island handle <strip\|none>` | auto-hide: what stays at the top edge while hidden |
 | `qs ipc call island debug <true\|false>` | show the debug overlay and the proxy box |
 | `qs ipc call island toggleDebug` | toggle debug |
 | `qs ipc call island dump` | the full machine snapshot as JSON, with view names instead of numbers |
@@ -22,8 +26,9 @@ default.
 `open compact` (the rest view) goes home, the same as `close`. `alert compact` is ignored.
 
 Every view opened this way is Pinned, so it has the keyboard (Tab/arrows, Enter, Escape) until it
-closes, and each keystroke restarts its timeout. Notable names: `launcher` (app search) and `notifications`
-(`open` = the notification center, `alert` = the popups).
+closes, and each keystroke restarts its timeout. Names: `expanded` (the dashboard), `launcher`, `network`,
+`bluetooth`, `media`, `notifications` (`open` = the center, `alert` = the popups), `workspaces` (the
+overview), `clock`, `battery`, `power`, `theme` (palette, look, wallpaper).
 
 `peek` is meant for a key's press and release: `peek true` on press, `peek false` on release. When
 auto-hide has hidden the island, the press reveals the rest view (Compact) and the release hides it
@@ -32,6 +37,17 @@ pointer leaves (then it lingers `hideMs`, as usual). The rest view never takes t
 the key doesn't steal typing. Without auto-hide the rest view is always up and the key changes nothing
 visible. While a hover peek, a pinned view or a toast is up, `peek` does nothing. Hovering the island
 still peeks into `Engine.peekView`; for the expanded view from the keyboard, use `open expanded`.
+
+## Wallpaper
+
+`Wallpaper.qml` has its own target, `wallpaper` (awww; images in `~/Pictures/Wallpapers`):
+
+| Command | Effect |
+|---|---|
+| `qs ipc call wallpaper next` / `prev` / `random` | change it |
+| `qs ipc call wallpaper set <path>` | show that image |
+| `qs ipc call wallpaper reload` | re-read the folder |
+| `qs ipc call wallpaper current` | print the path showing now |
 
 ## Notifications
 

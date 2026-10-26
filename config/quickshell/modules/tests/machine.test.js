@@ -8,7 +8,8 @@ const ctx = vm.createContext({}); vm.runInContext(src, ctx)
 const M = ctx
 
 // ---- fake Registry (mirrors Registry.qml) -----------------------------------------------------
-const V = { Compact: 0, Expanded: 1, Network: 2, Launcher: 3, Bluetooth: 4, Volume: 5, Brightness: 6, Notifications: 7 }
+const V = { Compact: 0, Expanded: 1, Network: 2, Launcher: 3, Bluetooth: 4, Volume: 5, Brightness: 6, Notifications: 7,
+            Media: 8, Battery: 9, Clock: 10, Power: 11, Theme: 12, Workspaces: 13 }
 const REG = {
     [V.Compact]:    { priority: 0, timeout: 0 },
     [V.Expanded]:   { priority: 1, timeout: 1500 },
@@ -18,6 +19,12 @@ const REG = {
     [V.Volume]:     { priority: 1, timeout: 1500, queue: false },
     [V.Brightness]: { priority: 1, timeout: 1500, queue: false },
     [V.Notifications]: { priority: 2, critical: 3, timeout: 0, queue: true },
+    [V.Media]:      { priority: 2, timeout: 8000 },
+    [V.Battery]:    { priority: 2, critical: 3, timeout: 4000, queue: true },
+    [V.Clock]:      { priority: 2, timeout: 8000 },
+    [V.Power]:      { priority: 2, timeout: 8000 },
+    [V.Theme]:      { priority: 2, timeout: 8000 },
+    [V.Workspaces]: { priority: 2, timeout: 8000 },
 }
 const cfg = {
     restView: V.Compact, peekView: V.Expanded, graceMs: 140, hoverMs: 140, hideMs: 700,
@@ -95,6 +102,15 @@ test("alert <restView> is ignored", () => {
     assert.strictEqual(run(s0, alert(V.Compact)).phase, P.Rest)
     const pinned = run(s0, open(V.Network))
     assert.strictEqual(run(pinned, alert(V.Compact)).phase, P.Pinned)
+})
+
+test("pinning the peeking view (a click on the peek) leaves no history entry", () => {
+    let s = run(M.initial(V.Compact, false), E.Hover, E.Expire)                  // peeking Expanded
+    s = run(s, open(V.Expanded))
+    assert.strictEqual(s.phase, P.Pinned); assert.strictEqual(s.history.length, 0)
+    assert.strictEqual(run(s, E.Back).phase, P.Rest)                             // Back closes, no Expanded twice
+    s = run(M.initial(V.Compact, false), E.Hover, E.Expire, open(V.Network))     // another view from the peek
+    assert.strictEqual(s.history.length, 1)
 })
 
 console.log("anchor")

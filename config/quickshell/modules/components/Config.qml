@@ -4,8 +4,9 @@ import QtQuick
 import QtCore
 
 // Colours, radius and type for the whole island. Bar, the components and every view read these;
-// nothing else hard-codes a colour. `name` picks a palette (views/ThemePicker.qml, IPC `theme`)
-// and is remembered across restarts.
+// nothing else hard-codes a colour. `name` picks a palette (views/Theme.qml, IPC `palette`)
+// and is remembered across restarts. No view file may be called Config.qml: views see their own
+// folder first, and it would hide this singleton from every view.
 //
 // Plain QtQuick + QtCore (no Quickshell), so modules/tests/tst_keyboard.qml can still load Pill.
 QtObject {
@@ -55,8 +56,25 @@ QtObject {
     readonly property color warn:     current.warn
     readonly property color bad:      current.bad
 
-    readonly property int radius: 12          // the island
+    // the island's largest corner; a shape lower than twice this is a capsule (the compact clock, HUDs)
+    readonly property int radius: 18
     readonly property int innerRadius: 8      // cards, rows and fields inside it
+
+    // ---- the island's look (views/Theme.qml, IPC `style` / `glass`), remembered with the palette ----
+    //   style   "pill":  floats below the top edge, every corner round
+    //           "notch": flush with the top edge, square top, curving into the screen edge
+    //   handle  auto-hide: what stays at the top edge while hidden: "strip" (a thin bar) or "none"
+    //   glass   frosted glass: a translucent surface over Hyprland's blur (Bar registers the rule)
+    property string style: "pill"
+    property string handle: "strip"
+    property bool glass: false
+    property real glassOpacity: 0.85                       // 0.2..1
+    readonly property color island: glass ? Qt.rgba(surface.r, surface.g, surface.b, Math.max(0.2, Math.min(1, glassOpacity)))
+                                          : surface
+
+    // privacy dots beside the island (fixed: they mean the same thing in every palette)
+    readonly property color microphone: "#ff9f1a"
+    readonly property color camera: "#35ff72"
 
     // Fonts come from modules/features/theme.nix (inter, maple-mono.NF, material-symbols).
     readonly property string font: "Inter"
@@ -73,5 +91,9 @@ QtObject {
         location: StandardPaths.writableLocation(StandardPaths.GenericStateLocation) + "/quickshell/island.ini"
         category: "theme"
         property alias name: root.name
+        property alias style: root.style
+        property alias handle: root.handle
+        property alias glass: root.glass
+        property alias glassOpacity: root.glassOpacity
     }
 }

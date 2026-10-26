@@ -95,8 +95,10 @@ function usable(view, cfg) { return cfg.known(view) && view !== cfg.restView }
 function toPinned(s, e, cfg) {
     if (!cfg.known(e.view)) return s
     if (e.view === cfg.restView) return toRest(s, e, cfg)        // "open compact" means "go home"
+    // pinning the view that is peeking (a click on the peek) keeps it, it doesn't stack it
+    const history = s.phase === Phase.Peek && e.view === s.view ? s.history : trail(s)
     // opening is the user's choice, not an alert: the view's own priority
-    return enter(set(s, { history: trail(s) }), cfg, Phase.Pinned, e.view, cfg.timeout(e.view), { x: e.x })
+    return enter(set(s, { history: history }), cfg, Phase.Pinned, e.view, cfg.timeout(e.view), { x: e.x })
 }
 function toggle(s, e, cfg)   { return e.view === s.view ? toRest(s, e, cfg) : toPinned(s, e, cfg) }
 function grace(s, e, cfg)    { return set(s, { timer: { ms: cfg.graceMs, kind: "grace" } }) }

@@ -1,0 +1,10 @@
+module qs.modules.island.views.overview
+
+singleton OverviewConfig 1.0 OverviewConfig.qml
+
+WorkspaceTile 1.0 WorkspaceTile.qml
+WindowPreview 1.0 WindowPreview.qml
+WindowTip     1.0 WindowTip.qml
+SpecialStrip  1.0 SpecialStrip.qml
+SpecialTile   1.0 SpecialTile.qml
+RoundedImage  1.0 RoundedImage.qml

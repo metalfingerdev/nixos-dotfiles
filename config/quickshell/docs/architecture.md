@@ -49,8 +49,11 @@ Each `Bar` creates two layer-shell `PanelWindow`s:
    - With auto-hide on, it exists on **every** screen. It is `hotZone` px tall, reserves nothing, and its
      input mask is the strip. Hovering the strip sends `Engine.edge(true/false, screen)`
      (`Reach`/`Retreat`), which can also move the island to that screen.
-2. **overlay**: full-screen, on `WlrLayer.Top`, active screen only, reserves nothing. Its input mask is
-   only the **proxy** rect, so the rest of the screen stays clickable.
+2. **overlay**: full-screen, on `WlrLayer.Top`, namespace `quickshell:island`, active screen only, reserves
+   nothing. Its input mask follows the phase:
+   - normally only the **proxy** rect, so the rest of the screen stays clickable;
+   - the **whole screen** while a view is Pinned: a click anywhere outside the island closes it;
+   - **nothing** while Hidden: the strip handle is only a hint, the spacer's hot zone reveals.
    - Keyboard: while `Engine.keyboard` (a view is Pinned, or the peek view is showing) the overlay takes
      exclusive keyboard focus (`WlrKeyboardFocus.Exclusive`). See [Keyboard and hover](#keyboard-and-hover).
 
@@ -64,7 +67,8 @@ Loader item ──implicit size──► proxy (invisible, snaps instantly, the 
 - **proxy** is an invisible `Item` placed at the island's *final* rect:
   - size = the loaded view's `implicitWidth/Height`, held across view swaps so it never collapses to 0
   - x = `abscissa(width, Engine.anchorX)`: centred on the click x (or the screen), clamped to `edgePad`
-  - y = `gap` from the top, or above the screen when `Engine.hidden`
+  - y = `gap` from the top (0 in notch style), or above the screen when `Engine.hidden`; with the strip
+    handle, a `stripW` x `stripH` bar at the top edge instead
 
   It is never animated, so the input mask is correct on the first frame.
 - Any change to the proxy's x/y/width/height is coalesced with `Qt.callLater(snap)`. `snap()`
@@ -73,8 +77,15 @@ Loader item ──implicit size──► proxy (invisible, snaps instantly, the 
 - The Behaviors are enabled only while `armed`, so the same assignment jumps instead of springing.
   `disarm(ms)` turns them off for a while: 500 ms at startup (so the
   window going from 0 to its real size doesn't animate in) and 150 ms when a Bar becomes the active one.
-- **surface** is the visible rounded `Rectangle`, drawn at `sx/sy/sw/sh` with `clip: true`. Its size is
-  clamped at 0, because a spring can undershoot.
+- **surface** is the visible `Rectangle`, drawn at `sx/sy/sw/sh` with `clip: true`. Its size is
+  clamped at 0, because a spring can undershoot. Its corners come from `Config`: `min(height / 2,
+  Config.radius)` (so low shapes are capsules), and a square top in notch style, where two
+  **anti-corners** (Shapes outside the surface, from the same sprung rect) curve it into the screen
+  edge. With `Config.glass` the colour is translucent, a 1 px rim lights its edge, and Bar asks Hyprland to
+  blur the layer (`Desktops.blurLayer`).
+- A click on the surface's own background (under the view's controls) pins what it shows: `pinShown()`
+  opens the peeking or toasting view (Pinned), or, at rest, the peek view.
+- **Privacy dots** sit beside the surface while `Privacy.microphone` / `Privacy.camera` is true.
 - The **Loader** inside the surface (`ViewLoader.qml`) is always the view's *final* size. As the surface grows, it reveals
   the content instead of squashing it. It is centred horizontally (or pinned to its final screen position
   when `pinView` is true).

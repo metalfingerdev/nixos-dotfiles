@@ -16,7 +16,13 @@ QtObject {
         Bluetooth,
         Volume,
         Brightness,
-        Notifications
+        Notifications,
+        Media,
+        Battery,
+        Clock,
+        Power,
+        Theme,
+        Workspaces
     }
 
     // ---- config ----

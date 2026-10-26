@@ -21,11 +21,11 @@ Rectangle {
     Keys.onEnterPressed:  press()
     Keys.onSpacePressed:  press()
 
-    radius: Theme.innerRadius + 2
+    radius: Config.innerRadius + 2
     color: tint.a > 0 ? tint
-         : keyboardSelected ? Theme.selected : area.containsMouse ? Theme.hover : Theme.raised
+         : keyboardSelected ? Config.selected : area.containsMouse ? Config.hover : Config.raised
     border.width: current ? 2 : keyboardSelected ? 1 : 0
-    border.color: current ? Theme.accent : Theme.faint
+    border.color: current ? Config.accent : Config.faint
     Behavior on color { ColorAnimation { duration: 100 } }
 
     MouseArea {

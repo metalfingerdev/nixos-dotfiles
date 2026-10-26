@@ -5,7 +5,7 @@ Row {
     id: root
 
     property real strength: 0
-    property color color: Theme.text
+    property color color: Config.text
     property int barWidth: 3
 
     spacing: 2
@@ -21,7 +21,7 @@ Row {
             height: root.height * (index + 1) / 4
             radius: 1
             // a bar lights up once the strength reaches its band (1 bar at any signal at all)
-            color: root.strength > index / 4 || (index === 0 && root.strength > 0) ? root.color : Theme.track
+            color: root.strength > index / 4 || (index === 0 && root.strength > 0) ? root.color : Config.track
         }
     }
 }

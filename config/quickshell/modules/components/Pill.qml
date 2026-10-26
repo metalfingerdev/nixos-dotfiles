@@ -25,9 +25,9 @@ Rectangle {
     implicitWidth: label.text === "" && icon !== "" ? implicitHeight : content.implicitWidth + 24
     implicitHeight: 28
     radius: height / 2
-    color: keyboardSelected ? Theme.selected : area.containsMouse ? Theme.hover : Theme.raised
+    color: keyboardSelected ? Config.selected : area.containsMouse ? Config.hover : Config.raised
     border.width: keyboardSelected ? 1 : 0
-    border.color: Theme.faint
+    border.color: Config.faint
     opacity: enabled ? 1 : 0.4
 
     Row {
@@ -41,16 +41,16 @@ Rectangle {
             name: root.icon
             size: 17
             filled: root.active
-            color: root.active ? Theme.accent : Theme.text
+            color: root.active ? Config.accent : Config.text
         }
 
         Text {
             id: label
             visible: text !== ""
             anchors.verticalCenter: parent.verticalCenter
-            color: root.active ? Theme.accent : Theme.text
-            font.family: Theme.font
-            font.pixelSize: Theme.body
+            color: root.active ? Config.accent : Config.text
+            font.family: Config.font
+            font.pixelSize: Config.body
         }
     }
 

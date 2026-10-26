@@ -1,4 +1,5 @@
 import Quickshell.Io
+import qs.modules.components
 
 // Strings exist only here. Unknown names are rejected, never silently defaulted.
 //   qs ipc call island open network        pin a view (opening the open view closes it)
@@ -10,6 +11,10 @@ import Quickshell.Io
 //   qs ipc call island close
 //   qs ipc call island back
 //   qs ipc call island autohide true
+//   qs ipc call island palette nord        switch colours (`palettes` lists them)
+//   qs ipc call island style notch         pill | notch
+//   qs ipc call island glass true          frosted glass (toggleGlass flips it)
+//   qs ipc call island handle strip        auto-hide handle: strip | none
 //   qs ipc call island status
 //   qs ipc call island debug true          snapshot overlay + proxy box (toggleDebug flips it)
 //   qs ipc call island dump                the full snapshot as JSON
@@ -38,6 +43,12 @@ IpcHandler {
     // settings
     function autohide(on: bool): void { Engine.setAutoHide(on) }
     function toggleAutohide(): void   { Engine.setAutoHide(!Engine.autoHide) }
+    function palette(name: string): void { if (Config.palettes[name] !== undefined) Config.name = name }
+    function palettes(): string          { return Config.names.join("\n") }
+    function style(name: string): void   { if (name === "pill" || name === "notch") Config.style = name }
+    function glass(on: bool): void       { Config.glass = on }
+    function toggleGlass(): void         { Config.glass = !Config.glass }
+    function handle(name: string): void  { if (name === "strip" || name === "none") Config.handle = name }
     function debug(on: bool): void    { Engine.debug = on }
     function toggleDebug(): void      { Engine.debug = !Engine.debug }
 

@@ -1,37 +1,66 @@
 import QtQuick
 
-// A thin level bar (media position, battery). fraction: 0..1. With `seekable`, a click reports
-// where (seek(fraction)); the owner decides what that means.
+// A level bar (media position, battery). fraction: 0..1; NaN/Infinity from a flaky source shows as 0.
+// With `seekable`, click or drag to seek: while dragging it shows the drag position, and seek()
+// fires once, on release, so a player isn't spammed. It grows and shows a knob under the pointer.
+// The fill is deliberately not animated: a 250 ms position poll would keep restarting it.
 Item {
     id: root
 
     property real fraction: 0
-    property color color: Theme.text
+    property color color: Config.text
     property bool seekable: false
-    property bool animated: true
+    property int thickness: 4
+
+    readonly property bool hovered: area.containsMouse
+    readonly property bool dragging: area.pressed && seekable
+    property real dragFraction: 0
+    readonly property real shownFraction: clamp(dragging ? dragFraction : fraction)
+
     signal seek(real fraction)
 
+    function clamp(v) { return isFinite(v) ? Math.max(0, Math.min(1, v)) : 0 }
+
     implicitWidth: 200
-    implicitHeight: 4
+    implicitHeight: seekable ? 16 : thickness           // a tall hit area, a thin track
 
     Rectangle {
-        anchors.fill: parent
+        id: track
+        width: parent.width
+        height: root.seekable && (root.hovered || root.dragging) ? root.thickness * 1.5 : root.thickness
+        anchors.verticalCenter: parent.verticalCenter
         radius: height / 2
-        color: Theme.track
+        color: Config.track
+        Behavior on height { NumberAnimation { duration: 100 } }
 
         Rectangle {
-            width: parent.width * Math.max(0, Math.min(1, root.fraction))
+            width: track.width * root.shownFraction
             height: parent.height
             radius: parent.radius
             color: root.color
-            Behavior on width { enabled: root.animated; NumberAnimation { duration: 200 } }
         }
     }
 
+    Rectangle {
+        visible: root.seekable && (root.hovered || root.dragging)
+        width: root.thickness * 2.5
+        height: width
+        radius: width / 2
+        anchors.verticalCenter: parent.verticalCenter
+        x: track.width * root.shownFraction - width / 2
+        color: root.color
+    }
+
     MouseArea {
-        anchors { fill: parent; topMargin: -6; bottomMargin: -6 }   // a 4px bar is hard to hit
-        enabled: root.seekable
-        cursorShape: root.seekable ? Qt.PointingHandCursor : Qt.ArrowCursor
-        onClicked: mouse => root.seek(Math.max(0, Math.min(1, mouse.x / root.width)))
+        id: area
+        anchors.fill: parent
+        visible: root.seekable
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+
+        function at(x) { return root.clamp(x / width) }
+        onPressed: mouse => root.dragFraction = at(mouse.x)
+        onPositionChanged: mouse => { if (pressed) root.dragFraction = at(mouse.x) }
+        onReleased: root.seek(root.dragFraction)
     }
 }

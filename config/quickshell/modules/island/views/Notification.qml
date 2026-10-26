@@ -63,7 +63,7 @@ Item {
             visible: entry.modelData.critical
             x: 6; width: 3; height: parent.height - 18; radius: 1.5
             anchors.verticalCenter: parent.verticalCenter
-            color: "#ff6b6b"
+            color: Config.bad
         }
 
         Item {
@@ -96,15 +96,17 @@ Item {
                 text: (entry.n?.appName || "notification")
                     + (root.center ? "  ·  " + Qt.formatTime(new Date(entry.modelData.time), "hh:mm") : "")
                 elide: Text.ElideRight
-                color: "#9a9a9a"
-                font.pixelSize: 11
+                color: Config.dim
+                font.family: Config.font
+                font.pixelSize: Config.small
             }
             Text {
                 width: parent.width
                 text: (entry.n?.summary ?? "") + (entry.modelData.count > 1 ? "  (" + entry.modelData.count + ")" : "")
                 textFormat: Text.PlainText
                 elide: Text.ElideRight
-                color: entry.modelData.critical ? "#ff6b6b" : "#f7f7f7"
+                color: entry.modelData.critical ? Config.bad : Config.text
+                font.family: Config.font
                 font.pixelSize: 14
                 font.bold: true
             }
@@ -115,7 +117,8 @@ Item {
                 textFormat: Text.PlainText
                 elide: Text.ElideRight
                 maximumLineCount: 1
-                color: "#c8c8c8"
+                color: Config.dim
+                font.family: Config.font
                 font.pixelSize: 12
             }
         }
@@ -152,8 +155,9 @@ Item {
             x: 16
             anchors.verticalCenter: parent.verticalCenter
             text: Notifier.count === 1 ? "1 notification" : Notifier.count + " notifications"
-            color: "#f7f7f7"
-            font.pixelSize: 13
+            color: Config.text
+            font.family: Config.font
+            font.pixelSize: Config.body
         }
 
         Row {
@@ -194,15 +198,17 @@ Item {
         visible: root.emptyH > 0
         x: 16; y: root.headerH + 10
         text: "No notifications"
-        color: "#9a9a9a"
-        font.pixelSize: 13
+        color: Config.dim
+        font.family: Config.font
+        font.pixelSize: Config.body
     }
 
     Text {
         visible: root.moreH > 0
         x: 16; y: root.rows * root.rowH + 2
         text: "+" + root.more + " more"
-        color: "#9a9a9a"
+        color: Config.dim
+        font.family: Config.font
         font.pixelSize: 12
     }
 }

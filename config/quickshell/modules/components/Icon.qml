@@ -8,8 +8,8 @@ Text {
     property bool filled: false
 
     text: name
-    color: Theme.text
-    font.family: Theme.icons
+    color: Config.text
+    font.family: Config.icons
     font.pixelSize: size
     font.variableAxes: ({ "FILL": filled ? 1 : 0 })
     verticalAlignment: Text.AlignVCenter

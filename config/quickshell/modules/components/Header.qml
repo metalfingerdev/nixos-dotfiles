@@ -36,9 +36,9 @@ Item {
                 width: parent.width
                 text: root.title
                 elide: Text.ElideRight
-                color: Theme.text
-                font.family: Theme.font
-                font.pixelSize: Theme.large
+                color: Config.text
+                font.family: Config.font
+                font.pixelSize: Config.large
                 font.weight: Font.DemiBold
             }
             Text {
@@ -46,9 +46,9 @@ Item {
                 visible: text !== ""
                 text: root.subtitle
                 elide: Text.ElideRight
-                color: Theme.dim
-                font.family: Theme.font
-                font.pixelSize: Theme.small
+                color: Config.dim
+                font.family: Config.font
+                font.pixelSize: Config.small
             }
         }
 

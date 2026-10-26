@@ -2,18 +2,23 @@
 
 ## Open
 
-- [ ] **Real Network and Bluetooth views.** Both are placeholders ("not connected to a data source yet").
-      They need services in `modules/services` (e.g. NetworkManager via `Process`/`nmcli`, and
-      `Quickshell.Bluetooth`), then real content in `views/Network.qml` and `views/Bluetooth.qml`.
-- [ ] Theme: move colours, radius and font sizes from `Bar.qml`, `Pill.qml` and the views into a `Theme`
-      singleton.
-- [ ] Launcher: fuzzy matching and ranking. It currently takes the first 5 entries whose name contains the
-      query, in `DesktopEntries` order.
+- [ ] Favourite apps dock (dynamicGlacier's "apps" panel): pinned launchers, saved to a state file.
+- [ ] Battery: charge limit and power profiles, for hardware that has them (see old-shell-notes.md).
+- [ ] Dashboard / settings views (the `open dashboard` / `open settings` binds in hyprland.lua).
 - [ ] Keyboard, next steps: give each view real keyboard rules as it gets real content.
 - [ ] Tests: `modules/tests/machine.test.js` mirrors `Registry.qml` by hand. Keep its `REG` table in sync,
       or generate it.
 
 ## Done
+
+- [x] Real Network (Quickshell.Networking) and Bluetooth (Quickshell.Bluetooth) views, plus Media,
+      Battery, Clock, Power, Theme (+ wallpaper) and a Workspaces overview with live previews.
+- [x] `Config` singleton: palettes, the island's look, fonts; Bar, components and views use it.
+- [x] Launcher: ranking (prefix > word > substring > generic name/keywords > in-order letters), icons.
+- [x] The best of the old shell's `Bar` and `dynamicGlacier`, merged into the island: pill/notch,
+      anti-corners, frosted glass, capsule corners, strip handle, outside-click close, click to pin,
+      privacy dots, follow the focused monitor, the dashboard peek, media in Compact (see
+      [old-shell-notes.md](old-shell-notes.md)).
 
 - [x] `Ipc` and `Triggers` are instantiated once in `shell.qml`.
 - [x] Services module: `Audio`, `Backlight`, `Notifier`.

@@ -6,9 +6,12 @@ import Quickshell.Networking
 
 // Knows NetworkManager (through Quickshell.Networking). Knows nothing about the island.
 //
-// networks: nearby Wi-Fi networks, the connected one first, then strongest. Hidden SSIDs (no
+// networks: nearby Wi-Fi networks: the connected one first, then by signal in quarters, then by
+//           name. The quarters keep the order from reshuffling on every scan. Hidden SSIDs (no
 //           name) are skipped. Scanning costs power, so it only runs while someone holds a
 //           scan(true): the Network view does, while it's on screen.
+// attempt / lastError: the connection being made, and why the last one failed (cleared after
+//           errorMs). A failed first attempt leaves a broken profile behind: it is forgotten.
 Singleton {
     id: root
 
@@ -27,7 +30,9 @@ Singleton {
         if (!wifi) return []
         return Array.from(wifi.networks.values)
             .filter(n => n.name !== "")
-            .sort((a, b) => (b.connected - a.connected) || (b.signalStrength - a.signalStrength))
+            .sort((a, b) => (b.connected - a.connected)
+                         || (Math.floor(b.signalStrength * 4) - Math.floor(a.signalStrength * 4))
+                         || a.name.localeCompare(b.name))
     }
     readonly property var current: networks.find(n => n.connected) ?? null
 
@@ -61,9 +66,36 @@ Singleton {
     function needsPassword(n) { return secured(n) && !n.known }
     function busy(n)          { return n.stateChanging }
 
-    function connect(n, psk)  { if (psk) n.connectWithPsk(psk); else n.connect() }
     function disconnect(n)    { n.disconnect() }
     function forget(n)        { n.forget() }
+
+    // ---- connecting ----
+    property var attempt: null           // the network being connected to
+    property bool attemptWasKnown: false
+    property string lastError: ""
+    property int errorMs: 6000
+
+    function connect(n, psk) {
+        lastError = ""
+        attempt = n
+        attemptWasKnown = n.known
+        if (psk) n.connectWithPsk(psk); else n.connect()
+    }
+
+    Connections {
+        target: root.attempt
+        function onConnectedChanged() { if (root.attempt.connected) root.attempt = null }
+        function onConnectionFailed(reason) {
+            root.lastError = root.attempt.name + ": " + root.failure(reason)
+            if (!root.attemptWasKnown) root.attempt.forget()
+            root.attempt = null
+        }
+    }
+    Timer {
+        running: root.lastError !== ""
+        interval: root.errorMs
+        onTriggered: root.lastError = ""
+    }
 
     // why the last attempt failed, for the view
     function failure(reason) {

@@ -69,4 +69,13 @@ Singleton {
     }
 
     function forget(d) { d.forget() }
+
+    // one line per device, for lists
+    function status(d) {
+        if (d.pairing) return "Pairing…"
+        if (d.state === BluetoothDeviceState.Connecting) return "Connecting…"
+        if (d.state === BluetoothDeviceState.Disconnecting) return "Disconnecting…"
+        if (d.connected) return "Connected" + (d.batteryAvailable ? " · " + Math.round(d.battery * 100) + "%" : "")
+        return d.paired ? "Paired" : "New · click to pair"
+    }
 }

@@ -9,3 +9,6 @@ singleton Players    1.0 Players.qml
 singleton Energy     1.0 Energy.qml
 singleton Session    1.0 Session.qml
 singleton Desktops   1.0 Desktops.qml
+singleton Privacy    1.0 Privacy.qml
+singleton Toplevels  1.0 Toplevels.qml
+singleton Wallpaper  1.0 Wallpaper.qml

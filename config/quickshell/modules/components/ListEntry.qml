@@ -27,10 +27,10 @@ Rectangle {
 
     implicitWidth: 320
     implicitHeight: subtitle !== "" ? 46 : 36
-    radius: Theme.innerRadius
-    color: keyboardSelected ? Theme.selected : area.containsMouse ? Theme.hover : "transparent"
+    radius: Config.innerRadius
+    color: keyboardSelected ? Config.selected : area.containsMouse ? Config.hover : "transparent"
     border.width: keyboardSelected ? 1 : 0
-    border.color: Theme.faint
+    border.color: Config.faint
 
     // under the children, so pills in the row still get their own clicks
     MouseArea {
@@ -60,7 +60,7 @@ Rectangle {
                 name: root.icon
                 size: 20
                 filled: root.active
-                color: root.active ? Theme.accent : Theme.text
+                color: root.active ? Config.accent : Config.text
             }
         }
 
@@ -73,9 +73,9 @@ Rectangle {
                 width: parent.width
                 text: root.title
                 elide: Text.ElideRight
-                color: root.active ? Theme.accent : Theme.text
-                font.family: Theme.font
-                font.pixelSize: Theme.body
+                color: root.active ? Config.accent : Config.text
+                font.family: Config.font
+                font.pixelSize: Config.body
                 font.weight: root.active ? Font.DemiBold : Font.Normal
             }
             Text {
@@ -83,18 +83,18 @@ Rectangle {
                 visible: text !== ""
                 text: root.subtitle
                 elide: Text.ElideRight
-                color: Theme.dim
-                font.family: Theme.font
-                font.pixelSize: Theme.small
+                color: Config.dim
+                font.family: Config.font
+                font.pixelSize: Config.small
             }
         }
 
         Text {
             visible: text !== ""
             text: root.trailing
-            color: Theme.dim
-            font.family: Theme.font
-            font.pixelSize: Theme.small
+            color: Config.dim
+            font.family: Config.font
+            font.pixelSize: Config.small
         }
 
         RowLayout {

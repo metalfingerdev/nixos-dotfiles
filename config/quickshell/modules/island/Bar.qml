@@ -1,14 +1,24 @@
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
+import QtQuick.Shapes
 
 import qs.modules.island
+import qs.modules.components
+import qs.modules.services
 
 //   Loader item ──implicit size──► proxy (invisible, snaps instantly, the truth)
 //                                    └──► sx/sy/sw/sh (springs) ──► surface (visible)
 //
 // One Bar exists per screen (see shell.qml). All Bars share the Engine, but only the one on
 // Engine.activeScreen draws the island; the others only keep their top-edge hot zone.
+//
+// The look comes from Config (views/Theme.qml):
+//   style "pill"   floats `gap` below the top edge, every corner round
+//         "notch"  flush with the top edge, square top, anti-corners curving into the screen edge
+//   glass          translucent surface; Hyprland blurs what's behind it (namespace quickshell:island)
+//   handle "strip" while auto-hide has hidden the island, a thin bar stays at the top edge
+// Any shape lower than twice Config.radius is a capsule (the compact clock, the volume HUD).
 Scope {
     id: root
 
@@ -17,11 +27,17 @@ Scope {
     readonly property var screen: modelData
     readonly property bool active: Engine.activeScreen === screen.name
 
-    readonly property real gap: 8          // distance from the top edge
-    readonly property real edgePad: 8      // keep the island this far from the screen sides
-    readonly property real hotZone: 4      // auto-hide: height of the top-edge strip that reveals the island
-    readonly property bool debug: Engine.debug   // show the proxy as a faint green box (watch it snap)
-    readonly property int space: 42        // height reserved at the top when auto-hide is off
+    readonly property bool notch: Config.style === "notch"
+    readonly property real gap: notch ? 0 : 8      // distance from the top edge
+    readonly property real edgePad: 8              // keep the island this far from the screen sides
+    readonly property real hotZone: 4              // auto-hide: height of the top-edge strip that reveals the island
+    readonly property bool debug: Engine.debug     // show the proxy as a faint green box (watch it snap)
+    readonly property int space: gap + 36          // height reserved at the top when auto-hide is off
+
+    // auto-hide's handle: what stays of the island while it is hidden
+    readonly property bool strip: Engine.hidden && Config.handle === "strip"
+    readonly property real stripW: 96
+    readonly property real stripH: 5
 
     // Morph feel (SpringAnimation). Higher stiffness = snappier; lower damping = more overshoot.
     // A redirect mid-flight keeps the current velocity, so the island never lurches.
@@ -70,6 +86,14 @@ Scope {
         sw = proxy.width; sh = proxy.height
     }
 
+    // A click on the island itself (not on a control in the view) keeps what it shows: the peek
+    // stops collapsing on leave, a toast stops timing out. At rest it opens the peek view.
+    function pinShown() {
+        const x = Engine.anchorX >= 0 ? Engine.anchorX : undefined
+        if (Engine.phase === "peek" || Engine.phase === "toast") Engine.open(Engine.view, x)
+        else if (Engine.phase === "rest") Engine.open(Engine.peekView >= 0 ? Engine.peekView : Engine.View.Expanded)
+    }
+
     // fade out -> load the new view (island starts resizing) -> fade in
     SequentialAnimation {
         id: swap
@@ -79,6 +103,11 @@ Scope {
     }
 
     Component.onCompleted: { snap(); swap.start(); disarm(500) }
+
+    // Glass needs Hyprland to blur this layer. Asking once per switch-on is enough (the rule
+    // stays until Hyprland reloads; switching glass on again asks again).
+    readonly property bool wantsBlur: active && Config.glass
+    onWantsBlurChanged: if (wantsBlur) Desktops.blurLayer("quickshell:island")
 
     // Top strip. Auto-hide off: reserves screen space on the active screen only, fully click-through.
     // Auto-hide on: a thin hot zone on EVERY screen; reaching it reveals the island (on that screen).
@@ -100,7 +129,9 @@ Scope {
         }
     }
 
-    // Full-screen overlay; only the island's FINAL rect is clickable. Exists on the active screen only.
+    // Full-screen overlay. Input: only the island's FINAL rect, or the whole screen while a view
+    // is pinned (a click outside closes it), or nothing while hidden (the handle is only a hint;
+    // the hot zone above reveals). Exists on the active screen only.
     PanelWindow {
         id: overlay
 
@@ -109,12 +140,22 @@ Scope {
         anchors { top: true; bottom: true; left: true; right: true }
         exclusionMode: ExclusionMode.Ignore
         color: "transparent"
-        mask: Region { item: proxy }
+        mask: Region { item: Engine.hidden ? null : Engine.pinned ? outside : proxy }
 
+        WlrLayershell.namespace: "quickshell:island"
         WlrLayershell.layer: WlrLayer.Top
         // Pinned views and the peek view (hover) get the keyboard (the user is here).
         // Rest and Toast never take it, so a toast can't steal typing from an app.
         WlrLayershell.keyboardFocus: root.active && Engine.keyboard ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+
+        // a click anywhere outside a pinned view closes it
+        MouseArea {
+            id: outside
+            anchors.fill: parent
+            enabled: Engine.pinned
+            acceptedButtons: Qt.AllButtons
+            onPressed: Engine.close()
+        }
 
         // PROXY: invisible. The final size and position, in window coordinates. Never animated.
         Item {
@@ -137,10 +178,10 @@ Scope {
                 restoreMode: Binding.RestoreNone
             }
 
-            width: viewW
-            height: viewH
+            width: root.strip ? root.stripW : viewW
+            height: root.strip ? root.stripH : viewH
             x: root.abscissa(width, Engine.anchorX)
-            y: Engine.hidden ? -height - root.gap : root.gap
+            y: root.strip ? 0 : Engine.hidden ? -height - root.gap : root.gap
 
             // callLater coalesces the burst of x/y/w/h changes into one snap
             onXChanged:      Qt.callLater(root.snap)
@@ -155,38 +196,145 @@ Scope {
             }
         }
 
+        // ANTI-CORNERS (notch): the island curves into the screen edge instead of meeting it at a
+        // right angle. Drawn outside the surface (which clips), from the same sprung rect.
+        // The filled part is the web between the screen edge, the island's side and a curve that
+        // bows into that corner: left corner hugs its right side, right corner its left side.
+        component AntiCorner: Shape {
+            id: corner
+            property bool leading: true       // the left one
+            readonly property real a: width
+
+            y: root.sy
+            width: Math.min(12, root.sh / 2)
+            height: width
+            visible: root.notch && root.sh > 1
+            preferredRendererType: Shape.CurveRenderer
+
+            ShapePath {
+                fillColor: Config.island
+                strokeColor: "transparent"
+                startX: 0; startY: corner.leading ? 0 : corner.a
+                PathLine { x: corner.leading ? corner.a : 0; y: 0 }
+                PathLine { x: corner.a; y: corner.leading ? corner.a : 0 }
+                PathQuad {
+                    x: 0; y: corner.leading ? 0 : corner.a
+                    controlX: corner.leading ? corner.a : 0; controlY: 0
+                }
+            }
+        }
+        AntiCorner { leading: true;  x: root.sx - width }
+        AntiCorner { leading: false; x: root.sx + root.sw }
+
         // SURFACE: the visible rectangle, drawn at the sprung rect.
         Rectangle {
             id: surface
+
+            readonly property real r: Math.min(height / 2, Config.radius)
 
             x: root.sx
             y: root.sy
             width: Math.max(0, root.sw)      // a spring can undershoot; never go negative
             height: Math.max(0, root.sh)
 
-            radius: 12
-            color: "#101014"
+            topLeftRadius: root.notch ? 0 : r
+            topRightRadius: root.notch ? 0 : r
+            bottomLeftRadius: r
+            bottomRightRadius: r
+            color: Config.island
+            Behavior on color { ColorAnimation { duration: 200 } }
             clip: true                     // content is revealed, never squished
 
             HoverHandler { onHoveredChanged: Engine.hover(hovered) }
 
-            // The view always has its FINAL size (proxy.viewW/H), even while the surface is still smaller.
-            // Inactive screens load nothing, so e.g. the launcher's text field exists once, not per monitor.
-            // ViewLoader also carries the default keyboard (Tab/arrows/Escape) for every view.
-            ViewLoader {
-                id: loader
+            // the island's own background: under every control of the view
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.LeftButton
+                onClicked: root.pinShown()
+            }
 
-                active: root.active
-                onCancel: Engine.back()
-                onActivity: Engine.key()
+            // Hidden behind the handle, the view fades out instead of showing a sliver of itself.
+            Item {
+                anchors.fill: parent
+                opacity: Engine.hidden ? 0 : 1
+                Behavior on opacity { NumberAnimation { duration: 150 } }
 
-                width: proxy.viewW
-                height: proxy.viewH
+                // The view always has its FINAL size (proxy.viewW/H), even while the surface is still smaller.
+                // Inactive screens load nothing, so e.g. the launcher's text field exists once, not per monitor.
+                // ViewLoader also carries the default keyboard (Tab/arrows/Escape) for every view.
+                ViewLoader {
+                    id: loader
 
-                x: root.pinView ? proxy.x - surface.x : (surface.width - width) / 2
-                y: root.pinView ? proxy.y - surface.y : 0
+                    active: root.active
+                    onCancel: Engine.back()
+                    onActivity: Engine.key()
 
-                source: Registry.get(root.shown)?.url ?? ""
+                    width: proxy.viewW
+                    height: proxy.viewH
+
+                    x: root.pinView ? proxy.x - surface.x : (surface.width - width) / 2
+                    y: root.pinView ? proxy.y - surface.y : 0
+
+                    source: Registry.get(root.shown)?.url ?? ""
+                }
+            }
+
+            // glass rim: a faint edge where a curved pane would catch the light
+            Rectangle {
+                visible: Config.glass
+                x: 0
+                y: root.notch ? -1 : 0                   // a notch has no top edge to light
+                width: parent.width
+                height: parent.height - y
+                topLeftRadius: parent.topLeftRadius
+                topRightRadius: parent.topRightRadius
+                bottomLeftRadius: parent.bottomLeftRadius
+                bottomRightRadius: parent.bottomRightRadius
+                color: "transparent"
+                border.width: 1
+                border.color: Qt.rgba(1, 1, 1, 0.10)
+            }
+        }
+
+        // PRIVACY: a dot beside the island while the microphone (orange) or camera (green) is in
+        // use, in every phase. Next to the handle while hidden, smaller.
+        Row {
+            id: privacy
+            readonly property bool small: Engine.hidden
+            readonly property int dot: small ? 5 : 8
+
+            visible: Privacy.active
+            x: root.sx + root.sw + (root.notch ? 14 : 8)
+            y: Math.max(small ? 0 : 4, root.sy + Math.min(root.sh, 36) / 2 - height / 2)
+            spacing: small ? 3 : 6
+
+            Repeater {
+                model: [
+                    { on: Privacy.microphone, color: Config.microphone },
+                    { on: Privacy.camera,     color: Config.camera }
+                ]
+
+                Item {
+                    id: light
+                    required property var modelData
+                    visible: modelData.on
+                    width: privacy.small ? privacy.dot : 16
+                    height: width
+
+                    Rectangle {                          // halo
+                        anchors.centerIn: parent
+                        visible: !privacy.small
+                        width: 16; height: 16; radius: 8
+                        color: light.modelData.color
+                        opacity: 0.2
+                    }
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: privacy.dot; height: width; radius: width / 2
+                        color: light.modelData.color
+                    }
+                }
             }
         }
     }

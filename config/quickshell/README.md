@@ -4,9 +4,11 @@ A Dynamic-Island-style top bar for [Quickshell](https://quickshell.outfoxxed.me/
 rounded surface that morphs between views (a clock, a quick-actions row, detail panels, toasts), driven by
 a small pure state machine.
 
-> **Status:** prototype. The morphing surface, hover/peek, pinning, back-history, auto-hide, IPC,
-> multi-monitor, the app launcher and system-event toasts (volume, brightness, notifications) work.
-> Network and Bluetooth are placeholders. See [docs/roadmap.md](docs/roadmap.md).
+> **Status:** prototype. The morphing surface (pill or notch, optional frosted glass), hover/peek,
+> pinning, back-history, auto-hide, IPC, multi-monitor, and every view work: dashboard, launcher,
+> network, bluetooth, media, notifications, workspace overview, clock, battery, power, theme and
+> wallpaper, plus toasts (volume, brightness, notifications, battery, media) and privacy dots.
+> See [docs/roadmap.md](docs/roadmap.md) and [docs/old-shell-notes.md](docs/old-shell-notes.md).
 
 ## Running
 
@@ -29,22 +31,29 @@ in sync with `Registry.qml`. `tst_keyboard.qml` sends real key events to `ViewLo
 ## Layout
 
 ```
-shell.qml                     entry point: Ipc, Triggers, Variants { Bar } (one per screen)
+shell.qml                     entry point: Ipc, Triggers, Variants { Bar } (one per screen), Wallpaper
 modules/
   island/
     Machine.js                pure statechart: reduce(state, event, cfg) -> state
     Engine.qml                singleton: holds the snapshot, owns the one Timer, public API
     Registry.qml              singleton: every view's name, priority, timeout, queue flag, QML file
-    Bar.qml                   per screen: the windows, the proxy/surface morph
+    Bar.qml                   per screen: the windows, the proxy/surface morph, the look (pill/notch,
+                              glass, anti-corners, handle), outside-click close, privacy dots
     ViewLoader.qml            the view slot: a Loader plus the default keyboard
     Ipc.qml                   `qs ipc call island ...` commands
     Triggers.qml              system events -> alerts
     Debug.qml                 live snapshot overlay, toggled with `qs ipc call island debug true`
     views/                    one QML file per view
-  services/                   Audio, Backlight, Notifier singletons (system state, no island logic)
+      overview/               the Workspaces overview's tiles, live previews, special strip, options
+  services/                   system state, no island logic: Audio, Backlight, Notifier, Net (Wi-Fi),
+                              Bluez, Players (MPRIS), Energy (battery), Session (power), Desktops
+                              (Hyprland), Toplevels, Privacy (mic/camera), Wallpaper (awww)
   components/
-    Pill.qml                  shared pill button (focusable; Enter/Space press it)
+    Config.qml                singleton: palettes, the island's look, fonts; remembered across restarts
+    Pill.qml                  shared pill button (focusable; Enter/Space press it), optional icon
     Meter.qml                 shared level bar
+    Icon.qml                  a Material Symbols glyph
+    Header Toggle ListEntry Tile ScrollList Progress SignalBars Equalizer CalendarGrid
   tests/
     machine.test.js           Node tests for Machine.js
     tst_keyboard.qml          qmltestrunner tests for the default keyboard
@@ -80,8 +89,13 @@ Bar: Loader shows Registry.get(view).url
 | | `graceMs` | 140 | how long a peek stays after the pointer leaves |
 | | `hideMs` | 700 | auto-hide: how long the island lingers before hiding |
 | | initial `autoHide` | `true` | second argument to `Machine.initial(...)` |
-| `Bar.qml` | `gap` / `edgePad` | 8 / 8 | distance from the top edge / from the screen sides |
-| | `space` | 42 | height reserved at the top when auto-hide is off |
+| `Config.qml` | `name` | `graphite` | palette (graphite midnight nord rose forest paper); IPC `palette` |
+| | `style` | `pill` | `pill` floats below the edge; `notch` is flush with it, with anti-corners; IPC `style` |
+| | `handle` | `strip` | auto-hide: a thin bar stays at the top edge while hidden (`none`: nothing); IPC `handle` |
+| | `glass` / `glassOpacity` | `false` / 0.85 | frosted glass over Hyprland's blur; IPC `glass` / `toggleGlass` |
+| | `radius` | 18 | the island's largest corner; lower shapes are capsules |
+| `Bar.qml` | `gap` / `edgePad` | 8 (notch: 0) / 8 | distance from the top edge / from the screen sides |
+| | `space` | `gap` + 36 | height reserved at the top when auto-hide is off |
 | | `hotZone` | 4 | height of the top-edge strip that reveals the island |
 | | `stiffness` / `damping` | 3.2 / 0.34 | morph spring: higher stiffness = snappier, lower damping = more overshoot |
 | | `debug` | `Engine.debug` | draws the proxy as a translucent green box |
@@ -89,3 +103,8 @@ Bar: Loader shows Registry.get(view).url
 | `Registry.qml` | per view | | `priority`, `critical`, `timeout` (ms, 0 = none), `queue` |
 | `Engine.qml` | `screenName` | `""` | screen that shows the island (`""` or an unplugged screen = the first) |
 | `Notifier.qml` | `lowMs` / `normalMs` / `criticalMs`, `maxPopups` | 10000 / 10000 / 0, 3 | dunst-style popup timing |
+| `Triggers.qml` | `followFocus` | `true` | the idle island moves to the monitor Hyprland focuses |
+| | `mediaToasts` | `true` | a track (or playback) starting shows the media card as a quiet toast |
+| `Energy.qml` | `lowAt` / `criticalAt` | 15 / 5 | battery warnings (a toast; critical interrupts) |
+| `Wallpaper.qml` | `dir`, `transition`, `duration` | `~/Pictures/Wallpapers`, fade, 0.8 | awww |
+| `views/overview/OverviewConfig.qml` | `rows` / `columns`, `previewMode`, ... | 2 / 5, live | the workspace overview |

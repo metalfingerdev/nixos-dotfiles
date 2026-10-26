@@ -31,8 +31,10 @@ The contract:
 - **Clicks**: call `Engine` methods directly. To open a view next to the clicked element, pass the scene x.
   `Pill.clicked(sceneX)` already provides it: `onClicked: x => Engine.open(Engine.View.MyView, x)`.
   Only a mouse click has an x. Pressed from the keyboard, a Pill sends `-1`, so the view opens centred.
-- **Style**: the surface is `#101014` with radius 12, text is `#f7f7f7`, and pills are `#1a1a1a`/`#2e2e2e`
-  (`#3a3a3f` with a border when `keyboardSelected`).
+- **Style**: take every colour, font and size from `Config` (`import qs.modules.components`):
+  `Config.text`, `Config.dim`, `Config.raised`, `Config.accent`, `Config.font`, `Config.body`, ... so the
+  view follows the palette. Never hard-code a colour. Reuse the components (`Header`, `ListEntry`, `Tile`,
+  `Toggle`, `ScrollList`, `Progress`, `Icon`, ...). No view file may be called `Config.qml`.
 - **Keyboard**: nothing to do for the basics. A pinned view, and the peek view (while hovered), gets the
   keyboard, and `ViewLoader` gives it default keys: Tab/arrows move between focusable items (every `Pill`
   is one), Enter/Space press the focused Pill, and Escape goes back. For your own rules, add `Keys`

@@ -251,16 +251,14 @@ hl.bind(mainMod .. " + O",                hl.dsp.exec_cmd("quickshell ipc call i
 hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd("quickshell ipc call island peek true"))
 hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd("quickshell ipc call island peek false"))
 
--- Not registered in the island's Registry.qml yet (`open` ignores unknown names). Uncomment once they are.
--- Super+A is also window.pin() above, so pick another key for media.
--- hl.bind(mainMod .. " + TAB",              hl.dsp.exec_cmd("quickshell ipc call island open workspaces"))
--- hl.bind(mainMod .. " + M",                hl.dsp.exec_cmd("quickshell ipc call island open dashboard"))
--- hl.bind(mainMod .. " + I",                hl.dsp.exec_cmd("quickshell ipc call island open settings"))
--- hl.bind(mainMod .. " + A",                hl.dsp.exec_cmd("quickshell ipc call island open media"))
--- hl.bind(mainMod .. " + U",                hl.dsp.exec_cmd("quickshell ipc call island open battery"))
--- hl.bind(mainMod .. " + T",                hl.dsp.exec_cmd("quickshell ipc call island open theme"))
--- hl.bind(mainMod .. " + C",                hl.dsp.exec_cmd("quickshell ipc call island open clock"))
--- hl.bind(mainMod .. " + X",                hl.dsp.exec_cmd("quickshell ipc call island open power"))
+hl.bind(mainMod .. " + TAB",              hl.dsp.exec_cmd("quickshell ipc call island open workspaces"))
+hl.bind(mainMod .. " + G",                hl.dsp.exec_cmd("quickshell ipc call island open dashboard"))
+hl.bind(mainMod .. " + I",                hl.dsp.exec_cmd("quickshell ipc call island open settings"))
+hl.bind(mainMod .. " + M",                hl.dsp.exec_cmd("quickshell ipc call island open media"))
+hl.bind(mainMod .. " + U",                hl.dsp.exec_cmd("quickshell ipc call island open battery"))
+hl.bind(mainMod .. " + T",                hl.dsp.exec_cmd("quickshell ipc call island open theme"))
+hl.bind(mainMod .. " + C",                hl.dsp.exec_cmd("quickshell ipc call island open clock"))
+hl.bind(mainMod .. " + X",                hl.dsp.exec_cmd("quickshell ipc call island open power"))
 
 hl.bind(mainMod .. " + SPACE", function()
     hl.dispatch(hl.dsp.window.cycle_next({
