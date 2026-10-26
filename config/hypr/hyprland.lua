@@ -218,7 +218,7 @@ hl.device({
 
 local terminal    = "kitty"
 local fileManager = "yazi"
-local menu        = "quickshell ipc call island open launcher"
+local menu        = "quickshell -vp ~/Projects/quickshell ipc call island open launcher"
 local browser     = "firefox"
 local fastfetch   = "fastfetch"
 
@@ -240,18 +240,18 @@ hl.bind(mainMod .. " + ALT + SPACE",      hl.dsp.layout("togglesplit"))
 hl.bind(mainMod .. " + F",                hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + A",                hl.dsp.window.pin())
 
-hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd("quickshell ipc call island toggleHandle"))
-hl.bind(mainMod .. " + TAB",              hl.dsp.exec_cmd("quickshell ipc call island open workspaces"))
-hl.bind(mainMod .. " + B",                hl.dsp.exec_cmd("quickshell ipc call island open bluetooth"))
-hl.bind(mainMod .. " + N",                hl.dsp.exec_cmd("quickshell ipc call island open network"))
-hl.bind(mainMod .. " + M",                hl.dsp.exec_cmd("quickshell ipc call island open dashboard"))
-hl.bind(mainMod .. " + I",                hl.dsp.exec_cmd("quickshell ipc call island open settings"))
-hl.bind(mainMod .. " + A",                hl.dsp.exec_cmd("quickshell ipc call island open media"))
-hl.bind(mainMod .. " + U",                hl.dsp.exec_cmd("quickshell ipc call island open battery"))
-hl.bind(mainMod .. " + P",                hl.dsp.exec_cmd("quickshell ipc call island open notify"))
-hl.bind(mainMod .. " + T",                hl.dsp.exec_cmd("quickshell ipc call island open theme"))
-hl.bind(mainMod .. " + C",                hl.dsp.exec_cmd("quickshell ipc call island open clock"))
-hl.bind(mainMod .. " + X",                hl.dsp.exec_cmd("quickshell ipc call island open power"))
+hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island toggleHandle"))
+hl.bind(mainMod .. " + TAB",              hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open workspaces"))
+hl.bind(mainMod .. " + B",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open bluetooth"))
+hl.bind(mainMod .. " + N",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open network"))
+hl.bind(mainMod .. " + M",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open dashboard"))
+hl.bind(mainMod .. " + I",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open settings"))
+hl.bind(mainMod .. " + A",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open media"))
+hl.bind(mainMod .. " + U",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open battery"))
+hl.bind(mainMod .. " + P",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open notify"))
+hl.bind(mainMod .. " + T",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open theme"))
+hl.bind(mainMod .. " + C",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open clock"))
+hl.bind(mainMod .. " + X",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open power"))
 
 hl.bind(mainMod .. " + SPACE", function()
     hl.dispatch(hl.dsp.window.cycle_next({
@@ -274,11 +274,6 @@ hl.bind(mainMod .. " + SHIFT + PRINT",     hl.dsp.exec_cmd("mkdir -p ~/Pictures/
 hl.bind(mainMod .. " + Left",             hl.dsp.focus({ direction = "left" }))
 hl.bind(mainMod .. " + Right",            hl.dsp.focus({ direction = "right" }))
 hl.bind(mainMod .. " + Up",               hl.dsp.focus({ direction = "up" }))
-hl.bind(mainMod .. " + Down",             hl.dsp.focus({ direction = "down" }))
-
-hl.bind(mainMod .. " + H",                hl.dsp.focus({ direction = "left" }))
-hl.bind(mainMod .. " + L",                hl.dsp.focus({ direction = "right" }))
-hl.bind(mainMod .. " + K",                hl.dsp.focus({ direction = "up" }))
 hl.bind(mainMod .. " + J",                hl.dsp.focus({ direction = "down" }))
 
 -- Move windows around in the tiling layout
