@@ -5,7 +5,7 @@ import qs.modules.services
 
 // Wi-Fi and Ethernet. Scans while it's on screen.
 //   click a network: connect (a new secured one asks for its password first)
-//   click the connected one, or a saved one: its actions (disconnect / connect, forget)
+//   click the connected one: its actions (disconnect, forget)
 //   Escape in the password field closes it; a second Escape goes back
 Item {
     id: root
@@ -20,8 +20,9 @@ Item {
     function choose(n) {
         error = ""
         if (selected === n) { selected = null; return }
-        if (!n.connected && !n.known && !Net.needsPassword(n)) { Net.connect(n); selected = null; return }
-        selected = n
+        if (n.connected || Net.needsPassword(n)) { selected = n; return }
+        selected = null
+        if (!Net.busy(n)) Net.connect(n)
     }
 
     Component.onCompleted: Net.scan(true)
@@ -168,20 +169,16 @@ Item {
                 }
 
                 Row {
-                    visible: entry.open && !Net.needsPassword(entry.net)
+                    visible: entry.open && entry.net.connected
                     x: 42
                     height: visible ? 30 : 0
                     spacing: 8
 
                     Pill {
-                        text: entry.net.connected ? "disconnect" : "connect"
-                        onClicked: {
-                            if (entry.net.connected) Net.disconnect(entry.net); else Net.connect(entry.net)
-                            root.selected = null
-                        }
+                        text: "disconnect"
+                        onClicked: { Net.disconnect(entry.net); root.selected = null }
                     }
                     Pill {
-                        visible: entry.net.known
                         text: "forget"
                         onClicked: { Net.forget(entry.net); root.selected = null }
                     }
