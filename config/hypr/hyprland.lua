@@ -248,7 +248,7 @@ hl.bind(mainMod .. " + M",                hl.dsp.exec_cmd("quickshell -vp ~/Proj
 hl.bind(mainMod .. " + I",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open settings"))
 hl.bind(mainMod .. " + A",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open media"))
 hl.bind(mainMod .. " + U",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open battery"))
-hl.bind(mainMod .. " + P",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open notify"))
+hl.bind(mainMod .. " + P",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open notifications"))
 hl.bind(mainMod .. " + T",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open theme"))
 hl.bind(mainMod .. " + C",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open clock"))
 hl.bind(mainMod .. " + X",                hl.dsp.exec_cmd("quickshell -vp ~/Projects/quickshell ipc call island open power"))
