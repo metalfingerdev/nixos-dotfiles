@@ -9,7 +9,7 @@
         rebuild = "sudo nixos-rebuild switch --flake ~/nixos-dotfiles";
         boot = "sudo nixos-rebuild boot --flake ~/nixos-dotfiles";
         build = "nixos-rebuild build --flake ~/nixos-dotfiles";
-        daulat = "python ~/Projects/daulat/daulat.py";
+        daulat = "python ~/Projects/daulat/app.py";
       };
     };
   };
