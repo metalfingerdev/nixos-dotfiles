@@ -58,7 +58,7 @@ Hover holds, the keyboard restarts:
 | **Hidden** | | | reach → Rest | reveal → Rest | | → Pinned | | | → Toast | | unhide | |
 | **Rest** | intent | rearm | rearm | keep | release (→ Hidden) | → Pinned | | | → Toast | | retime | lapse |
 | **Peek** | (cancels grace) | letGo | | | | → Pinned | → Rest | → Rest | → Toast | | | → Rest |
-| **Pinned** | rearm | rearm | rearm | | | toggle | → Rest | goBack | alertPinned | start | | lapsePinned |
+| **Pinned** | rearm | rearm | rearm | | | toggle | → Rest | goBack | alertPinned | start | | → Rest |
 | **Toast** | rearm | rearm | rearm | | | → Pinned | toastEnd | toastEnd | alertToast | | | toastEnd |
 
 Empty cells: the event only updates the tracked facts.
@@ -92,26 +92,11 @@ because the durations match.
 
 ## History (Back)
 
-- Opening from Pinned pushes the current `{view, x, priority}`. Opening from Rest or Hidden starts with an
-  empty history (`trail()`). The peek view (Expanded) is where you come in, so it is never pushed, from
-  Peek or Pinned.
-- `back` pops the top entry and restores it as **Pinned**, with its anchor. If the history is empty, a
-  service view goes to the hub (below); anything else closes the island.
-
-## The hub (Tabs)
-
-`cfg.hubView` (`Engine.hubView`, Tabs) is where service views go before the island collapses. A service
-view is any view but the rest, peek and hub views (`service()`).
-
-- A service view's countdown ending (`lapsePinned`) or Back with nothing behind it (`goBack`) shows the
-  hub, Pinned, with an empty history and its own countdown (`toHub()`). The hub's countdown then goes
-  to Rest, and its Back closes.
-- A parked alert still comes first when a pinned view times out.
-- `close` always goes straight to Rest. The peek view pinned (`open expanded`) times out to Rest too.
-- `hubView: -1` turns it off: everything goes straight home, as before.
-- Opening the view that is already pinned closes it (`toggle`).
-- Opening the view that is peeking (a click on the peek) pins it without stacking it: the history stays
-  as it was, so Back doesn't show the same view twice.
+- Opening from Peek or Pinned pushes the current `{view, x, priority}`. Opening from Rest or Hidden starts with an
+  empty history (`trail()`).
+- `back` (Backspace, the mouse's back button, a view's back arrow) pops the top entry and restores it as
+  **Pinned**, with its anchor: the view that was open before. If the history is empty, back closes the island.
+- `close` (Escape, a click outside) goes straight to Rest from anywhere, history and all.
 
 ## Alerts, priority and the queue
 

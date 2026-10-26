@@ -16,7 +16,8 @@ Compact (rest) ──hover──► Expanded (the glance) ──click / Tab─�
                                   │ type ──► Launcher (apps, files, actions)
                                   └ arrow ──► Network, Bluetooth, Notifications, Media
 
-any service view ──timer or Back──► Tabs ──timer or Back──► home
+Backspace, the mouse's back button, ← ──► the view that was open before
+Escape, a click outside, a timer      ──► home (the clock)
 ```
 
 > **Status:** prototype. The morphing surface (pill or notch, optional frosted glass), hover/peek,

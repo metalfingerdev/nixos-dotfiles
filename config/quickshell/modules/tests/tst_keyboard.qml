@@ -11,6 +11,7 @@ Item {
     height: 200
 
     property int escapes: 0
+    property int backs: 0
     property int activity: 0
     property var pressed: []
 
@@ -18,6 +19,7 @@ Item {
         id: slot
         anchors.fill: parent
         onCancel: harness.escapes++
+        onBack: harness.backs++
         onActivity: harness.activity++
     }
 
@@ -91,6 +93,7 @@ Item {
             slot.sourceComponent = null
             slot.sourceComponent = c
             harness.escapes = 0
+            harness.backs = 0
             harness.activity = 0
             harness.pressed = []
             wait(0)
@@ -184,10 +187,14 @@ Item {
             compare(harness.pressed.length, 2)
         }
 
-        function test_backspace_goes_back() {
+        function test_backspace_goes_back_escape_closes() {
             load(plain)
             keyClick(Qt.Key_Backspace)
-            compare(harness.escapes, 1)
+            compare(harness.backs, 1, "Backspace: back")
+            compare(harness.escapes, 0)
+            keyClick(Qt.Key_Escape)
+            compare(harness.escapes, 1, "Escape: close")
+            compare(harness.backs, 1)
         }
 
         function test_view_without_focusable_items() {

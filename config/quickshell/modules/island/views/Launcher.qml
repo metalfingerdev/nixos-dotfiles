@@ -226,16 +226,11 @@ Item {
     implicitWidth: 800
     implicitHeight: 20 + bar.height + 12 + (results.length > 0 ? list.height : 56) + 18
 
-    // back: to the hub (Tabs), like every other view
-    Pill {
+    // back: to the view that was open before, like every other view
+    BackButton {
         id: back
-        x: 16
+        x: 20
         anchors.verticalCenter: bar.verticalCenter
-        kind: "text"
-        icon: Config.symbol.back
-        iconSize: 24
-        implicitHeight: 52
-        activeFocusOnTab: false             // Backspace on an empty field, or Escape, does the same
         onClicked: Engine.back()
     }
 

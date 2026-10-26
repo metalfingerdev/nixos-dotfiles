@@ -11,7 +11,8 @@ import QtQuick
 //   a letter, digit or sign   presses the control whose `shortcut` it is (Pill, QuickTile, Tile,
 //                          ListEntry, Chip, a Segmented option): they show it as a keycap while the
 //                          keyboard is in use
-//   Escape, Backspace      cancel() (Bar: Engine.back(), which closes when there is no history)
+//   Escape                 cancel() (Bar: Engine.close(): everything closes, back to the clock)
+//   Backspace              back()   (Bar: Engine.back(): the view that was open before)
 // Every key that reaches here, and every focus move inside the view, emits activity() (Bar:
 // Engine.key(), which restarts the countdown). The same, minus the focus a view gets when it
 // loads, emits navigated() (Bar: focus rings show; see Config.focusVisible).
@@ -25,6 +26,7 @@ Loader {
     id: root
 
     signal cancel()
+    signal back()
     signal activity()
     signal navigated()
 
@@ -47,7 +49,8 @@ Loader {
         case Qt.Key_Left:    move(-1, 0); break
         case Qt.Key_Down:    move(0, 1);  break
         case Qt.Key_Up:      move(0, -1); break
-        case Qt.Key_Escape: case Qt.Key_Backspace: cancel(); break
+        case Qt.Key_Escape:    cancel(); break
+        case Qt.Key_Backspace: back(); break
         default: {
             const plain = !(event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier))
             event.accepted = plain && shortcut(event.text)

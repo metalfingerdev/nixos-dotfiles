@@ -280,7 +280,7 @@ Item {
 
         KeyHints {
             width: parent.width
-            keys: [["1–9", "a network"], ["W", "Wi-Fi on/off"], ["Esc", root.selected ? "close the panel" : "back"]]
+            keys: [["1–9", "a network"], ["W", "Wi-Fi on/off"], ["⌫", "back"], ["Esc", root.selected ? "close the panel" : "close"]]
         }
     }
 }

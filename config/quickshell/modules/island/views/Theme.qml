@@ -9,7 +9,7 @@ import qs.modules.services
 //   left   Colours: where they come from (a preset palette, an accent you pick, or the
 //          wallpaper), then for a generated scheme its style and dark or light
 //   right  Size of the whole island, its shape and handle, frosted glass, and the wallpaper
-// Keys: arrows/Tab move, Enter/Space choose, R random wallpaper, Escape back. On the wallpaper
+// Keys: arrows/Tab move, Enter/Space choose, R random wallpaper, Backspace back, Escape closes. On the wallpaper
 // strip, Left/Right pick and Enter applies.
 Item {
     id: root
@@ -488,7 +488,7 @@ Item {
 
         KeyHints {
             width: parent.width
-            keys: [["R", "random wallpaper"], ["Esc", "back"]]
+            keys: [["R", "random wallpaper"], ["⌫", "back"], ["Esc", "close"]]
         }
     }
 }

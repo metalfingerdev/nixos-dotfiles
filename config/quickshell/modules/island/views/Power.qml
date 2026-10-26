@@ -5,7 +5,7 @@ import qs.modules.services
 
 // Lock, suspend, log out, restart, shut down. The last three ask first: the first press arms the
 // tile (it turns red and says "again?"), a second press within `confirmMs` runs it.
-// Keys: L S O R P (each tile shows its own), arrows/Tab move, Enter presses, Escape back.
+// Keys: L S O R P (each tile shows its own), arrows/Tab move, Enter presses, Backspace back, Escape closes.
 Item {
     id: root
 

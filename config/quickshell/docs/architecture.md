@@ -131,7 +131,8 @@ through the view, and whatever the view doesn't accept reaches the defaults:
 | arrows | the nearest focusable item that way, by screen position (so grids work); nothing that way: next (Right/Down) or previous (Left/Up), wrapping |
 | a letter, digit or sign | presses the control whose `shortcut` it is (shown as a keycap while the keyboard is in use) |
 | Enter, Space | press the focused control (handled by the control) |
-| Escape, Backspace | `cancel()`, which Bar maps to `Engine.back()` (closes when there is no history) |
+| Escape | `cancel()`, which Bar maps to `Engine.close()`: everything closes, back to the clock |
+| Backspace | `back()`, which Bar maps to `Engine.back()`: the view that was open before (closes when there is none). The mouse's back button does the same, anywhere on the island or outside it |
 
 Every key that reaches `ViewLoader`, and every focus move inside the view, emits `activity()`, which Bar
 maps to `Engine.key()`. Keys a view accepts itself never reach it, so such a view calls `Engine.key()`

@@ -161,13 +161,13 @@ Scope {
         // Rest and Toast never take it, so a toast can't steal typing from an app.
         WlrLayershell.keyboardFocus: root.active && Engine.keyboard ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-        // a click anywhere outside a pinned view closes it
+        // a click anywhere outside a pinned view closes it; the mouse's back button goes back
         MouseArea {
             id: outside
             anchors.fill: parent
             enabled: Engine.pinned
             acceptedButtons: Qt.AllButtons
-            onPressed: Engine.close()
+            onPressed: mouse => mouse.button === Qt.BackButton ? Engine.back() : Engine.close()
         }
 
         // HOVER: the pointer is on the island while it is inside the FINAL rect (the proxy, like the
@@ -286,11 +286,12 @@ Scope {
             Behavior on color { ColorAnimation { duration: 200 } }
             clip: true                     // content is revealed, never squished
 
-            // the island's own background: under every control of the view
+            // the island's own background: under every control of the view. The mouse's back button
+            // goes back from anywhere on the island (no control takes it)
             MouseArea {
                 anchors.fill: parent
-                acceptedButtons: Qt.LeftButton
-                onClicked: root.pinShown()
+                acceptedButtons: Qt.LeftButton | Qt.BackButton
+                onClicked: mouse => mouse.button === Qt.BackButton ? Engine.back() : root.pinShown()
             }
 
             // Hidden behind the handle, the view fades out instead of showing a sliver of itself.
@@ -306,7 +307,8 @@ Scope {
                     id: loader
 
                     active: root.active
-                    onCancel: Engine.back()
+                    onCancel: Engine.close()
+                    onBack: Engine.back()
                     onActivity: Engine.key()
                     onNavigated: Config.focusVisible = true
 

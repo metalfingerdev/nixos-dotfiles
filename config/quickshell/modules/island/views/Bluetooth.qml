@@ -121,7 +121,7 @@ Item {
 
         KeyHints {
             width: parent.width
-            keys: [["1–9", "a device"], ["B", "Bluetooth on/off"], ["S", "search"], ["Esc", "back"]]
+            keys: [["1–9", "a device"], ["B", "Bluetooth on/off"], ["S", "search"], ["⌫", "back"], ["Esc", "close"]]
         }
     }
 }

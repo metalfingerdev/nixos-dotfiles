@@ -4,7 +4,7 @@ import qs.modules.island
 import qs.modules.components
 
 // The time with seconds and the date beside a month calendar.
-// Keys: [ ] change month, T back to today, Escape back.
+// Keys: [ ] change month, T back to today, Backspace back, Escape closes.
 Item {
     id: root
 
@@ -121,7 +121,7 @@ Item {
 
         KeyHints {
             width: parent.width
-            keys: [["[ ]", "month"], ["T", "today"], ["Esc", "back"]]
+            keys: [["[ ]", "month"], ["T", "today"], ["⌫", "back"], ["Esc", "close"]]
         }
     }
 }

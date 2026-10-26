@@ -21,14 +21,9 @@ Item {
         anchors.fill: parent
         spacing: 10
 
-        Pill {
+        BackButton {
             visible: root.showBack
             Layout.alignment: Qt.AlignVCenter
-            kind: "text"
-            icon: Config.symbol.back
-            iconSize: 24
-            implicitHeight: 48
-            activeFocusOnTab: false             // Escape/Backspace go back; Tab starts on the view itself
             onClicked: root.back()
         }
 

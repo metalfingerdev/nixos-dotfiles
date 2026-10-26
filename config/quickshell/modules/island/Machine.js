@@ -12,17 +12,14 @@
 //   timer { ms, kind } | null   kind: "hold" (phase countdown) | "intent" (hover) | "grace" (peek)
 //   x     anchor in window coords: the x to centre on, -1 = the screen centre
 //   event { type, view?, x?, on?, priority? }   priority: alerts only; omitted = cfg.priority(view)
-//   cfg   { restView, peekView, hubView, graceMs, hoverMs, hideMs,
+//   cfg   { restView, peekView, graceMs, hoverMs, hideMs,
 //           known(view), timeout(view), priority(view), queues(view) }
 //
 //   Hidden  island parked off-screen (auto-hide mode only); the top-edge hot zone reveals it
 //   Rest    restView; in auto-hide mode it lingers hideMs, then goes back to Hidden. The peek key
 //           shows it while held: releasing it hides at once (auto-hide), not after the linger
 //   Peek    peekView shown because of hover; no countdown
-//   Pinned  an opened view; counts down by its Registry timeout unless held, each keystroke restarts it.
-//           A service view (anything but the rest, peek and hub views) whose countdown ends, or that is
-//           backed out of with nothing behind it, goes to the hub (Tabs) first; the hub then counts
-//           down to Rest. The peek view (Expanded) is where you come in, so it is never in the history.
+//   Pinned  an opened view; counts down by its Registry timeout unless held, each keystroke restarts it
 //   Toast   a view the system triggered (volume, notification...); same countdown as Pinned
 
 var Phase = { Hidden: "hidden", Rest: "rest", Peek: "peek", Pinned: "pinned", Toast: "toast" }
@@ -65,21 +62,10 @@ function rearm(s) {
 // How long Rest lingers: only in auto-hide mode.
 function restMs(s, cfg) { return s.autoHide ? cfg.hideMs : 0 }
 
-// The history an open() leaves behind: Pinned views stack up; Rest and Hidden start fresh. The peek
-// view (Expanded) is only the way in: it is never stacked, so Back never returns to it.
-function trail(s, cfg) {
-    if (s.phase !== Phase.Pinned && s.phase !== Phase.Peek) return []
-    return s.view === cfg.peekView ? s.history : s.history.concat([here(s)])
-}
-
-// A service view: one that goes back to the hub before the island collapses.
-function service(view, cfg) {
-    return cfg.hubView !== undefined && cfg.hubView >= 0 && cfg.known(cfg.hubView)
-        && view !== cfg.restView && view !== cfg.peekView && view !== cfg.hubView
-}
-// The hub, Pinned, with nothing behind it and its own countdown.
-function toHub(s, e, cfg) {
-    return enter(set(s, { history: [] }), cfg, Phase.Pinned, cfg.hubView, cfg.timeout(cfg.hubView))
+// The history an open() leaves behind: Peek and Pinned views stack up; Rest and Hidden start fresh.
+function trail(s) {
+    return s.phase === Phase.Pinned || s.phase === Phase.Peek
+         ? s.history.concat([here(s)]) : []
 }
 
 // Where a view is anchored. The resting view always centres; no coordinate = centre.
@@ -110,17 +96,16 @@ function toPinned(s, e, cfg) {
     if (!cfg.known(e.view)) return s
     if (e.view === cfg.restView) return toRest(s, e, cfg)        // "open compact" means "go home"
     // pinning the view that is peeking (a click on the peek) keeps it, it doesn't stack it
-    const history = s.phase === Phase.Peek && e.view === s.view ? s.history : trail(s, cfg)
+    const history = s.phase === Phase.Peek && e.view === s.view ? s.history : trail(s)
     // opening is the user's choice, not an alert: the view's own priority
     return enter(set(s, { history: history }), cfg, Phase.Pinned, e.view, cfg.timeout(e.view), { x: e.x })
 }
 function toggle(s, e, cfg)   { return e.view === s.view ? toRest(s, e, cfg) : toPinned(s, e, cfg) }
 function grace(s, e, cfg)    { return set(s, { timer: { ms: cfg.graceMs, kind: "grace" } }) }
 
-// Back: pop the last entry and restore its view AND its anchor. Empty history: a service view goes
-// to the hub, anything else closes.
+// Back: pop the last entry and restore its view AND its anchor. Empty history = close.
 function goBack(s, e, cfg) {
-    if (s.history.length === 0) return service(s.view, cfg) ? toHub(s, e, cfg) : toRest(s, e, cfg)
+    if (s.history.length === 0) return toRest(s, e, cfg)
     const p = s.history[s.history.length - 1]
     return enter(set(s, { history: s.history.slice(0, -1) }), cfg, Phase.Pinned, p.view, cfg.timeout(p.view), p)
 }
@@ -198,13 +183,6 @@ function lapse(s, e, cfg) {
     return s
 }
 
-// A pinned view's countdown ended: back to the hub first (a service view), else home. A parked alert
-// still comes first.
-function lapsePinned(s, e, cfg) {
-    if (s.queued >= 0) return deliver(s, e, cfg)
-    return service(s.view, cfg) ? toHub(s, e, cfg) : toRest(s, e, cfg)
-}
-
 // Pointer left: the peek collapses after graceMs, unless it came back.
 function letGo(s, e, cfg)  { return s.hovered ? s : grace(s, e, cfg) }
 
@@ -279,7 +257,7 @@ table[Phase.Pinned] = {
     [Event.Close]:   toRest,
     [Event.Back]:    goBack,
     [Event.Key]:     start,                // a keystroke: the countdown starts over (unless held)
-    [Event.Expire]:  lapsePinned           // a service view goes to the hub, the hub goes home
+    [Event.Expire]:  toRest
 }
 table[Phase.Toast] = {
     [Event.Hover]:   rearm,                // a toast is held like a pinned view

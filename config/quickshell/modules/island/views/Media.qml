@@ -10,7 +10,7 @@ import qs.modules.services
 //   use Left/Right to seek); shuffle · previous · play/pause · next · repeat
 //   Output: where the sound goes (click another device to move it there)
 //   Players: the others, when there are several (click one to show and control it)
-// Keys: P play/pause, B previous, N next, S shuffle, R repeat, arrows/Tab move, Escape back.
+// Keys: P play/pause, B previous, N next, S shuffle, R repeat, arrows/Tab move, Backspace back, Escape closes.
 // Also the toast Triggers raises when a track starts.
 Item {
     id: root
@@ -350,7 +350,7 @@ Item {
 
         KeyHints {
             width: parent.width
-            keys: [["Space", "play / pause"], ["← →", "seek, on the bar"], ["Esc", "back"]]
+            keys: [["Space", "play / pause"], ["← →", "seek, on the bar"], ["⌫", "back"], ["Esc", "close"]]
         }
     }
 }

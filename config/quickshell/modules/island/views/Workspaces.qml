@@ -11,7 +11,7 @@ import qs.modules.island.views.overview
 //   click a tile: go there          click a window: focus it      middle-click a window: close it
 //   drag a window onto a tile, a special workspace, or "+" (a new special workspace): move it
 //   arrows / hjkl: move between workspaces (live)   1-9, 0: jump   wheel: step through all of them
-//   Enter: done (close)   Backspace: back   Escape: back (ViewLoader)
+//   Enter: done (close)   Backspace: back   Escape: close (ViewLoader)
 // Options and colours: overview/OverviewConfig.qml. Desktops reads hyprctl while this is open.
 Item {
     id: root

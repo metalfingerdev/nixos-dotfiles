@@ -6,7 +6,7 @@ import qs.modules.components
 import qs.modules.services
 
 // The hub, opened by a click on the clock (Compact) or the glance (Expanded). One bar:
-//   back         home (Tabs is where every service view comes back to; its own back closes)
+//   back         the view that was open before (Backspace too); Escape closes
 //   workspaces   numbered, with the switcher's logic: up to the last one in use and one empty; the
 //                focused one a wide primary pill, ones with windows filled, empty ones an outline.
 //                Click to go there; the wheel steps through
@@ -66,14 +66,9 @@ Item {
         anchors.centerIn: parent
         spacing: 14
 
-        // ---- back (the hub's back is home), then the workspaces: the switcher's logic, numbered ----
-        Pill {
+        // ---- back, then the workspaces: the switcher's logic, numbered ----
+        BackButton {
             anchors.verticalCenter: parent.verticalCenter
-            kind: "text"
-            icon: Config.symbol.back
-            iconSize: 24
-            implicitHeight: 48
-            activeFocusOnTab: false             // Escape/Backspace go back
             onClicked: Engine.back()
         }
 

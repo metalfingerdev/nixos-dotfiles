@@ -31,9 +31,6 @@ QtObject {
     // ---- config ----
     readonly property int restView: Engine.View.Compact
     property int peekView: Engine.View.Expanded          // what hovering at rest shows. -1 = off
-    // where service views (Network, Media...) go when their countdown ends or Back has nothing
-    // behind it, before the island collapses. -1 = straight home
-    property int hubView: Engine.View.Tabs
     property int graceMs: 140          // Peek collapses this long after the pointer leaves
     property int hoverMs: 140          // Peek waits this long before showing (0 = instant)
     property int hideMs: 700           // auto-hide: how long the island lingers at rest before hiding
@@ -104,7 +101,7 @@ QtObject {
 
     // ---- the shell ----
     function config() {
-        return { restView: restView, peekView: peekView, hubView: hubView, graceMs: graceMs, hoverMs: hoverMs, hideMs: hideMs,
+        return { restView: restView, peekView: peekView, graceMs: graceMs, hoverMs: hoverMs, hideMs: hideMs,
                  known:   v => Registry.get(v) !== null,
                  priority: v => Registry.priority(v),
                  queues:   v => Registry.queues(v),

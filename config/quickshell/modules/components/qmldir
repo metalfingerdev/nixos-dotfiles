@@ -20,3 +20,4 @@ CalendarGrid 1.0 CalendarGrid.qml
 FocusRing    1.0 FocusRing.qml
 KeyBadge     1.0 KeyBadge.qml
 KeyHints     1.0 KeyHints.qml
+BackButton   1.0 BackButton.qml

@@ -6,8 +6,7 @@ import qs.modules.island.parts
 import qs.modules.components
 import qs.modules.services
 
-// The glance: the peek view (hover the resting island) and `open expanded`. Where you come in:
-// views opened from here go back to the hub (Tabs), never here.
+// The glance: the peek view (hover the resting island) and `open expanded`. Where you come in.
 //   left    the workspaces as numbered circles (the switcher's logic), then round buttons: the
 //           dashboard, notifications, the overview, theme, screenshot, power
 //   centre  a big clock (opens the calendar), the date, the battery
@@ -74,12 +73,6 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 width: root.sideW
                 spacing: 16
-
-                WorkspaceButtons {
-                    across: 3
-                    size: root.circle
-                    spacing: 12
-                }
 
                 Grid {
                     columns: 3

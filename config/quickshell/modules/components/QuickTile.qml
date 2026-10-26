@@ -4,9 +4,11 @@ import QtQuick
 //   on          the primary fill; off: the container fill
 //   more        a round arrow button inside the tile, on the right: it opens the setting's own view
 //               (clicked). The rest of the tile flips the setting (toggled)
+//   split       Android's large tile instead: the icon circle flips the setting (toggled), the rest
+//               of the tile opens its view (clicked)
 //   showSwitch  a switch on the right instead (the big on/off tile atop Wi-Fi and Bluetooth)
-// Mouse: click. Keyboard: Tab/arrows reach it; Space flips it, Enter opens its view (with `more`)
-// or flips it; its `shortcut` key flips it from anywhere in the view.
+// Mouse: click. Keyboard: Tab/arrows reach it; Space flips it, Enter opens its view (with `more` or
+// `split`) or flips it; its `shortcut` key flips it from anywhere in the view.
 //   QuickTile { icon: "wifi"; title: "Wi-Fi"; subtitle: Net.summary; on: Net.wifiEnabled; more: true
 //               onToggled: Net.setWifi(!on); onClicked: Engine.open(Engine.View.Network) }
 Rectangle {
@@ -17,13 +19,14 @@ Rectangle {
     property string subtitle: ""
     property bool on: false
     property bool more: false
+    property bool split: false
     property bool showSwitch: false
     property string shortcut: ""
     property bool keyboardSelected: activeFocus && Config.focusVisible
     signal toggled()
     signal clicked(real sceneX)
 
-    function press() { if (more) clicked(-1); else toggled() }
+    function press() { if (more || split) clicked(-1); else toggled() }
     function activate() { toggled() }
 
     activeFocusOnTab: true
@@ -37,7 +40,8 @@ Rectangle {
     implicitWidth: 220
     implicitHeight: 72
     radius: height / 2
-    color: Config.state(on ? Config.primary : Config.container, ink, body.containsMouse && !arrowArea.containsMouse,
+    color: Config.state(on ? Config.primary : Config.container, ink,
+                        body.containsMouse && !arrowArea.containsMouse && !circleArea.containsMouse,
                         body.pressed || keyboardSelected)
     opacity: enabled ? 1 : 0.38
     Behavior on color { ColorAnimation { duration: 160 } }
@@ -47,7 +51,7 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: root.toggled()
+        onClicked: mouse => root.split ? root.clicked(body.mapToItem(null, mouse.x, mouse.y).x) : root.toggled()
     }
 
     Rectangle {
@@ -57,7 +61,7 @@ Rectangle {
         width: root.inner
         height: width
         radius: width / 2
-        color: root.on ? Config.primaryDeep : Config.high
+        color: Config.state(root.on ? Config.primaryDeep : Config.high, root.ink, circleArea.containsMouse, circleArea.pressed)
         Behavior on color { ColorAnimation { duration: 160 } }
 
         Icon {
@@ -66,6 +70,16 @@ Rectangle {
             size: Math.min(24, root.inner * 0.5)
             filled: root.on
             color: root.ink
+        }
+
+        // split: the circle is the switch
+        MouseArea {
+            id: circleArea
+            anchors.fill: parent
+            enabled: root.split
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.toggled()
         }
     }
 

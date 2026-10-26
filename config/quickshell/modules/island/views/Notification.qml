@@ -120,7 +120,7 @@ Item {
 
         KeyHints {
             width: parent.width
-            keys: [["Enter", "open"], ["Del", "dismiss"], ["Esc", "back"]]
+            keys: [["Enter", "open"], ["Del", "dismiss"], ["⌫", "back"], ["Esc", "close"]]
         }
     }
 }
