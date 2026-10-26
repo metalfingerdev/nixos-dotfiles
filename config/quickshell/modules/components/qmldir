@@ -1,0 +1,4 @@
+module qs.modules.components
+
+Pill  1.0 Pill.qml
+Meter 1.0 Meter.qml
