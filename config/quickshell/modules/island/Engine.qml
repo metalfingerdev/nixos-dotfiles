@@ -21,8 +21,8 @@ QtObject {
 
     // ---- config ----
     readonly property int restView: Engine.View.Compact
-    property int peekView: Engine.View.Expanded          // what hovering (or the peek key) at rest shows. -1 = off
-    property int graceMs: 140          // Peek collapses this long after the pointer leaves / the peek key is released
+    property int peekView: Engine.View.Expanded          // what hovering at rest shows. -1 = off
+    property int graceMs: 140          // Peek collapses this long after the pointer leaves
     property int hoverMs: 140          // Peek waits this long before showing (0 = instant)
     property int hideMs: 700           // auto-hide: how long the island lingers at rest before hiding
     property bool debug: true         // Debug overlay + Bar's proxy box. IPC: island debug / toggleDebug
@@ -38,7 +38,7 @@ QtObject {
     readonly property bool   hovered: snapshot.hovered
     readonly property real   anchorX: snapshot.x      // window x to centre on, -1 = screen centre
     readonly property bool   pinned:  snapshot.phase === Machine.Phase.Pinned
-    // the island takes the keyboard: a pinned view, or the peek view (hovered or the peek key)
+    // the island takes the keyboard: a pinned view, or the peek view (hovered)
     readonly property bool   keyboard: pinned || snapshot.phase === Machine.Phase.Peek
 
     // ---- which screen shows the island (the machine knows nothing about screens) ----
@@ -80,7 +80,7 @@ QtObject {
     }
     function setAutoHide(on)   { send({ type: Machine.Event.Mode, on: on }) }
     function hover(on)     { send({ type: on ? Machine.Event.Hover : Machine.Event.Leave }) }
-    function peek(on)      { send({ type: on ? Machine.Event.Peek : Machine.Event.Unpeek }) }  // the peek key, held
+    function peek(on)      { send({ type: on ? Machine.Event.Peek : Machine.Event.Unpeek }) }  // the peek key: the rest view while held
     function key()         { send({ type: Machine.Event.Key }) }     // any keystroke in the island
 
     // ---- the shell ----

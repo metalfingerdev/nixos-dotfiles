@@ -75,9 +75,9 @@ Bar: Loader shows Registry.get(view).url
 | Where | Property | Default | Meaning |
 |---|---|---|---|
 | `Engine.qml` | `debug` | `false` | debug overlay + proxy box; IPC `debug` / `toggleDebug` |
-| | `peekView` | `Expanded` | view shown when you hover the resting island (or hold the peek key); `-1` turns peeking off |
+| | `peekView` | `Expanded` | view shown when you hover the resting island; `-1` turns peeking off. The peek key shows the rest view instead |
 | | `hoverMs` | 140 | hover delay before peeking |
-| | `graceMs` | 140 | how long a peek stays after the pointer leaves (or the peek key is released) |
+| | `graceMs` | 140 | how long a peek stays after the pointer leaves |
 | | `hideMs` | 700 | auto-hide: how long the island lingers before hiding |
 | | initial `autoHide` | `true` | second argument to `Machine.initial(...)` |
 | `Bar.qml` | `gap` / `edgePad` | 8 / 8 | distance from the top edge / from the screen sides |

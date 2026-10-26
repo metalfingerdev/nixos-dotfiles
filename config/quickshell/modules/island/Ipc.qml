@@ -6,7 +6,7 @@ import Quickshell.Io
 //   qs ipc call island screen DP-1         show the island on that screen (multi-monitor)
 //   qs ipc call island screens             list screen names
 //   qs ipc call island alert volume        trigger a toast view
-//   qs ipc call island peek true           hover from the keyboard: the peek view until `peek false`
+//   qs ipc call island peek true           the rest view (clock) until `peek false`, which hides it
 //   qs ipc call island close
 //   qs ipc call island back
 //   qs ipc call island autohide true

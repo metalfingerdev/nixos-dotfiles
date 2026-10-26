@@ -123,47 +123,67 @@ test("a keystroke in Peek changes nothing", () => {
     assert.strictEqual(run(s, E.Key).timer, s.timer)
 })
 
-console.log("peek key")
-test("peek at Rest shows the peek view at once, with no hover intent", () => {
-    const s = run(M.initial(V.Compact, false), E.Peek)
-    assert.strictEqual(s.phase, P.Peek); assert.strictEqual(s.view, V.Expanded)
+console.log("peek key (shows the rest view while held)")
+test("peek reveals the rest view from Hidden, held: no linger", () => {
+    const s = run(M.initial(V.Compact, true), E.Peek)
+    assert.strictEqual(s.phase, P.Rest); assert.strictEqual(s.view, V.Compact)
     assert.strictEqual(s.peeking, true); assert.strictEqual(s.timer, null)
 })
-test("peek reveals the island from Hidden", () => {
-    assert.strictEqual(run(M.initial(V.Compact, true), E.Peek).phase, P.Peek)
+test("releasing the key hides at once (auto-hide)", () => {
+    const s = run(M.initial(V.Compact, true), E.Peek, E.Unpeek)
+    assert.strictEqual(s.phase, P.Hidden); assert.strictEqual(s.peeking, false)
 })
-test("the pointer leaving doesn't collapse a held peek; releasing the key does, after grace", () => {
-    let s = run(M.initial(V.Compact, false), E.Peek, E.Hover, E.Leave)
-    assert.strictEqual(s.phase, P.Peek); assert.strictEqual(s.timer, null)
-    s = run(s, E.Unpeek); assert.strictEqual(s.timer.ms, 140); assert.strictEqual(s.timer.kind, "grace")
-    assert.strictEqual(run(s, E.Expire).phase, P.Rest)
+test("the key holds a lingering Rest; releasing it hides", () => {
+    let s = run(M.initial(V.Compact, true), E.Reach, E.Retreat)                 // Rest, linger armed
+    s = run(s, E.Peek); assert.strictEqual(s.phase, P.Rest); assert.strictEqual(s.timer, null)
+    assert.strictEqual(run(s, E.Unpeek).phase, P.Hidden)
 })
-test("releasing the key while hovered keeps the peek until the pointer leaves", () => {
-    let s = run(M.initial(V.Compact, false), E.Peek, E.Hover, E.Unpeek)
-    assert.strictEqual(s.phase, P.Peek); assert.strictEqual(s.timer, null)
-    assert.strictEqual(run(s, E.Leave).timer.kind, "grace")
+test("the key never shows the peek view", () => {
+    for (const s of [run(M.initial(V.Compact, true), E.Peek), run(M.initial(V.Compact, false), E.Peek)])
+        assert.strictEqual(s.view, V.Compact)
 })
-test("the peek key during a hover peek holds it and cancels the grace", () => {
-    let s = run(M.initial(V.Compact, false), E.Hover, E.Expire, E.Leave)        // hover peek, grace running
-    s = run(s, E.Peek); assert.strictEqual(s.timer, null); assert.strictEqual(s.peeking, true)
+test("the pointer leaving doesn't hide a held Rest", () => {
+    const s = run(M.initial(V.Compact, true), E.Peek, E.Hover, E.Leave)
+    assert.strictEqual(s.phase, P.Rest); assert.strictEqual(s.timer, null)
 })
-test("the peek key never outlives the peek", () => {
-    const peek = run(M.initial(V.Compact, false), E.Peek)
-    for (const s of [run(peek, E.Back), run(peek, open(V.Network)), run(peek, alert(V.Volume))]) {
-        assert.strictEqual(s.peeking, false)
-        assert.ok(s.phase === P.Rest || s.timer, s.phase + " counts down")   // nothing left held
+test("releasing while hovered keeps the island; leaving then starts the linger", () => {
+    let s = run(M.initial(V.Compact, true), E.Peek, E.Hover, E.Unpeek)
+    assert.strictEqual(s.phase, P.Rest); assert.strictEqual(s.timer.kind, "intent")   // hover intent still runs
+    s = run(M.initial(V.Compact, true), E.Peek, E.Hover, E.Unpeek, E.Leave)
+    assert.strictEqual(s.phase, P.Rest); assert.strictEqual(s.timer.kind, "hold"); assert.strictEqual(s.timer.ms, 700)
+})
+test("pressing the key while hovered keeps the hover intent", () => {
+    const s = run(M.initial(V.Compact, true), E.Reach, E.Retreat, E.Hover)
+    const t = s.timer
+    assert.strictEqual(run(s, E.Peek).timer, t)
+})
+test("without auto-hide, the key changes nothing visible", () => {
+    const s = run(M.initial(V.Compact, false), E.Peek, E.Unpeek)
+    assert.strictEqual(s.phase, P.Rest); assert.strictEqual(s.timer, null)
+})
+test("the peek key never outlives its Rest", () => {
+    const held = run(M.initial(V.Compact, true), E.Peek)
+    for (const s of [run(held, open(V.Network)), run(held, alert(V.Volume)), run(held, E.Hover, E.Expire)]) {
+        assert.strictEqual(s.peeking, false, s.phase)
     }
 })
-test("the peek key is ignored while a view is pinned or a toast is up", () => {
+test("a release whose press was ignored doesn't cut the linger short", () => {
+    let s = run(M.initial(V.Compact, true), open(V.Network), E.Peek, E.Expire)  // pressed while Pinned
+    assert.strictEqual(s.phase, P.Rest); assert.ok(s.timer)
+    assert.strictEqual(run(s, E.Unpeek).phase, P.Rest)
+})
+test("the peek key is ignored while a view is pinned, a toast is up, or a hover peek shows", () => {
     const pinned = run(M.initial(V.Compact, false), open(V.Network))
     const s = run(pinned, E.Peek)
     assert.strictEqual(s.phase, P.Pinned); assert.strictEqual(s.timer, pinned.timer); assert.strictEqual(s.peeking, false)
     assert.strictEqual(run(M.initial(V.Compact, false), alert(V.Volume), E.Peek).phase, P.Toast)
+    const grace = run(M.initial(V.Compact, false), E.Hover, E.Expire, E.Leave)       // hover peek, grace running
+    assert.strictEqual(run(grace, E.Peek).timer, grace.timer)
 })
-test("peekView -1 turns the peek key off too", () => {
+test("peekView -1 doesn't turn the key off", () => {
     const off = Object.assign({}, cfg, { peekView: -1 })
-    const s = M.reduce(M.initial(V.Compact, false), { type: E.Peek }, off)
-    assert.strictEqual(s.phase, P.Rest); assert.strictEqual(s.peeking, false)
+    const s = M.reduce(M.initial(V.Compact, true), { type: E.Peek }, off)
+    assert.strictEqual(s.phase, P.Rest); assert.strictEqual(s.peeking, true)
 })
 
 console.log("existing behaviour (regression)")

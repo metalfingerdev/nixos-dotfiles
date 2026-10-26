@@ -86,14 +86,15 @@ the new file, which resizes the proxy and starts the morph), then fades in (140 
 
 ### Keyboard and hover
 
-| | Peek (hover, peek key) | Pinned (click, IPC) | Rest, Toast, Hidden |
+| | Peek (hover) | Pinned (click, IPC) | Rest, Toast, Hidden |
 |---|---|---|---|
 | keyboard | yes | yes | never, so a toast can't steal typing from an app |
-| hover | the view lives as long as the hover or the peek key (plus `graceMs`) | pauses the countdown; leaving restarts it | holds a toast; at Rest, starts the peek |
+| hover | the view lives as long as the hover (plus `graceMs`) | pauses the countdown; leaving restarts it | holds a toast; at Rest, starts the peek |
 | keystroke | nothing (no countdown) | restarts the countdown from the top | - |
 
-The peek key (IPC `peek true`/`peek false`, see [ipc.md](ipc.md)) is hover from the keyboard: it calls
-`Engine.peek(on)`, opens the peek straight from Rest or Hidden, and holds it the way the pointer does.
+The peek key (IPC `peek true`/`peek false`, see [ipc.md](ipc.md)) calls `Engine.peek(on)`: it shows the
+rest view while held (revealing it from Hidden) and, in auto-hide mode, hides it at once on release. The
+rest view doesn't take the keyboard.
 
 A `HoverHandler` on the **surface** reports `Engine.hover(on)`. Because the surface animates, hover follows
 what you see, while clicks follow the proxy mask.

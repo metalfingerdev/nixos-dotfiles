@@ -8,7 +8,7 @@
 //   state { phase, view, prio, hovered, edge, peeking, x, ms, timer, history, autoHide, queued, queuedPrio }
 //   prio  priority of what is showing: the alert's own, else cfg.priority(view). Kept in history and
 //         in the queue, so an urgent alert stays urgent wherever it goes
-//   peeking  the peek key is held (IPC `peek true` until `peek false`). Only ever true in Peek
+//   peeking  the peek key is held (IPC `peek true` until `peek false`). Only ever true at Rest
 //   timer { ms, kind } | null   kind: "hold" (phase countdown) | "intent" (hover) | "grace" (peek)
 //   x     anchor in window coords: the x to centre on, -1 = the screen centre
 //   event { type, view?, x?, on?, priority? }   priority: alerts only; omitted = cfg.priority(view)
@@ -16,8 +16,9 @@
 //           known(view), timeout(view), priority(view), queues(view) }
 //
 //   Hidden  island parked off-screen (auto-hide mode only); the top-edge hot zone reveals it
-//   Rest    restView; in auto-hide mode it lingers hideMs, then goes back to Hidden
-//   Peek    peekView shown because of hover or the peek key; no countdown
+//   Rest    restView; in auto-hide mode it lingers hideMs, then goes back to Hidden. The peek key
+//           shows it while held: releasing it hides at once (auto-hide), not after the linger
+//   Peek    peekView shown because of hover; no countdown
 //   Pinned  an opened view; counts down by its Registry timeout unless held, each keystroke restarts it
 //   Toast   a view the system triggered (volume, notification...); same countdown as Pinned
 
@@ -35,8 +36,8 @@ function initial(restView, autoHide) {
 // ---- atoms -------------------------------------------------------------------
 function set(s, patch) { return Object.assign({}, s, patch) }
 function timed(s)      { return s.phase === Phase.Pinned || s.phase === Phase.Rest || s.phase === Phase.Toast }
-// The pointer is on the island or in the top-edge hot zone: countdowns pause.
-function holding(s)    { return s.hovered || s.edge }
+// The pointer is on the island or in the top-edge hot zone, or the peek key is held: countdowns pause.
+function holding(s)    { return s.hovered || s.edge || s.peeking }
 // An event's priority: its own if it brought one, else the view's.
 function prio(e, cfg)  { return e.priority !== undefined ? e.priority : cfg.priority(e.view) }
 // What a history entry remembers about the current view, so Back restores it exactly.
@@ -71,8 +72,8 @@ function trail(s) {
 function anchor(view, e, cfg) { return view === cfg.restView || e.x === undefined ? -1 : e.x }
 
 // ---- the one way to change phase ---------------------------------------------
-// `peeking` is cleared on every phase change (summon() sets it after entering Peek), so the peek
-// key never outlives its peek: a release that never arrives can't hold anything afterwards.
+// `peeking` is cleared on every phase change (reveal() sets it after entering Rest), so the peek
+// key never outlives its Rest: a release that never arrives can't hold anything afterwards.
 function enter(s, cfg, phase, view, ms, e) {
     e = e || {}
     return start(set(s, {
@@ -180,12 +181,22 @@ function lapse(s, e, cfg) {
     return s
 }
 
-// The peek key, pressed at Rest or Hidden: the peek view, at once (a keypress needs no hover intent).
-function summon(s, e, cfg) { return cfg.peekView < 0 ? s : set(toPeek(s, e, cfg), { peeking: true }) }
-// The peek key, pressed during a hover peek: it holds the peek too, and cancels a running grace.
-function grip(s, e, cfg)   { return set(s, { peeking: true, timer: null }) }
-// Pointer left or key released: the peek collapses after graceMs, once neither is holding it.
-function letGo(s, e, cfg)  { return s.hovered || s.peeking ? s : grace(s, e, cfg) }
+// Pointer left: the peek collapses after graceMs, unless it came back.
+function letGo(s, e, cfg)  { return s.hovered ? s : grace(s, e, cfg) }
+
+// The peek key shows the rest view for as long as it is held.
+// Pressed at Hidden: reveal the island at Rest, held.
+function reveal(s, e, cfg) { return keep(rest(s, e, cfg), e, cfg) }
+// Pressed at Rest: hold it there (no linger). While hovered, the hover intent keeps running.
+function keep(s, e, cfg)   { const k = set(s, { peeking: true }); return s.hovered ? k : rearm(k) }
+// Released: auto-hide hides at once. The pointer still on the island (or at the edge) keeps it,
+// and letting go of that starts the usual linger. A key pressed in another phase holds nothing here.
+function release(s, e, cfg) {
+    if (!s.peeking) return s
+    const r = set(s, { peeking: false })
+    if (r.hovered) return r                    // a running hover intent stays: rearm() would drop it
+    return r.autoHide && !holding(r) ? toHidden(r, e, cfg) : rearm(r)
+}
 
 // Auto-hide switched on/off while Rest: retime the linger.
 function retime(s, e, cfg)  { return rearm(set(s, { ms: restMs(s, cfg) })) }
@@ -200,7 +211,6 @@ function track(s, e) {
     case Event.Reach:   return set(s, { edge: true })
     case Event.Retreat: return set(s, { edge: false })
     case Event.Mode:    return set(s, { autoHide: !!e.on })
-    case Event.Unpeek:  return set(s, { peeking: false })  // setting it is summon()/grip()'s job: Peek only
     case Event.Expire:  return set(s, { timer: null })     // it fired: never reuse the spent object
     }
     return s
@@ -210,7 +220,7 @@ function track(s, e) {
 var table = {}
 table[Phase.Hidden] = {
     [Event.Reach]:   toRest,               // pointer hit the top-edge hot zone
-    [Event.Peek]:    summon,               // the peek key reveals the island straight into Peek
+    [Event.Peek]:    reveal,               // the peek key shows the rest view while held
     [Event.Open]:    toPinned,             // IPC can open straight from hidden
     [Event.Alert]:   toToast,
     [Event.Mode]:    unhide
@@ -220,16 +230,15 @@ table[Phase.Rest] = {
     [Event.Leave]:   rearm,                // starts the linger timer (auto-hide) or clears hover intent
     [Event.Reach]:   rearm,                // pointer in the hot zone holds the linger...
     [Event.Retreat]: rearm,                // ...and leaving it starts the linger
-    [Event.Peek]:    summon,
+    [Event.Peek]:    keep,                 // the peek key holds the rest view...
+    [Event.Unpeek]:  release,              // ...and releasing it hides it (auto-hide)
     [Event.Open]:    toPinned,
     [Event.Alert]:   toToast,
     [Event.Mode]:    retime,
     [Event.Expire]:  lapse
 }
 table[Phase.Peek] = {
-    [Event.Leave]:   letGo,                // collapse after a short grace, unless the peek key holds it
-    [Event.Peek]:    grip,
-    [Event.Unpeek]:  letGo,                // ...or the pointer does
+    [Event.Leave]:   letGo,                // collapse after a short grace
     [Event.Open]:    toPinned,
     [Event.Alert]:   toToast,
     [Event.Close]:   toRest,

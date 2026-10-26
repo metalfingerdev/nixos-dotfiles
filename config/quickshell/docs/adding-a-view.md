@@ -33,8 +33,8 @@ The contract:
   Only a mouse click has an x. Pressed from the keyboard, a Pill sends `-1`, so the view opens centred.
 - **Style**: the surface is `#101014` with radius 12, text is `#f7f7f7`, and pills are `#1a1a1a`/`#2e2e2e`
   (`#3a3a3f` with a border when `keyboardSelected`).
-- **Keyboard**: nothing to do for the basics. A pinned view, and the peek view (hovered, or the peek key
-  held), gets the keyboard, and `ViewLoader` gives it default keys: Tab/arrows move between focusable items (every `Pill`
+- **Keyboard**: nothing to do for the basics. A pinned view, and the peek view (while hovered), gets the
+  keyboard, and `ViewLoader` gives it default keys: Tab/arrows move between focusable items (every `Pill`
   is one), Enter/Space press the focused Pill, and Escape goes back. For your own rules, add `Keys`
   handlers in the view. Keys you handle are yours, and anything you don't accept still bubbles to the
   defaults. Put `focus: true` on the item that should start focused (otherwise it's the first focusable

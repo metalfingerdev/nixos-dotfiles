@@ -10,8 +10,8 @@
 | `phase` | `hidden` · `rest` · `peek` · `pinned` · `toast` |
 | `view` | the `Engine.View` currently shown |
 | `prio` | the priority of what is showing: the alert's own if it brought one, else the view's |
-| `hovered`, `edge` | "holding" facts: the pointer is on the island, or in the top-edge hot zone. Either one pauses countdowns |
-| `peeking` | the peek key is held (IPC `peek true` until `peek false`). Only ever true in Peek: `enter()` clears it |
+| `hovered`, `edge`, `peeking` | "holding" facts: the pointer is on the island, or in the top-edge hot zone, or the peek key is held. Any one pauses countdowns |
+| `peeking` | the peek key is held (IPC `peek true` until `peek false`). Only ever true at Rest: `enter()` clears it |
 | `x` | anchor in window coords: the x to centre on (the click), `-1` = the screen centre. The island always hangs from the top |
 | `ms` | the current phase's countdown length (0 = none) |
 | `timer` | `{ ms, kind }` or `null`. `kind` is `hold` (phase countdown), `intent` (hover) or `grace` (peek). The engine re-arms its Timer when this object changes identity |
@@ -24,8 +24,8 @@
 | Phase | What it is | Countdown |
 |---|---|---|
 | Hidden | parked above the screen (auto-hide only); the top-edge hot zone reveals it | none |
-| Rest | `restView` (Compact) | `hideMs` in auto-hide mode, otherwise none |
-| Peek | `peekView`, shown because of hover or the peek key | none; `graceMs` after the pointer and the key both let go |
+| Rest | `restView` (Compact), also shown while the peek key is held | `hideMs` in auto-hide mode, otherwise none; releasing the peek key hides at once |
+| Peek | `peekView`, shown because of hover | none; `graceMs` after the pointer leaves |
 | Pinned | a view opened by click or IPC | the view's `Registry.timeout`, restarted by each keystroke |
 | Toast | a view raised by the system (`alert`) | the view's `Registry.timeout` |
 
@@ -38,13 +38,15 @@ Pointer and mode events (`hover` `leave` `reach` `retreat` `mode`) first update 
 Hover holds, the keyboard restarts:
 
 - **Hover** pauses a countdown for as long as the pointer is on the island, and leaving starts it again.
-- **`peek` / `unpeek`** are the peek key's press and release: hover from the keyboard. At Rest or
-  Hidden, `peek` shows `peekView` at once (`summon()`, no hover intent) and sets `peeking`. During a
-  hover peek, it sets `peeking` and cancels a running grace (`grip()`). `peeking` holds the peek the way
-  `hovered` does, and `letGo()` starts the grace once neither holds it, after either a `leave` or an
-  `unpeek`. `unpeek` clears `peeking` in every phase. Setting it happens only in Peek, and `enter()`
-  clears it on every phase change, so a release that never arrives can't hold anything afterwards.
-  The key is ignored while Pinned or Toast.
+- **`peek` / `unpeek`** are the peek key's press and release: they show the rest view while the key is
+  held. From Hidden, `peek` reveals Rest (`reveal()`); at Rest it holds it there (`keep()`). Either way
+  it sets `peeking`, which holds the linger the way `hovered` does. `unpeek` (`release()`) clears it
+  and, in auto-hide mode, hides at once, unless the pointer is still on the island or at the edge (then
+  letting go of that starts the usual linger). A running hover intent is left alone, so hovering while
+  the key is held still peeks. `release()` does nothing unless `peeking` is set, so releasing a key
+  that was pressed in another phase can't cut a linger short. `enter()` clears `peeking` on every
+  phase change, so a release that never arrives can't hold anything afterwards. The key is ignored
+  while Peek, Pinned or Toast.
 - **`key`** is any keystroke in the island. It only matters while Pinned: `start()` gives a fresh
   countdown from the top (still none while hovered). The peek view has the keyboard too, but it has no
   countdown: it lives exactly as long as the hover.
@@ -53,9 +55,9 @@ Hover holds, the keyboard restarts:
 
 | Phase \ Event | hover | leave | reach/retreat | peek | unpeek | open | close | back | alert | key | mode | expire |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **Hidden** | | | reach → Rest | summon → Peek | | → Pinned | | | → Toast | | unhide | |
-| **Rest** | intent | rearm | rearm | summon → Peek | | → Pinned | | | → Toast | | retime | lapse |
-| **Peek** | (cancels grace) | letGo | | grip | letGo | → Pinned | → Rest | → Rest | → Toast | | | → Rest |
+| **Hidden** | | | reach → Rest | reveal → Rest | | → Pinned | | | → Toast | | unhide | |
+| **Rest** | intent | rearm | rearm | keep | release (→ Hidden) | → Pinned | | | → Toast | | retime | lapse |
+| **Peek** | (cancels grace) | letGo | | | | → Pinned | → Rest | → Rest | → Toast | | | → Rest |
 | **Pinned** | rearm | rearm | rearm | | | toggle | → Rest | goBack | alertPinned | start | | → Rest |
 | **Toast** | rearm | rearm | rearm | | | → Pinned | toastEnd | toastEnd | alertToast | | | toastEnd |
 
@@ -82,8 +84,8 @@ Two other timers are set directly:
 
 - **hover intent** (Rest, `hoverMs`, kind `intent`): `lapse()` tells it apart from the linger timer by
   checking `hovered`.
-- **grace** (Peek, `graceMs`, kind `grace`): started by `letGo()` once neither the pointer nor the peek
-  key holds the peek. A new `hover` cancels it in `track()`, a new `peek` in `grip()`.
+- **grace** (Peek, `graceMs`, kind `grace`): started by `letGo()` when the pointer leaves the peek. A new
+  `hover` cancels it in `track()`.
 
 Because `rearm()` compares `kind`, an intent or grace timer is never mistaken for the countdown just
 because the durations match.

@@ -35,6 +35,8 @@
       and `Bar.retarget()` (identical to `snap()`).
 - [x] Peek key: IPC `peek true`/`peek false` (bind to a key's press/release) is hover from the keyboard.
       `peeking` holds the peek like `hovered`; `enter()` clears it, so it never outlives the peek.
+- [x] The peek key shows the rest view (Compact) while held and hides it on release, instead of peeking
+      into Expanded. Hover still peeks.
 - [x] `debug` lives on `Engine.debug`, toggled over IPC.
 - [x] Compact shows a real clock (`SystemClock`). The launcher searches desktop entries.
 - [x] `Debug.qml` reads `Engine.snapshot` (it used the removed `IslandState`). Toggled over IPC

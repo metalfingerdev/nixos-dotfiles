@@ -112,7 +112,7 @@ Scope {
         mask: Region { item: proxy }
 
         WlrLayershell.layer: WlrLayer.Top
-        // Pinned views and the peek view (hover or the peek key) get the keyboard (the user is here).
+        // Pinned views and the peek view (hover) get the keyboard (the user is here).
         // Rest and Toast never take it, so a toast can't steal typing from an app.
         WlrLayershell.keyboardFocus: root.active && Engine.keyboard ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
