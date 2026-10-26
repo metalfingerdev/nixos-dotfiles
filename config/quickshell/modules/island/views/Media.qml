@@ -55,13 +55,6 @@ Item {
             saturation: 0.2
             opacity: 0.5
         }
-        Rectangle {
-            anchors.fill: parent
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: Qt.rgba(Config.surface.r, Config.surface.g, Config.surface.b, 0.25) }
-                GradientStop { position: 1.0; color: Config.surface }
-            }
-        }
     }
 
     // ---- nothing playing ----
