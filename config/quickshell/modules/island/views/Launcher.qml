@@ -1,25 +1,56 @@
 import QtQuick
-import QtQuick.Layouts
+import QtCore
 import Quickshell
+import Quickshell.Io
 import Quickshell.Widgets
 import qs.modules.island
 import qs.modules.components
+import qs.modules.services
 
-// Search field + up to `maxResults` desktop entries, best match first.
-// Ranking: the name starts with the query > a word in the name does > the name contains it >
-// its generic name or keywords contain it ("browser" finds Firefox) > the name has the query's
-// letters in order ("ffx" finds Firefox). Ties go to the shorter name.
-// Custom keys (the rest fall through to ViewLoader): type to filter, Up/Down to select, Enter to
-// launch, Escape to close, Backspace on an empty field to go back. The field keeps focus; the
-// pointer only takes the selection when it actually moves.
-// Terminal apps (Terminal=true) open in kitty.
+// Search apps, files and the island's own actions, with filter chips: All, Apps, Files, Actions.
+//   apps      ranked: the name starts with the query > a word in it does > the name contains it >
+//             its generic name or keywords do ("browser" finds Firefox) > the query's letters in
+//             order ("ffx"). Ties go to the app launched most, then the shorter name. With no
+//             query: the most launched apps. Terminal apps (Terminal=true) open in kitty
+//   files     names under ~ (5 levels, hidden folders skipped), from 2 letters; opened with xdg-open
+//   actions   the island's views and quick settings, lock, suspend...
+//   math      "12*7+3" shows the result; Enter copies it
+// Keys: type to filter, Up/Down select, Enter runs, Tab / Shift+Tab change the filter, Escape
+// closes, Backspace on an empty field goes back. The pointer only takes the selection when it moves.
+// Text typed into the glance's search bar (Engine.query) arrives already in the field.
 Item {
     id: root
 
-    readonly property int maxResults: 6
+    readonly property int maxRows: 7         // shown at once; the rest scroll
+    readonly property int maxResults: 24     // per source
+    readonly property int rowH: 56
     readonly property string terminal: "kitty"
+    readonly property var filters: [
+        { key: "all",     label: "All" },
+        { key: "apps",    label: "Apps" },
+        { key: "files",   label: "Files" },
+        { key: "actions", label: "Actions" }
+    ]
+    property string filter: "all"
     property int selected: 0
+    readonly property string query: bar.text.trim().toLowerCase()
 
+    // ---- how often each app was launched (remembered) ----
+    property string usesJson: "{}"
+    property Settings store: Settings {
+        location: StandardPaths.writableLocation(StandardPaths.GenericStateLocation) + "/quickshell/island.ini"
+        category: "launcher"
+        property alias uses: root.usesJson
+    }
+    readonly property var uses: { try { return JSON.parse(usesJson) } catch (e) { return {} } }
+    function used(app) { return uses[app.id] ?? 0 }
+    function count(app) {
+        const u = Object.assign({}, uses)
+        u[app.id] = (u[app.id] ?? 0) + 1
+        usesJson = JSON.stringify(u)
+    }
+
+    // ---- apps ----
     // 0 = no match; higher = better
     function score(app, q) {
         const name = app.name.toLowerCase()
@@ -32,150 +63,305 @@ Item {
         for (const c of name) if (c === q[i]) i++
         return i === q.length ? 100 : 0
     }
-
-    readonly property var matches: {
-        const q = search.text.trim().toLowerCase()
-        if (q === "") return []
-        return Array.from(DesktopEntries.applications.values)
-            .filter(a => !a.noDisplay)
-            .map(a => ({ app: a, score: root.score(a, q) }))
-            .filter(m => m.score > 0)
-            .sort((a, b) => (b.score - a.score) || (a.app.name.length - b.app.name.length))
-            .slice(0, root.maxResults)
-            .map(m => m.app)
-    }
-    onMatchesChanged: selected = 0
-
-    function launch(entry) {
-        if (!entry) return
-        if (entry.runInTerminal)
-            Quickshell.execDetached({ command: [terminal, "-e"].concat(entry.command), workingDirectory: entry.workingDirectory })
-        else
-            entry.execute()
-        Engine.close()
+    readonly property var apps: {
+        const q = query
+        const all = Array.from(DesktopEntries.applications.values).filter(a => !a.noDisplay)
+        const ranked = q === ""
+            ? all.map(a => ({ app: a, score: used(a) > 0 ? 1 : 0 }))
+            : all.map(a => ({ app: a, score: score(a, q) })).filter(m => m.score > 0)
+        return ranked
+            .sort((a, b) => (b.score - a.score) || (used(b.app) - used(a.app)) || (a.app.name.length - b.app.name.length)
+                            || a.app.name.localeCompare(b.app.name))
+            .slice(0, maxResults)
+            .map(m => ({ kind: "app", app: m.app, name: m.app.name,
+                         description: m.app.comment || m.app.genericName || "" }))
     }
 
-    implicitWidth: 520
-    // margins + search field + one (spacing + row) per match
-    implicitHeight: 16 + 36 + matches.length * (6 + 34) + 16
+    // ---- actions ----
+    function view(v) { return () => Engine.open(v) }
+    function quit(f) { return () => { Engine.close(); f() } }
+    readonly property var actions: [
+        { name: "Dashboard", description: "Quick settings, media and notifications", icon: "dashboard", run: view(Engine.View.Dashboard) },
+        { name: "Wi-Fi", description: "Networks and connections", icon: "wifi", keys: "network internet wlan ethernet", run: view(Engine.View.Network) },
+        { name: "Bluetooth", description: "Devices", icon: "bluetooth", keys: "headphones pair", run: view(Engine.View.Bluetooth) },
+        { name: "Notifications", description: "Everything that arrived", icon: "notifications", run: view(Engine.View.Notifications) },
+        { name: "Media", description: "What's playing", icon: "music_note", keys: "music player song", run: view(Engine.View.Media) },
+        { name: "Workspaces", description: "Overview of every workspace", icon: "grid_view", keys: "overview windows", run: view(Engine.View.Workspaces) },
+        { name: "Calendar", description: "The month, with today", icon: "calendar_month", keys: "clock date time", run: view(Engine.View.Clock) },
+        { name: "Battery", description: "Charge, time left and health", icon: "battery_full", keys: "power energy", run: view(Engine.View.Battery) },
+        { name: "Theme", description: "Colours, the island's shape, wallpaper", icon: "palette", keys: "settings appearance colour color", run: view(Engine.View.Theme) },
+        { name: "Random wallpaper", description: "From ~/Pictures/Wallpapers", icon: "wallpaper", keys: "background", run: () => Wallpaper.random() },
+        { name: "Do not disturb", description: Notifier.dnd ? "On: turn it off" : "Off: turn it on", icon: "do_not_disturb_on", keys: "dnd quiet silence", run: quit(() => Notifier.dnd = !Notifier.dnd) },
+        { name: "Screenshot", description: "Select an area; saved and copied", icon: "screenshot_region", keys: "capture grab", run: quit(() => Toggles.screenshot()) },
+        { name: "Lock", description: "Lock the session", icon: "lock", run: quit(() => Session.run("lock")) },
+        { name: "Suspend", description: "Sleep", icon: "bedtime", keys: "sleep", run: quit(() => Session.run("suspend")) },
+        { name: "Power", description: "Log out, restart, shut down", icon: "power_settings_new", keys: "logout reboot restart shutdown poweroff", run: view(Engine.View.Power) }
+    ]
+    readonly property var actionRows: {
+        const q = query
+        return actions
+            .filter(a => q === "" || (a.name + " " + (a.keys ?? "")).toLowerCase().split(/\s+/).some(w => w.startsWith(q))
+                                  || a.name.toLowerCase().includes(q))
+            .map(a => ({ kind: "action", name: a.name, description: a.description, icon: a.icon, run: a.run }))
+    }
 
-    ColumnLayout {
-        anchors { fill: parent; margins: 16 }
-        spacing: 6
+    // ---- math ----
+    readonly property var calc: {
+        const q = bar.text.trim()
+        if (!/^[\d\s+\-*/%^().,]+$/.test(q) || !/\d/.test(q) || !/[+\-*/%^]/.test(q)) return null
+        try {
+            // digits and operators only (checked above), so this can't run anything else
+            const v = Function('"use strict"; return (' + q.replace(/\^/g, "**").replace(/,/g, ".") + ")")()
+            if (typeof v !== "number" || !isFinite(v)) return null
+            const shown = String(Math.round(v * 1e10) / 1e10)
+            return { kind: "calc", name: "= " + shown, value: shown, description: "Enter copies it", icon: "calculate" }
+        } catch (e) { return null }
+    }
 
-        Rectangle {
-            Layout.fillWidth: true
-            implicitHeight: 36
-            radius: Config.innerRadius
-            color: Config.raised
+    // ---- files (a background `find`, a moment after typing stops) ----
+    property var files: []
+    property string searched: ""
+    property bool pending: false
+    readonly property bool wantFiles: (filter === "all" || filter === "files") && query.length >= 2
+    onQueryChanged: {
+        selected = 0
+        files = []
+        if (wantFiles) debounce.restart()
+    }
+    onFilterChanged: {
+        selected = 0
+        if (wantFiles && searched !== query) debounce.restart()
+    }
 
-            Icon {
-                id: glass
-                anchors { left: parent.left; leftMargin: 10; verticalCenter: parent.verticalCenter }
-                name: "search"
-                size: 18
-                color: Config.dim
-            }
-
-            TextInput {
-                id: search
-                anchors { left: glass.right; leftMargin: 8; right: backPill.left; rightMargin: 8; top: parent.top; bottom: parent.bottom }
-                verticalAlignment: TextInput.AlignVCenter
-                color: Config.text
-                font.family: Config.font
-                font.pixelSize: 14
-                clip: true
-                focus: true
-
-                // the field accepts its keys, so ViewLoader never sees them: report the keystroke here
-                Keys.onPressed: event => {
-                    Engine.key()
-                    if (event.key === Qt.Key_Backspace && text.length === 0) { Engine.back(); event.accepted = true }
-                    else event.accepted = false
-                }
-                Keys.onDownPressed:   root.selected = root.matches.length ? (root.selected + 1) % root.matches.length : 0
-                Keys.onUpPressed:     root.selected = root.matches.length ? (root.selected - 1 + root.matches.length) % root.matches.length : 0
-                Keys.onReturnPressed: root.launch(root.matches[root.selected])
-                Keys.onEnterPressed:  root.launch(root.matches[root.selected])
-                Keys.onEscapePressed: Engine.close()
-
-                Text {
-                    visible: search.text === ""
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "Search applications"
-                    color: Config.faint
-                    font: search.font
-                }
-            }
-
-            Pill {
-                id: backPill
-                anchors { right: parent.right; rightMargin: 4; verticalCenter: parent.verticalCenter }
-                text: "back"
-                activeFocusOnTab: false
-                onClicked: Engine.back()
+    Timer {
+        id: debounce
+        interval: 180
+        onTriggered: root.find()
+    }
+    function find() {
+        if (finder.running) { pending = true; return }
+        searched = query
+        finder.command = ["sh", "-c", "find \"$HOME\" -mindepth 1 -maxdepth 5 \\( -name '.*' -o -name node_modules -o -name target -o -name __pycache__ \\) -prune "
+                                   + "-o -iname \"*$1*\" -print 2>/dev/null | head -n 60", "sh", searched]
+        finder.running = true
+    }
+    Process {
+        id: finder
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (root.searched !== root.query) return
+                const home = Quickshell.env("HOME")
+                const q = root.query
+                root.files = text.split("\n").filter(p => p !== "")
+                    .map(p => ({ path: p, base: p.split("/").pop() }))
+                    .sort((a, b) => (b.base.toLowerCase().startsWith(q) - a.base.toLowerCase().startsWith(q))
+                                    || (a.path.split("/").length - b.path.split("/").length) || a.base.localeCompare(b.base))
+                    .slice(0, root.maxResults)
+                    .map(f => ({ kind: "file", name: f.base, path: f.path, icon: root.fileGlyph(f.base),
+                                 description: "~" + f.path.slice(home.length, f.path.length - f.base.length - 1) }))
             }
         }
+        onExited: if (root.pending) { root.pending = false; root.find() }
+    }
+    function fileGlyph(name) {
+        const ext = name.includes(".") ? name.split(".").pop().toLowerCase() : ""
+        if (ext === "") return "folder"
+        if (["png", "jpg", "jpeg", "webp", "gif", "svg", "bmp"].includes(ext)) return "image"
+        if (["mp4", "mkv", "webm", "mov", "avi"].includes(ext)) return "movie"
+        if (["mp3", "flac", "ogg", "wav", "m4a", "opus"].includes(ext)) return "music_note"
+        if (["pdf"].includes(ext)) return "picture_as_pdf"
+        if (["zip", "tar", "gz", "xz", "7z", "zst", "rar"].includes(ext)) return "folder_zip"
+        if (["nix", "qml", "js", "ts", "py", "rs", "go", "c", "h", "lua", "sh", "json", "toml"].includes(ext)) return "code"
+        return "description"
+    }
+
+    // ---- what shows, in order ----
+    readonly property var results: {
+        const out = []
+        if (calc) out.push(calc)
+        if (filter === "all" || filter === "apps") out.push(...apps)
+        if (filter === "actions" || (filter === "all" && query !== "")) out.push(...actionRows)
+        if (filter === "all" || filter === "files") out.push(...files)
+        return out
+    }
+    onResultsChanged: selected = Math.min(selected, Math.max(0, results.length - 1))
+    onSelectedChanged: list.positionViewAtIndex(selected, ListView.Contain)
+
+    // an empty list says why
+    readonly property string hint: results.length > 0 ? ""
+        : filter === "files" && query.length < 2 ? "Type at least two letters to search your files"
+        : finder.running || debounce.running ? "Searching…"
+        : query !== "" ? "Nothing matches “" + bar.text.trim() + "”" : "Nothing here"
+
+    function run(row) {
+        if (!row) return
+        switch (row.kind) {
+        case "app":
+            count(row.app)
+            if (row.app.runInTerminal)
+                Quickshell.execDetached({ command: [terminal, "-e"].concat(row.app.command), workingDirectory: row.app.workingDirectory })
+            else
+                row.app.execute()
+            Engine.close()
+            break
+        case "file":   Toggles.open(row.path); Engine.close(); break
+        case "calc":   Quickshell.clipboardText = row.value; Engine.close(); break
+        case "action": row.run(); break
+        }
+    }
+    function cycle(step) {
+        const i = filters.findIndex(f => f.key === filter)
+        filter = filters[(i + step + filters.length) % filters.length].key
+    }
+
+    Component.onCompleted: {
+        if (Engine.query !== "") {
+            bar.text = Engine.query
+            bar.field.cursorPosition = bar.text.length
+            Engine.query = ""
+        }
+    }
+
+    implicitWidth: 680
+    implicitHeight: 16 + bar.height + 10 + (results.length > 0 ? list.height : 52) + 14
+
+    SearchBar {
+        id: bar
+        x: 16; y: 16
+        width: parent.width - 32
+        implicitHeight: 52
+        fieldSize: 17
+        placeholder: "Search"
+        takesTab: true
+        focus: true
+
+        onKey: Engine.key()
+        onDown: root.selected = root.results.length ? (root.selected + 1) % root.results.length : 0
+        onUp: root.selected = root.results.length ? (root.selected - 1 + root.results.length) % root.results.length : 0
+        onAccepted: root.run(root.results[root.selected])
+        onTab: backward => root.cycle(backward ? -1 : 1)
+        onEscaped: Engine.close()
+        onBackspaceEmpty: Engine.back()
 
         Repeater {
-            model: root.matches
+            model: root.filters
 
-            Rectangle {
-                id: row
+            Chip {
                 required property var modelData
-                required property int index
-                readonly property bool current: index === root.selected
+                anchors.verticalCenter: parent.verticalCenter
+                text: modelData.label
+                selected: root.filter === modelData.key
+                activeFocusOnTab: false
+                onClicked: root.filter = modelData.key
+            }
+        }
+    }
 
-                Layout.fillWidth: true
-                implicitHeight: 34
-                radius: Config.innerRadius
-                color: current ? Config.selected : "transparent"
+    Text {
+        visible: root.hint !== ""
+        x: 32
+        y: bar.y + bar.height + 26
+        text: root.hint
+        color: Config.dim
+        font.family: Config.font
+        font.pixelSize: Config.body
+    }
 
-                RowLayout {
-                    anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
-                    spacing: 10
+    ListView {
+        id: list
+        x: 16
+        y: bar.y + bar.height + 10
+        width: parent.width - 32
+        height: Math.min(root.results.length, root.maxRows) * (root.rowH + spacing)
+        spacing: 2
+        clip: true
+        boundsBehavior: Flickable.StopAtBounds
+        model: root.results
 
-                    IconImage {
-                        implicitSize: 22
-                        asynchronous: true
-                        source: Quickshell.iconPath(row.modelData.icon, "application-x-executable")
-                    }
-                    Text {
-                        Layout.fillWidth: true
-                        text: row.modelData.name
-                        elide: Text.ElideRight
-                        color: row.current ? Config.text : Config.dim
-                        font.family: Config.font
-                        font.pixelSize: Config.body
-                        font.weight: row.current ? Font.DemiBold : Font.Normal
-                    }
-                    Text {
-                        visible: text !== ""
-                        text: row.modelData.genericName ?? ""
-                        elide: Text.ElideRight
-                        Layout.maximumWidth: 180
-                        color: Config.faint
-                        font.family: Config.font
-                        font.pixelSize: Config.small
-                    }
+        delegate: Rectangle {
+            id: row
+            required property var modelData
+            required property int index
+            readonly property bool current: index === root.selected
+
+            width: list.width
+            height: root.rowH
+            radius: Config.innerRadius
+            color: current ? Config.secondary : "transparent"
+            Behavior on color { ColorAnimation { duration: 100 } }
+
+            // an app's own icon, or a glyph in a tonal circle
+            Item {
+                id: lead
+                x: 10
+                anchors.verticalCenter: parent.verticalCenter
+                width: 40
+                height: 40
+
+                // "" when the theme has no such icon: then the glyph circle shows instead
+                readonly property string appIcon: row.modelData.kind === "app" ? Quickshell.iconPath(row.modelData.app.icon ?? "", true) : ""
+
+                IconImage {
+                    visible: lead.appIcon !== ""
+                    anchors.centerIn: parent
+                    implicitSize: 34
+                    asynchronous: true
+                    source: lead.appIcon
                 }
-
-                MouseArea {
+                Rectangle {
+                    visible: lead.appIcon === ""
                     anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    property point last: Qt.point(-1, -1)
-                    // only a real move takes the selection: a pointer resting where a row appears
-                    // under it must not fight the keyboard
-                    onPositionChanged: mouse => {
-                        const p = mapToGlobal(mouse.x, mouse.y)
-                        if (Math.abs(p.x - last.x) > 0.5 || Math.abs(p.y - last.y) > 0.5) {
-                            if (last.x >= 0) root.selected = row.index
-                            last = p
-                        }
+                    radius: 20
+                    color: row.current ? Config.primary : Config.high
+
+                    Icon {
+                        anchors.centerIn: parent
+                        name: row.modelData.icon ?? "apps"
+                        size: 20
+                        color: row.current ? Config.primaryInk : Config.text
                     }
-                    onClicked: root.launch(row.modelData)
                 }
+            }
+
+            Column {
+                anchors { left: lead.right; leftMargin: 14; right: parent.right; rightMargin: 14; verticalCenter: parent.verticalCenter }
+                spacing: 2
+
+                Text {
+                    width: parent.width
+                    text: row.modelData.name
+                    elide: Text.ElideRight
+                    color: row.current ? Config.secondaryInk : Config.text
+                    font.family: Config.font
+                    font.pixelSize: Config.body + 2
+                    font.weight: Font.Medium
+                }
+                Text {
+                    width: parent.width
+                    visible: text !== ""
+                    text: row.modelData.description ?? ""
+                    elide: Text.ElideRight
+                    color: row.current ? Config.mix(Config.secondaryInk, Config.secondary, 0.25) : Config.dim
+                    font.family: Config.font
+                    font.pixelSize: Config.small + 1
+                }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                property point last: Qt.point(-1, -1)
+                // only a real move takes the selection: a pointer resting where a row appears
+                // under it must not fight the keyboard
+                onPositionChanged: mouse => {
+                    const p = mapToGlobal(mouse.x, mouse.y)
+                    if (Math.abs(p.x - last.x) > 0.5 || Math.abs(p.y - last.y) > 0.5) {
+                        if (last.x >= 0) root.selected = row.index
+                        last = p
+                    }
+                }
+                onClicked: root.run(row.modelData)
             }
         }
     }

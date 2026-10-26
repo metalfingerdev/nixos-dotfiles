@@ -7,7 +7,11 @@ QtObject {
 
     readonly property var entries: [
         { name: "compact",    priority: 0, timeout: 0,    view: Engine.View.Compact,    url: Qt.resolvedUrl("views/Compact.qml") },
-        { name: "expanded",   priority: 1, timeout: 1500, view: Engine.View.Expanded,   url: Qt.resolvedUrl("views/Expanded.qml") },
+        { name: "expanded",   priority: 1, timeout: 4000, view: Engine.View.Expanded,   url: Qt.resolvedUrl("views/Expanded.qml") },
+        // the hub: a click on Compact or Expanded opens it
+        { name: "tabs",       priority: 2, timeout: 8000, view: Engine.View.Tabs,       url: Qt.resolvedUrl("views/Tabs.qml") },
+        // everything: quick settings, sliders, media, notifications
+        { name: "dashboard",  priority: 2, timeout: 12000, view: Engine.View.Dashboard, url: Qt.resolvedUrl("views/Dashboard.qml") },
         { name: "network",    priority: 2, timeout: 5000, view: Engine.View.Network,    url: Qt.resolvedUrl("views/Network.qml") },
         { name: "launcher",   priority: 2, timeout: 8000, view: Engine.View.Launcher,   url: Qt.resolvedUrl("views/Launcher.qml") },
         { name: "bluetooth",  priority: 2, timeout: 5000, view: Engine.View.Bluetooth,  url: Qt.resolvedUrl("views/Bluetooth.qml") },
@@ -21,14 +25,17 @@ QtObject {
         { name: "battery",    priority: 2, critical: 3, timeout: 4000, view: Engine.View.Battery, url: Qt.resolvedUrl("views/Battery.qml"), queue: true },
         { name: "clock",      priority: 2, timeout: 8000, view: Engine.View.Clock,      url: Qt.resolvedUrl("views/Clock.qml") },
         { name: "power",      priority: 2, timeout: 8000, view: Engine.View.Power,      url: Qt.resolvedUrl("views/Power.qml") },
-        { name: "theme",      priority: 2, timeout: 8000, view: Engine.View.Theme,      url: Qt.resolvedUrl("views/Theme.qml") },
-        { name: "workspaces", priority: 2, timeout: 8000, view: Engine.View.Workspaces, url: Qt.resolvedUrl("views/Workspaces.qml") }
+        { name: "theme",      priority: 2, timeout: 8000, view: Engine.View.Theme,      url: Qt.resolvedUrl("views/Theme.qml"), aliases: ["settings"] },
+        { name: "workspaces", priority: 2, timeout: 8000, view: Engine.View.Workspaces, url: Qt.resolvedUrl("views/Workspaces.qml") },
+        // Toast = the workspace changed (GNOME-style dots). Transient: never interrupts, never waits.
+        { name: "switcher",   priority: 1, timeout: 1200, view: Engine.View.Switcher,   url: Qt.resolvedUrl("views/Switcher.qml"), queue: false }
     ]
 
     // A non-number (e.g. an enum name that doesn't exist yet: Qt keeps a singleton's old enum across a
     // hot reload) must never match an entry, or the machine would accept a view nothing can show or end.
     function get(view) { return typeof view === "number" ? entries.find(e => e.view === view) || null : null }
-    function byName(name)    { return entries.find(e => e.name === name) || null }
+    // a name, or one of its aliases ("settings" is the theme view)
+    function byName(name)    { return entries.find(e => e.name === name || (e.aliases ?? []).includes(name)) || null }
     // critical = true: the entry's `critical` priority, if it has one
     function priority(view, critical) {
         const e = get(view)

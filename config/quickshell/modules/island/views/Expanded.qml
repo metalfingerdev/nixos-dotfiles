@@ -1,105 +1,62 @@
 import QtQuick
 import Quickshell
-import Quickshell.Widgets
 import qs.modules.island
+import qs.modules.island.parts
 import qs.modules.components
 import qs.modules.services
 
-// The dashboard: the peek view (hover the resting island) and `open expanded`.
-//   the time and date; Wi-Fi, Bluetooth and battery at a glance (each opens its view)
-//   what's playing, with its controls (click the title for the full card)
-//   one icon per view
+// The glance: the peek view (hover the resting island) and `open expanded`. A dynamic indicator,
+// not a menu:
+//   the time and date; what's on, as one button group (only the things that are on), which opens
+//   the dashboard
+//   what's playing (the compact media card)
+//   the newest notification, if any (opens the center)
+//   a search bar: type (or click) to search apps, files and actions in the launcher
+// A click anywhere else on the island opens the hub, Tabs (Bar.pinShown).
 // View contract: set implicitWidth / implicitHeight. The island sizes itself to them.
 Item {
     id: root
 
-    readonly property var entries: [
-        { icon: "wifi",               view: Engine.View.Network },
-        { icon: "bluetooth",          view: Engine.View.Bluetooth },
-        { icon: "music_note",         view: Engine.View.Media },
-        { icon: "apps",               view: Engine.View.Launcher },
-        { icon: "notifications",      view: Engine.View.Notifications },
-        { icon: "grid_view",          view: Engine.View.Workspaces },
-        { icon: "calendar_month",     view: Engine.View.Clock },
-        { icon: "battery_full",       view: Engine.View.Battery },
-        { icon: "palette",            view: Engine.View.Theme },
-        { icon: "power_settings_new", view: Engine.View.Power }
-    ]
-
     readonly property bool media: Players.active !== null && (Players.active.trackTitle ?? "") !== ""
+    readonly property var newest: Notifier.items[0] ?? null
 
-    implicitWidth: Math.max(400, icons.implicitWidth + 24)
-    implicitHeight: column.implicitHeight + 24
+    implicitWidth: 440
+    implicitHeight: column.implicitHeight + 32
 
     SystemClock {
         id: clock
         precision: SystemClock.Minutes
     }
 
-    // one line of status: icon + text, clickable and focusable like a Pill
-    component Status: Rectangle {
-        id: status
-        property string icon: ""
-        property string text: ""
-        property color tint: Config.text
-        signal clicked(real sceneX)
-
-        activeFocusOnTab: true
-        Keys.onReturnPressed: clicked(-1)
-        Keys.onEnterPressed:  clicked(-1)
-        Keys.onSpacePressed:  clicked(-1)
-
-        implicitWidth: line.implicitWidth + 16
-        implicitHeight: 24
-        radius: height / 2
-        color: activeFocus ? Config.selected : area.containsMouse ? Config.hover : "transparent"
-
-        Row {
-            id: line
-            anchors.centerIn: parent
-            spacing: 6
-            Icon { name: status.icon; size: 15; color: status.tint; anchors.verticalCenter: parent.verticalCenter }
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                width: Math.min(implicitWidth, 150)
-                text: status.text
-                elide: Text.ElideRight
-                color: Config.dim
-                font.family: Config.font
-                font.pixelSize: Config.small + 1
-            }
-        }
-        MouseArea {
-            id: area
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: mouse => status.clicked(area.mapToItem(null, mouse.x, mouse.y).x)
-        }
+    // whatever is typed goes to the launcher, which takes over from here
+    function search(text) {
+        Engine.query = text
+        Engine.open(Engine.View.Launcher)
     }
 
     Column {
         id: column
-        x: 12; y: 12
-        width: parent.width - 24
-        spacing: 10
+        x: 16; y: 16
+        width: parent.width - 32
+        spacing: 12
 
-        // ---- time and status ----
+        // ---- time, date, and what's on ----
         Item {
             width: parent.width
-            height: Math.max(clockColumn.implicitHeight, statusColumn.implicitHeight)
+            height: Math.max(time.implicitHeight, statusGroup.implicitHeight)
 
             Column {
-                id: clockColumn
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
+                id: time
+                anchors { left: parent.left; verticalCenter: parent.verticalCenter }
+                spacing: -2
 
                 Text {
                     text: Qt.formatDateTime(clock.date, "HH:mm")
                     color: Config.text
                     font.family: Config.font
-                    font.pixelSize: 34
-                    font.weight: Font.Light
+                    font.pixelSize: Config.display - 4
+                    font.weight: Font.Normal
+                    font.features: { "tnum": 1 }
                 }
                 Text {
                     text: Qt.formatDateTime(clock.date, "dddd, d MMMM")
@@ -109,126 +66,102 @@ Item {
                 }
             }
 
-            Column {
-                id: statusColumn
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 2
-
-                Status {
-                    anchors.right: parent.right
-                    icon: Net.current ? "wifi" : Net.ethernet ? "lan" : Net.wifiEnabled ? "wifi_find" : "wifi_off"
-                    tint: Net.current || Net.ethernet ? Config.text : Config.faint
-                    text: Net.summary
-                    onClicked: x => Engine.open(Engine.View.Network, x)
-                }
-                Status {
-                    readonly property var device: Bluez.connected[0] ?? null
-                    anchors.right: parent.right
-                    icon: device ? "bluetooth_connected" : Bluez.enabled ? "bluetooth" : "bluetooth_disabled"
-                    tint: device ? Config.accent : Bluez.enabled ? Config.text : Config.faint
-                    text: device ? device.name + (device.batteryAvailable ? "  " + Math.round(device.battery * 100) + "%" : "")
-                                 : Bluez.summary
-                    onClicked: x => Engine.open(Engine.View.Bluetooth, x)
-                }
-                Status {
-                    visible: Energy.present
-                    anchors.right: parent.right
-                    icon: Energy.charging ? "battery_charging_full" : Energy.level === "critical" ? "battery_alert" : "battery_full"
-                    tint: Energy.charging || Energy.full ? Config.good : Energy.level === "ok" ? Config.text : Config.warn
-                    text: Energy.percent + "%" + (Energy.minutesLeft >= 0 ? "  ·  " + Energy.duration(Energy.minutesLeft)
-                                                                                 + (Energy.charging ? " to full" : " left") : "")
-                    onClicked: x => Engine.open(Engine.View.Battery, x)
-                }
+            StatusGroup {
+                id: statusGroup
+                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                maxText: 96
+                maxWidth: parent.width - time.implicitWidth - 16
+                onClicked: x => Engine.open(Engine.View.Dashboard, x)
             }
         }
 
-        // ---- now playing ----
-        Rectangle {
+        MediaCard {
             visible: root.media
             width: parent.width
+            compact: true
+        }
+
+        // ---- the newest notification ----
+        Rectangle {
+            id: glance
+            visible: root.newest !== null
+            width: parent.width
             height: 48
-            radius: Config.innerRadius + 2
-            color: Config.raised
+            radius: height / 2
+            color: Config.state(Config.container, Config.text, glanceArea.containsMouse, glanceArea.pressed)
 
-            ClippingRectangle {
-                id: art
-                x: 8
+            Rectangle {
+                id: bell
+                x: 6
                 anchors.verticalCenter: parent.verticalCenter
-                width: 34; height: 34
-                radius: 6
-                color: Config.hover
+                width: 36; height: 36; radius: 18
+                color: Config.secondary
 
-                Image {
-                    id: cover
-                    anchors.fill: parent
-                    source: Players.active?.trackArtUrl ?? ""
-                    fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
-                    sourceSize: Qt.size(68, 68)
-                }
-                Equalizer {
+                Icon {
                     anchors.centerIn: parent
-                    visible: cover.status !== Image.Ready
-                    running: Players.playing
-                    barWidth: 2
+                    name: "notifications"
+                    size: 18
+                    filled: true
+                    color: Config.secondaryInk
                 }
             }
-
-            Column {
-                anchors { left: art.right; leftMargin: 10; right: controls.left; rightMargin: 8; verticalCenter: parent.verticalCenter }
+            Text {
+                anchors { left: bell.right; leftMargin: 10; right: count.left; rightMargin: 8; verticalCenter: parent.verticalCenter }
+                text: root.newest ? (root.newest.ref?.appName || "Notification") + "  ·  " + (root.newest.ref?.summary ?? "") : ""
+                textFormat: Text.PlainText
+                elide: Text.ElideRight
+                color: Config.text
+                font.family: Config.font
+                font.pixelSize: Config.body
+            }
+            Rectangle {
+                id: count
+                visible: Notifier.count > 1
+                anchors { right: parent.right; rightMargin: 12; verticalCenter: parent.verticalCenter }
+                width: Math.max(24, number.implicitWidth + 12)
+                height: 24
+                radius: 12
+                color: Config.primary
 
                 Text {
-                    width: parent.width
-                    text: Players.active?.trackTitle ?? ""
-                    elide: Text.ElideRight
-                    color: Config.text
-                    font.family: Config.font
-                    font.pixelSize: Config.body
-                    font.weight: Font.DemiBold
-                }
-                Text {
-                    width: parent.width
-                    text: Players.active?.trackArtist || Players.active?.identity || ""
-                    elide: Text.ElideRight
-                    color: Config.dim
+                    id: number
+                    anchors.centerIn: parent
+                    text: Notifier.count
+                    color: Config.primaryInk
                     font.family: Config.font
                     font.pixelSize: Config.small
+                    font.weight: Font.Bold
                 }
             }
-
-            // the title opens the full card; the controls work in place
             MouseArea {
-                anchors { left: parent.left; right: controls.left; top: parent.top; bottom: parent.bottom }
+                id: glanceArea
+                anchors.fill: parent
+                hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: mouse => Engine.open(Engine.View.Media, mapToItem(null, mouse.x, mouse.y).x)
-            }
-
-            Row {
-                id: controls
-                anchors { right: parent.right; rightMargin: 8; verticalCenter: parent.verticalCenter }
-                spacing: 4
-
-                Pill { icon: "skip_previous"; enabled: Players.active?.canGoPrevious ?? false; onClicked: Players.previous() }
-                Pill { icon: Players.playing ? "pause" : "play_arrow"; enabled: Players.canToggle; onClicked: Players.toggle() }
-                Pill { icon: "skip_next"; enabled: Players.active?.canGoNext ?? false; onClicked: Players.next() }
+                onClicked: mouse => Engine.open(Engine.View.Notifications, mapToItem(null, mouse.x, mouse.y).x)
             }
         }
 
-        // ---- every view ----
-        Row {
-            id: icons
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 6
+        // ---- search: typing here starts the launcher ----
+        Item {
+            width: parent.width
+            height: bar.implicitHeight
 
-            Repeater {
-                model: root.entries
-
-                Pill {
-                    required property var modelData
-                    icon: modelData.icon
-                    onClicked: x => Engine.open(modelData.view, x)
-                }
+            SearchBar {
+                id: bar
+                anchors.fill: parent
+                placeholder: "Search apps, files and actions"
+                focus: true                       // hovering the glance and typing searches
+                onKey: Engine.key()
+                onAccepted: root.search(text)
+                onEscaped: Engine.close()
+                onTextChanged: if (text !== "") root.search(text)
+            }
+            // a click goes straight to the launcher (the field only matters for typing)
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.search("")
             }
         }
     }

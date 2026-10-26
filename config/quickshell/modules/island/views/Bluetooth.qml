@@ -28,18 +28,17 @@ Item {
 
     Component.onDestruction: Bluez.scan(false)
 
-    implicitWidth: 420
-    implicitHeight: column.implicitHeight + 24
+    implicitWidth: 440
+    implicitHeight: column.implicitHeight + 32
 
     Column {
         id: column
-        x: 12; y: 12
-        width: parent.width - 24
-        spacing: 6
+        x: 16; y: 16
+        width: parent.width - 32
+        spacing: 8
 
         Header {
             width: parent.width
-            icon: Bluez.connected.length > 0 ? "bluetooth_connected" : Bluez.enabled ? "bluetooth" : "bluetooth_disabled"
             title: "Bluetooth"
             subtitle: Bluez.summary
             onBack: Engine.back()
@@ -47,7 +46,7 @@ Item {
             Pill {
                 visible: Bluez.enabled
                 icon: "radar"
-                text: Bluez.scanning ? "stop" : "search"
+                text: Bluez.scanning ? "Stop" : "Search"
                 active: Bluez.scanning
                 onClicked: Bluez.scan(!Bluez.scanning)
             }
@@ -75,7 +74,8 @@ Item {
 
         ScrollList {
             width: parent.width
-            maxHeight: root.maxRows * 46
+            maxHeight: root.maxRows * 62
+            spacing: 2
 
             Repeater {
                 model: Bluez.enabled ? Bluez.devices : []

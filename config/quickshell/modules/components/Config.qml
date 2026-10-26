@@ -3,62 +3,108 @@ pragma Singleton
 import QtQuick
 import QtCore
 
-// Colours, radius and type for the whole island. Bar, the components and every view read these;
-// nothing else hard-codes a colour. `name` picks a palette (views/Theme.qml, IPC `palette`)
-// and is remembered across restarts. No view file may be called Config.qml: views see their own
-// folder first, and it would hide this singleton from every view.
+// Colours, shape and type for the whole island, after Material 3 (Android's quick settings):
+// tonal surfaces, pill tiles, thick pill sliders, the primary colour for "on". Bar, the components
+// and every view read these; nothing else hard-codes a colour. `name` picks a palette
+// (views/Theme.qml, IPC `palette`) and is remembered across restarts. No view file may be called
+// Config.qml: views see their own folder first, and it would hide this singleton from every view.
 //
 // Plain QtQuick + QtCore (no Quickshell), so modules/tests/tst_keyboard.qml can still load Pill.
 QtObject {
     id: root
 
-    // Every palette has the same keys:
-    //   surface   the island itself            raised    pills, cards, fields
-    //   hover     raised, under the pointer    selected  raised, keyboard focus
-    //   track     empty part of bars/switches  text      primary text
-    //   dim       secondary text               faint     placeholders, borders
-    //   accent    on / current / connected     good, warn, bad   status
+    // Every palette has the same keys, Material 3 roles:
+    //   surface     the island itself                    container   tiles, cards, fields (off)
+    //   high        hover, slider tracks, icon circles   highest     pressed, keyboard focus
+    //   primary     "on": active tiles, sliders, the play button      onPrimary   text/icons on it
+    //   secondary   selected chips and segments (a quieter "on")      onSecondary text/icons on it
+    // (QML reads a property called onX as a signal handler, so those two are primaryInk and
+    // secondaryInk below.)
+    //   text        primary text      dim   secondary text      outline   borders, placeholders
+    //   good, warn, bad   status
     readonly property var palettes: ({
-        graphite: { label: "Graphite", surface: "#101014", raised: "#1a1a1a", hover: "#2e2e2e", selected: "#3a3a3f",
-                    track: "#2a2a2a", text: "#f7f7f7", dim: "#9a9a9a", faint: "#6a6a72",
-                    accent: "#8ab4ff", good: "#7ee2a8", warn: "#ffcc66", bad: "#ff6b6b" },
-        midnight: { label: "Midnight", surface: "#0b0f1a", raised: "#151b2b", hover: "#202840", selected: "#2a3452",
-                    track: "#1e2638", text: "#e8ecf7", dim: "#8f9ab5", faint: "#5a6585",
-                    accent: "#7aa2f7", good: "#9ece6a", warn: "#e0af68", bad: "#f7768e" },
-        nord:     { label: "Nord", surface: "#2e3440", raised: "#3b4252", hover: "#434c5e", selected: "#4c566a",
-                    track: "#434c5e", text: "#eceff4", dim: "#aeb7c8", faint: "#7b879c",
-                    accent: "#88c0d0", good: "#a3be8c", warn: "#ebcb8b", bad: "#bf616a" },
-        rose:     { label: "Rosé", surface: "#191724", raised: "#1f1d2e", hover: "#26233a", selected: "#393552",
-                    track: "#2a273f", text: "#e0def4", dim: "#908caa", faint: "#6e6a86",
-                    accent: "#ebbcba", good: "#9ccfd8", warn: "#f6c177", bad: "#eb6f92" },
-        forest:   { label: "Forest", surface: "#11150f", raised: "#1b2118", hover: "#262e22", selected: "#323c2d",
-                    track: "#252c21", text: "#e6eadf", dim: "#9aa592", faint: "#69745f",
-                    accent: "#a7c080", good: "#83c092", warn: "#dbbc7f", bad: "#e67e80" },
-        paper:    { label: "Paper", surface: "#f4f4f1", raised: "#e6e6e2", hover: "#d9d9d4", selected: "#cbcbc5",
-                    track: "#d4d4cf", text: "#1c1c1e", dim: "#5e5e63", faint: "#8e8e93",
-                    accent: "#2f6fde", good: "#2e9b5f", warn: "#b7791f", bad: "#d64545" }
+        teal:     { label: "Teal", dark: true, surface: "#0e1514", container: "#1a2120", high: "#252b2a", highest: "#303635",
+                    primary: "#80d5c8", onPrimary: "#003731", secondary: "#334b47", onSecondary: "#cce8e2",
+                    text: "#dde4e2", dim: "#bec9c6", outline: "#6f7977",
+                    good: "#8bd5a0", warn: "#f2c36b", bad: "#ffb4ab" },
+        blue:     { label: "Blue", dark: true, surface: "#111318", container: "#1d2024", high: "#282a2f", highest: "#33353a",
+                    primary: "#a8c7fa", onPrimary: "#062e6f", secondary: "#3e4759", onSecondary: "#d9e3f8",
+                    text: "#e2e2e9", dim: "#c4c6d0", outline: "#72777f",
+                    good: "#8fd69c", warn: "#f0c46a", bad: "#ffb4ab" },
+        graphite: { label: "Graphite", dark: true, surface: "#121212", container: "#1e1e1e", high: "#2a2a2a", highest: "#363636",
+                    primary: "#e8e8e8", onPrimary: "#141414", secondary: "#3a3a3a", onSecondary: "#ececec",
+                    text: "#f2f2f2", dim: "#b4b4b4", outline: "#767676",
+                    good: "#7ee2a8", warn: "#ffcc66", bad: "#ff6b6b" },
+        midnight: { label: "Midnight", dark: true, surface: "#0b0f1a", container: "#151b2b", high: "#202840", highest: "#2a3452",
+                    primary: "#7aa2f7", onPrimary: "#0b1530", secondary: "#2a3452", onSecondary: "#d6e0fb",
+                    text: "#e8ecf7", dim: "#a9b3cc", outline: "#5a6585",
+                    good: "#9ece6a", warn: "#e0af68", bad: "#f7768e" },
+        nord:     { label: "Nord", dark: true, surface: "#2e3440", container: "#3b4252", high: "#434c5e", highest: "#4c566a",
+                    primary: "#88c0d0", onPrimary: "#22303a", secondary: "#4c566a", onSecondary: "#e5e9f0",
+                    text: "#eceff4", dim: "#c3cad6", outline: "#7b879c",
+                    good: "#a3be8c", warn: "#ebcb8b", bad: "#bf616a" },
+        rose:     { label: "Rosé", dark: true, surface: "#191724", container: "#1f1d2e", high: "#26233a", highest: "#393552",
+                    primary: "#ebbcba", onPrimary: "#2a1f2b", secondary: "#393552", onSecondary: "#e0def4",
+                    text: "#e0def4", dim: "#aba7c4", outline: "#6e6a86",
+                    good: "#9ccfd8", warn: "#f6c177", bad: "#eb6f92" },
+        forest:   { label: "Forest", dark: true, surface: "#11150f", container: "#1b2118", high: "#262e22", highest: "#323c2d",
+                    primary: "#a7c080", onPrimary: "#1c2a10", secondary: "#323c2d", onSecondary: "#dfe8d2",
+                    text: "#e6eadf", dim: "#b4bdab", outline: "#69745f",
+                    good: "#83c092", warn: "#dbbc7f", bad: "#e67e80" },
+        paper:    { label: "Paper", dark: false, surface: "#f4f4f1", container: "#e8e8e4", high: "#dcdcd7", highest: "#d0d0ca",
+                    primary: "#2f6fde", onPrimary: "#ffffff", secondary: "#d6e2fa", onSecondary: "#0f2a5c",
+                    text: "#1c1c1e", dim: "#4c4c52", outline: "#8e8e93",
+                    good: "#2e9b5f", warn: "#b7791f", bad: "#d64545" }
     })
     readonly property var names: Object.keys(palettes)
 
-    property string name: "graphite"
-    readonly property var current: palettes[name] ?? palettes.graphite
+    property string name: "teal"
+    readonly property var current: palettes[name] ?? palettes.teal
 
-    readonly property color surface:  current.surface
-    readonly property color raised:   current.raised
-    readonly property color hover:    current.hover
-    readonly property color selected: current.selected
-    readonly property color track:    current.track
-    readonly property color text:     current.text
-    readonly property color dim:      current.dim
-    readonly property color faint:    current.faint
-    readonly property color accent:   current.accent
-    readonly property color good:     current.good
-    readonly property color warn:     current.warn
-    readonly property color bad:      current.bad
+    // ---- Material roles ----
+    readonly property color surface:     current.surface
+    readonly property color container:   current.container
+    readonly property color high:        current.high
+    readonly property color highest:     current.highest
+    readonly property color primary:     current.primary
+    readonly property color primaryInk:  current.onPrimary
+    readonly property color secondary:   current.secondary
+    readonly property color secondaryInk: current.onSecondary
+    readonly property color text:        current.text
+    readonly property color dim:         current.dim
+    readonly property color outline:     current.outline
+    readonly property color good:        current.good
+    readonly property color warn:        current.warn
+    readonly property color bad:         current.bad
+    readonly property bool  dark:        current.dark
+    // a hairline between sections
+    readonly property color divider:     mix(surface, outline, 0.35)
+    // the icon circle on a primary tile: the primary, a shade deeper
+    readonly property color primaryDeep: mix(primary, primaryInk, 0.16)
 
+    // ---- the older names, still used by the workspace overview ----
+    readonly property color raised:   container
+    readonly property color hover:    high
+    readonly property color selected: highest
+    readonly property color track:    high
+    readonly property color faint:    outline
+    readonly property color accent:   primary
+
+    // a + (b - a) * t, per channel: Material's state layers and tonal blends
+    function mix(a, b, t) {
+        return Qt.rgba(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, a.a + (b.a - a.a) * t)
+    }
+    // the state layer: `base` under the pointer (8 %) or pressed/focused (12 %), tinted by `ink`
+    function state(base, ink, hovered, pressed) {
+        return pressed ? mix(base, ink, 0.12) : hovered ? mix(base, ink, 0.08) : base
+    }
+
+    // ---- shape (Material 3) ----
     // the island's largest corner; a shape lower than twice this is a capsule (the compact clock, HUDs)
-    readonly property int radius: 18
-    readonly property int innerRadius: 8      // cards, rows and fields inside it
+    readonly property int radius: 28
+    readonly property int cardRadius: 24       // cards inside the island (media, notifications)
+    readonly property int innerRadius: 16      // rows, fields
+    readonly property int smallRadius: 12      // thumbnails, album art
 
     // ---- the island's look (views/Theme.qml, IPC `style` / `glass`), remembered with the palette ----
     //   style   "pill":  floats below the top edge, every corner round
@@ -72,19 +118,32 @@ QtObject {
     readonly property color island: glass ? Qt.rgba(surface.r, surface.g, surface.b, Math.max(0.2, Math.min(1, glassOpacity)))
                                           : surface
 
+    // the "Dark theme" tile: the dark palette to come back to from a light one
+    property string lastDark: "teal"
+    onNameChanged: if (palettes[name]?.dark) lastDark = name
+
+    // Focus rings show only while the keyboard is being used (Material's "focus visible"): Bar sets
+    // this when a key moves focus in a view and clears it when the pointer moves over the island.
+    // True by default, so components used anywhere else always show them.
+    property bool focusVisible: true
+
     // privacy dots beside the island (fixed: they mean the same thing in every palette)
     readonly property color microphone: "#ff9f1a"
     readonly property color camera: "#35ff72"
+    readonly property color recording: "#ff5449"
 
-    // Fonts come from modules/features/theme.nix (inter, maple-mono.NF, material-symbols).
+    // Fonts come from modules/features/theme.nix (inter, jetbrains-mono, material-symbols).
     readonly property string font: "Inter"
-    readonly property string mono: "Maple Mono NF"
+    readonly property string mono: "JetBrains Mono"
     readonly property string icons: "Material Symbols Rounded"
 
+    // type scale: label, body, title, headline, display
     readonly property int small: 11
     readonly property int body: 13
     readonly property int large: 16
-    readonly property int display: 44
+    readonly property int title: 20
+    readonly property int headline: 28
+    readonly property int display: 48
 
     // ~/.local/state/quickshell/island.ini. The config dir is a read-only Nix store path.
     property Settings store: Settings {
@@ -95,5 +154,6 @@ QtObject {
         property alias handle: root.handle
         property alias glass: root.glass
         property alias glassOpacity: root.glassOpacity
+        property alias lastDark: root.lastDark
     }
 }

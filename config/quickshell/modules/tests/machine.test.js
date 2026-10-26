@@ -9,10 +9,10 @@ const M = ctx
 
 // ---- fake Registry (mirrors Registry.qml) -----------------------------------------------------
 const V = { Compact: 0, Expanded: 1, Network: 2, Launcher: 3, Bluetooth: 4, Volume: 5, Brightness: 6, Notifications: 7,
-            Media: 8, Battery: 9, Clock: 10, Power: 11, Theme: 12, Workspaces: 13 }
+            Media: 8, Battery: 9, Clock: 10, Power: 11, Theme: 12, Workspaces: 13, Tabs: 14, Dashboard: 15, Switcher: 16 }
 const REG = {
     [V.Compact]:    { priority: 0, timeout: 0 },
-    [V.Expanded]:   { priority: 1, timeout: 1500 },
+    [V.Expanded]:   { priority: 1, timeout: 4000 },
     [V.Network]:    { priority: 2, timeout: 5000 },
     [V.Launcher]:   { priority: 2, timeout: 8000 },
     [V.Bluetooth]:  { priority: 2, timeout: 5000 },
@@ -25,6 +25,9 @@ const REG = {
     [V.Power]:      { priority: 2, timeout: 8000 },
     [V.Theme]:      { priority: 2, timeout: 8000 },
     [V.Workspaces]: { priority: 2, timeout: 8000 },
+    [V.Tabs]:       { priority: 2, timeout: 8000 },
+    [V.Dashboard]:  { priority: 2, timeout: 12000 },
+    [V.Switcher]:   { priority: 1, timeout: 1200, queue: false },
 }
 const cfg = {
     restView: V.Compact, peekView: V.Expanded, graceMs: 140, hoverMs: 140, hideMs: 700,
@@ -126,7 +129,7 @@ test("a keystroke restarts the pinned countdown", () => {
     const s = run(M.initial(V.Compact, false), open(V.Expanded))
     const k = run(s, E.Key)
     assert.strictEqual(k.phase, P.Pinned)
-    assert.strictEqual(k.timer.ms, 1500)
+    assert.strictEqual(k.timer.ms, REG[V.Expanded].timeout)
     assert.notStrictEqual(k.timer, s.timer)                // a new object: the shell restarts its Timer
 })
 test("a keystroke while hovered keeps the countdown held", () => {
@@ -293,6 +296,39 @@ test("unknown views are ignored", () => {
 test("auto-hide: toast end goes straight to Hidden", () => {
     const s = run(M.initial(V.Compact, true), alert(V.Volume), E.Expire)
     assert.strictEqual(s.phase, P.Hidden)
+})
+
+console.log("the hub (Tabs) and the workspace switcher")
+test("clicking the peek opens Tabs; back returns to the glance, then home", () => {
+    let s = run(M.initial(V.Compact, false), E.Hover, E.Expire)            // hover intent -> peek
+    assert.strictEqual(s.phase, P.Peek)
+    s = run(s, open(V.Tabs))
+    assert.strictEqual(s.phase, P.Pinned); assert.strictEqual(s.view, V.Tabs)
+    s = run(s, E.Back)
+    assert.strictEqual(s.view, V.Expanded); assert.strictEqual(s.phase, P.Pinned)
+    s = run(s, E.Back)
+    assert.strictEqual(s.phase, P.Rest)
+})
+test("a workspace switch never interrupts an open view, and isn't kept for later", () => {
+    let s = run(M.initial(V.Compact, false), open(V.Tabs), alert(V.Switcher))
+    assert.strictEqual(s.view, V.Tabs)
+    assert.strictEqual(s.queued, -1)
+})
+test("a workspace switch at rest is a short toast; auto-hide hides after it", () => {
+    let s = run(M.initial(V.Compact, true), alert(V.Switcher))
+    assert.strictEqual(s.phase, P.Toast); assert.strictEqual(s.timer.ms, 1200)
+    s = run(s, E.Expire)
+    assert.strictEqual(s.phase, P.Hidden)
+})
+test("switching again while the switcher shows refreshes its countdown", () => {
+    let s = run(M.initial(V.Compact, false), alert(V.Switcher))
+    const t = s.timer
+    s = run(s, alert(V.Switcher))
+    assert.strictEqual(s.view, V.Switcher); assert.ok(s.timer && s.timer !== t)
+})
+test("a notification replaces the switcher; the switcher isn't parked", () => {
+    let s = run(M.initial(V.Compact, false), alert(V.Switcher), alert(V.Notifications))
+    assert.strictEqual(s.view, V.Notifications); assert.strictEqual(s.queued, -1)
 })
 
 console.log(`\n${pass} passed, ${fail} failed`)

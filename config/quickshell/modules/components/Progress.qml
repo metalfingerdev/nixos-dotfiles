@@ -8,7 +8,7 @@ Item {
     id: root
 
     property real fraction: 0
-    property color color: Config.text
+    property color color: Config.primary
     property bool seekable: false
     property int thickness: 4
 

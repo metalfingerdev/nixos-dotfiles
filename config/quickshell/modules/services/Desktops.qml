@@ -32,6 +32,21 @@ Singleton {
     readonly property int activeId: Hyprland.focusedWorkspace?.id ?? -1
     readonly property int count: workspaces.length
 
+    // ---- live regular workspaces: Quickshell's own objects, so indicators need no hyprctl ----
+    readonly property var live: Array.from(Hyprland.workspaces.values).filter(w => w.id > 0).sort((a, b) => a.id - b.id)
+    function liveWorkspace(id) { return live.find(w => w.id === id) ?? null }
+    function occupied(id) {
+        const w = liveWorkspace(id)
+        return !!w && (w.toplevels?.values?.length ?? w.lastIpcObject?.windows ?? 0) > 0
+    }
+    // how many workspaces an indicator shows: every existing one and the focused one, at least
+    // `least`, at most 10 (more only when the focused one is further out)
+    function span(least) {
+        let top = Math.max(least || 1, activeId)
+        for (const w of live) top = Math.max(top, w.id)
+        return Math.min(Math.max(10, activeId), top)
+    }
+
     property int watchers: 0
     function watch(on) {
         watchers = Math.max(0, watchers + (on ? 1 : -1))

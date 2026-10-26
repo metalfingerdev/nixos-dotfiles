@@ -3,13 +3,16 @@ module qs.modules.components
 singleton Config 1.0 Config.qml
 
 Pill         1.0 Pill.qml
-Meter        1.0 Meter.qml
 Icon         1.0 Icon.qml
 Toggle       1.0 Toggle.qml
 Header       1.0 Header.qml
 ListEntry    1.0 ListEntry.qml
 Tile         1.0 Tile.qml
-SignalBars   1.0 SignalBars.qml
+QuickTile    1.0 QuickTile.qml
+Slider       1.0 Slider.qml
+Segmented    1.0 Segmented.qml
+Chip         1.0 Chip.qml
+SearchBar    1.0 SearchBar.qml
 Progress     1.0 Progress.qml
 ScrollList   1.0 ScrollList.qml
 Equalizer    1.0 Equalizer.qml

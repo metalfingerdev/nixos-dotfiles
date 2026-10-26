@@ -1,9 +1,10 @@
 import QtQuick
 import QtQuick.Layouts
 
-// A clickable row for lists (networks, devices, players): icon, title, subtitle, trailing text,
-// then any children (pills, an icon). `active` marks the current one (connected, playing).
-// `lead` replaces the icon with a component of the view's own (SignalBars, an app icon).
+// A list item (Material 3): a leading icon in a tonal circle, headline, supporting text, trailing
+// text, then any children (buttons, an icon). `active` marks the current one (connected, playing):
+// its circle takes the primary colour and the row a tonal fill. `lead` replaces the icon with a
+// component of the view's own (an app icon, album art).
 // Mouse: click. Keyboard: Tab/arrows reach it, Enter/Space press it, like Pill.
 Rectangle {
     id: root
@@ -13,7 +14,7 @@ Rectangle {
     property string subtitle: ""
     property string trailing: ""
     property bool active: false
-    property bool keyboardSelected: activeFocus
+    property bool keyboardSelected: activeFocus && Config.focusVisible
     readonly property bool hovered: area.containsMouse
     property Component lead: null
     default property alias extra: side.data
@@ -26,13 +27,19 @@ Rectangle {
     Keys.onSpacePressed:  press()
 
     implicitWidth: 320
-    implicitHeight: subtitle !== "" ? 46 : 36
+    implicitHeight: subtitle !== "" ? 60 : 48
     radius: Config.innerRadius
-    color: keyboardSelected ? Config.selected : area.containsMouse ? Config.hover : "transparent"
-    border.width: keyboardSelected ? 1 : 0
-    border.color: Config.faint
+    color: {
+        const base = active ? Config.secondary : Qt.rgba(Config.container.r, Config.container.g, Config.container.b, 0)
+        return keyboardSelected || area.pressed ? Config.mix(active ? base : Config.container, Config.text, 0.10)
+             : area.containsMouse ? Config.mix(active ? base : Config.container, Config.text, 0.05)
+             : base
+    }
+    border.width: keyboardSelected ? 2 : 0
+    border.color: Config.primary
+    Behavior on color { ColorAnimation { duration: 120 } }
 
-    // under the children, so pills in the row still get their own clicks
+    // under the children, so buttons in the row still get their own clicks
     MouseArea {
         id: area
         anchors.fill: parent
@@ -42,12 +49,14 @@ Rectangle {
     }
 
     RowLayout {
-        anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
-        spacing: 10
+        anchors { fill: parent; leftMargin: 10; rightMargin: 12 }
+        spacing: 12
 
-        Item {
-            Layout.preferredWidth: 22
-            Layout.preferredHeight: 22
+        Rectangle {
+            Layout.preferredWidth: 40
+            Layout.preferredHeight: 40
+            radius: 20
+            color: root.lead !== null ? "transparent" : root.active ? Config.primary : Config.high
 
             Loader {
                 anchors.centerIn: parent
@@ -60,32 +69,32 @@ Rectangle {
                 name: root.icon
                 size: 20
                 filled: root.active
-                color: root.active ? Config.accent : Config.text
+                color: root.active ? Config.primaryInk : Config.text
             }
         }
 
         Column {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
-            spacing: 1
+            spacing: 2
 
             Text {
                 width: parent.width
                 text: root.title
                 elide: Text.ElideRight
-                color: root.active ? Config.accent : Config.text
+                color: root.active ? Config.secondaryInk : Config.text
                 font.family: Config.font
-                font.pixelSize: Config.body
-                font.weight: root.active ? Font.DemiBold : Font.Normal
+                font.pixelSize: Config.body + 1
+                font.weight: Font.Medium
             }
             Text {
                 width: parent.width
                 visible: text !== ""
                 text: root.subtitle
                 elide: Text.ElideRight
-                color: Config.dim
+                color: root.active ? Config.mix(Config.secondaryInk, Config.secondary, 0.25) : Config.dim
                 font.family: Config.font
-                font.pixelSize: Config.small
+                font.pixelSize: Config.small + 1
             }
         }
 
@@ -94,7 +103,7 @@ Rectangle {
             text: root.trailing
             color: Config.dim
             font.family: Config.font
-            font.pixelSize: Config.small
+            font.pixelSize: Config.small + 1
         }
 
         RowLayout {

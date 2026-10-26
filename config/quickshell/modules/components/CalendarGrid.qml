@@ -37,7 +37,7 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 text: Qt.locale().dayName((root.firstDay + index) % 7, Locale.NarrowFormat)
-                color: Config.faint
+                color: Config.dim
                 font.family: Config.font
                 font.pixelSize: Config.small
                 font.weight: Font.DemiBold
@@ -63,13 +63,13 @@ Item {
                     height: width
                     radius: width / 2
                     visible: day.isToday
-                    color: Config.accent
+                    color: Config.primary
                 }
 
                 Text {
                     anchors.centerIn: parent
                     text: day.date.getDate()
-                    color: day.isToday ? Config.surface : day.inMonth ? Config.text : Config.faint
+                    color: day.isToday ? Config.primaryInk : day.inMonth ? Config.text : Config.outline
                     opacity: day.inMonth ? 1 : 0.6
                     font.family: Config.font
                     font.pixelSize: Config.body

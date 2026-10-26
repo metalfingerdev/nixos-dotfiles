@@ -97,12 +97,13 @@ Scope {
         sw = proxy.width; sh = proxy.height
     }
 
-    // A click on the island itself (not on a control in the view) keeps what it shows: the peek
-    // stops collapsing on leave, a toast stops timing out. At rest it opens the peek view.
+    // A click on the island itself (not on a control in the view): a toast stops timing out (its
+    // view is pinned); the clock (Compact) and the glance (Expanded, peeking or pinned) open the
+    // hub, Tabs. Elsewhere it does nothing.
     function pinShown() {
         const x = Engine.anchorX >= 0 ? Engine.anchorX : undefined
-        if (Engine.phase === "peek" || Engine.phase === "toast") Engine.open(Engine.view, x)
-        else if (Engine.phase === "rest") Engine.open(Engine.peekView >= 0 ? Engine.peekView : Engine.View.Expanded)
+        if (Engine.phase === "toast") Engine.open(Engine.view, x)
+        else if (Engine.phase === "rest" || Engine.view === Engine.View.Expanded) Engine.open(Engine.View.Tabs)
     }
 
     // fade out -> load the new view (island starts resizing) -> fade in
@@ -173,7 +174,11 @@ Scope {
         // a pixel below the top edge, out from under a pointer resting there, and the peek collapsed
         // and reopened until it settled. On the window's root item, so no control in the view can
         // take the hover from it.
-        HoverHandler { id: pointer }
+        HoverHandler {
+            id: pointer
+            // the pointer is back: focus rings hide until the keyboard moves focus again
+            onPointChanged: if (Config.focusVisible) Config.focusVisible = false
+        }
         readonly property bool onIsland: pointer.hovered
             && pointer.point.position.x >= proxy.x && pointer.point.position.x < proxy.x + proxy.width
             && pointer.point.position.y >= proxy.y && pointer.point.position.y < proxy.y + proxy.height
@@ -289,6 +294,7 @@ Scope {
                     active: root.active
                     onCancel: Engine.back()
                     onActivity: Engine.key()
+                    onNavigated: Config.focusVisible = true
 
                     width: proxy.viewW
                     height: proxy.viewH

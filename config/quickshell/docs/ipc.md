@@ -27,9 +27,11 @@ default.
 `open compact` (the rest view) goes home, the same as `close`. `alert compact` is ignored.
 
 Every view opened this way is Pinned, so it has the keyboard (Tab/arrows, Enter, Escape) until it
-closes, and each keystroke restarts its timeout. Names: `expanded` (the dashboard), `launcher`, `network`,
-`bluetooth`, `media`, `notifications` (`open` = the center, `alert` = the popups), `workspaces` (the
-overview), `clock`, `battery`, `power`, `theme` (palette, look, wallpaper).
+closes, and each keystroke restarts its timeout. Names: `expanded` (the glance: typing searches),
+`tabs` (the hub), `dashboard` (everything), `launcher`, `network`, `bluetooth`, `media`,
+`notifications` (`open` = the center, `alert` = the popups), `workspaces` (the overview), `clock`,
+`battery`, `power`, `theme` (palette, look, wallpaper; also `settings`), and the toast `switcher`
+(`alert switcher` shows the workspace dots).
 
 `peek` is meant for a key's press and release: `peek true` on press, `peek false` on release. When
 auto-hide has hidden the island, the press reveals the rest view (Compact) and the release hides it
@@ -72,7 +74,8 @@ Hyprland:
 
 ```ini
 bind = SUPER, Space, exec, qs ipc call island open launcher
-bind = SUPER, I, exec, qs ipc call island open expanded       # keyboard entry point: Tab to a pill, Enter
+bind = SUPER, I, exec, qs ipc call island open expanded       # the glance: type to search
+bind = SUPER, G, exec, qs ipc call island open dashboard
 bind  = SUPER, B, exec, qs ipc call island peek true          # hold Super+B to show the clock
 bindr = SUPER, B, exec, qs ipc call island peek false
 bind = SUPER, Z, exec, qs ipc call island togglePeek          # or: Super+Z shows it, Super+Z again hides it
@@ -82,9 +85,10 @@ bind = SUPER, N, exec, qs ipc call island open notifications
 
 Note: a view opened over IPC isn't hovered, so its Registry `timeout` starts right away, and each
 keystroke starts it over. The timeout is the longest pause allowed between keys, so give views you open
-from keybinds one long enough to read and decide (the expanded view's is 1500 ms).
+from keybinds one long enough to read and decide (the expanded view's is 4000 ms).
 
 ## Adding a command
 
 Add a typed function to `Ipc.qml` that resolves strings with `Registry.byName` and calls one `Engine`
-method. Keep string handling in this file only.
+method. Keep string handling in this file only. A Registry entry's `aliases` are other names
+`byName` accepts (`settings` is the theme view).

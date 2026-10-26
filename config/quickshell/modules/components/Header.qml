@@ -1,30 +1,43 @@
 import QtQuick
 import QtQuick.Layouts
 
-// A view's title row: icon, title and subtitle on the left; the view's own controls (children of
-// Header) on the right, then "back". Header doesn't know the Engine: wire onBack yourself.
-//   Header { icon: "wifi"; title: "Wi-Fi"; onBack: Engine.back(); Toggle { ... } }
+// A view's top app bar (Material 3): a back arrow, then the title and a supporting line, then the
+// view's own controls (children of Header) on the right. Header doesn't know the Engine: wire
+// onBack yourself.
+//   Header { title: "Internet"; subtitle: Net.summary; onBack: Engine.back(); Toggle { ... } }
 Item {
     id: root
 
-    property string icon: ""
+    property string icon: ""            // optional, shown after the arrow (most views leave it out)
     property string title: ""
     property string subtitle: ""
     property bool showBack: true
     default property alias actions: tools.data
     signal back()
 
-    implicitHeight: 40
+    implicitHeight: 48
 
     RowLayout {
         anchors.fill: parent
         spacing: 10
 
+        Pill {
+            visible: root.showBack
+            Layout.alignment: Qt.AlignVCenter
+            kind: "text"
+            icon: "arrow_back"
+            iconSize: 22
+            implicitHeight: 40
+            activeFocusOnTab: false             // Escape goes back; Tab starts on the view itself
+            onClicked: root.back()
+        }
+
         Icon {
             visible: root.icon !== ""
             name: root.icon
             size: 22
-            Layout.preferredWidth: 26
+            color: Config.dim
+            Layout.preferredWidth: 24
         }
 
         Column {
@@ -38,8 +51,8 @@ Item {
                 elide: Text.ElideRight
                 color: Config.text
                 font.family: Config.font
-                font.pixelSize: Config.large
-                font.weight: Font.DemiBold
+                font.pixelSize: Config.title
+                font.weight: Font.Normal
             }
             Text {
                 width: parent.width
@@ -48,7 +61,7 @@ Item {
                 elide: Text.ElideRight
                 color: Config.dim
                 font.family: Config.font
-                font.pixelSize: Config.small
+                font.pixelSize: Config.small + 1
             }
         }
 
@@ -56,13 +69,6 @@ Item {
             id: tools
             Layout.alignment: Qt.AlignVCenter
             spacing: 8
-        }
-
-        Pill {
-            visible: root.showBack
-            Layout.alignment: Qt.AlignVCenter
-            text: "back"
-            onClicked: root.back()
         }
     }
 }

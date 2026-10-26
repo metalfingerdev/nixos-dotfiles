@@ -1,6 +1,7 @@
 pragma Singleton
 
 import QtQuick
+import QtCore
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
@@ -14,6 +15,8 @@ import Quickshell.Services.Notifications
 //     notification center) until dismissed. Transient notifications skip the history.
 //   - identical notifications stack into one entry with a count.
 //   - replaces_id updates the entry in place and pops it up again.
+//   - Do not disturb (`dnd`, remembered): new notifications go straight to the center, silently.
+//     Critical ones still pop up.
 //
 // items:  newest first. Plain objects { id, ref, critical, popup, count, time }.
 //         Text, icons and actions are read live from `ref` (the Quickshell Notification).
@@ -27,6 +30,14 @@ Singleton {
     property int criticalMs: 0              // 0 = stays until closed
     property int maxPopups: 3               // the rest wait, shown as "+N more"
     property bool stackDuplicates: true
+
+    // Do not disturb: nothing pops up but critical notifications
+    property bool dnd: false
+    property Settings store: Settings {
+        location: StandardPaths.writableLocation(StandardPaths.GenericStateLocation) + "/quickshell/island.ini"
+        category: "notifications"
+        property alias dnd: root.dnd
+    }
 
     // true = popup countdowns are frozen. Set by whoever shows the popups (hovered, or not on screen).
     property bool held: false
@@ -72,15 +83,16 @@ Singleton {
     function add(n) {
         const prev = find(n.id)
         const dup = stackDuplicates ? (items.find(i => i.id !== n.id && same(i.ref, n)) ?? null) : null
+        const quiet = dnd && n.urgency !== NotificationUrgency.Critical
         const ms = timeoutFor(n)
-        if (ms > 0) left[n.id] = ms; else delete left[n.id]
+        if (ms > 0 && !quiet) left[n.id] = ms; else delete left[n.id]
         if (dup) delete left[dup.id]
 
-        const e = entry(n, true, dup ? dup.count + 1 : (prev ? prev.count : 1))
+        const e = entry(n, !quiet, dup ? dup.count + 1 : (prev ? prev.count : 1))
         items = [e].concat(items.filter(i => i.id !== n.id && i !== dup))
         if (dup) dup.ref.dismiss()                      // dunst keeps one entry and counts the rest
         if (!prev) watch(n)
-        received(e.critical)
+        if (!quiet) received(e.critical)
     }
 
     function remove(id) { delete left[id]; items = items.filter(i => i.id !== id) }

@@ -21,18 +21,17 @@ Item {
     Timer { id: disarm; interval: root.confirmMs; onTriggered: root.armed = "" }
     Component.onCompleted: Session.refresh()
 
-    implicitWidth: tiles.implicitWidth + 24
-    implicitHeight: column.implicitHeight + 24
+    implicitWidth: tiles.implicitWidth + 32
+    implicitHeight: column.implicitHeight + 32
 
     Column {
         id: column
-        x: 12; y: 12
-        width: parent.width - 24
-        spacing: 10
+        x: 16; y: 16
+        width: parent.width - 32
+        spacing: 12
 
         Header {
             width: parent.width
-            icon: "power_settings_new"
             title: "Power"
             subtitle: Session.uptimeText
             onBack: Engine.back()
@@ -50,24 +49,31 @@ Item {
                     required property var modelData
                     readonly property bool waiting: root.armed === modelData.id
 
-                    width: 76
-                    height: 76
+                    width: 88
+                    height: 88
+                    radius: Config.cardRadius
                     tint: waiting ? Config.bad : "transparent"
                     onClicked: root.press(modelData)
 
                     Column {
                         anchors.centerIn: parent
-                        spacing: 6
+                        spacing: 8
 
-                        Icon {
+                        Rectangle {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            name: tile.modelData.icon
-                            size: 26
-                            color: tile.waiting ? Config.surface : Config.text
+                            width: 40; height: 40; radius: 20
+                            color: tile.waiting ? Qt.rgba(0, 0, 0, 0.15) : Config.high
+
+                            Icon {
+                                anchors.centerIn: parent
+                                name: tile.modelData.icon
+                                size: 22
+                                color: tile.waiting ? Config.surface : Config.text
+                            }
                         }
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: tile.waiting ? "again?" : tile.modelData.label
+                            text: tile.waiting ? "Again?" : tile.modelData.label
                             color: tile.waiting ? Config.surface : Config.text
                             font.family: Config.font
                             font.pixelSize: Config.small

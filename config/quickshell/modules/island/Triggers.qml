@@ -10,6 +10,7 @@ Scope {
     // ---- config ----
     property bool followFocus: true      // the idle island moves to the monitor Hyprland focuses
     property bool mediaToasts: true      // a track starting (or playback starting) shows the media card
+    property bool switcherToasts: true   // switching workspace shows the dots (views/Switcher.qml)
 
     // services report their initial values at startup; don't toast those
     property bool armed: false
@@ -35,6 +36,20 @@ Scope {
         function onFocusedMonitorChanged() {
             const name = Hyprland.focusedMonitor?.name
             if (name && (Engine.hidden || Engine.phase === "rest")) Engine.setScreen(name)
+        }
+    }
+
+    // ---- workspaces: GNOME-style dots when the focused workspace changes. Not while a view that
+    // shows workspaces itself is open (Tabs, the overview), nor over the glance under the pointer.
+    // Priority 1 and queue: false (Registry), so it never interrupts anything and is never kept. ----
+    Connections {
+        target: Hyprland
+        enabled: root.switcherToasts
+        function onFocusedWorkspaceChanged() {
+            const id = Hyprland.focusedWorkspace?.id ?? -1
+            if (id <= 0 || Engine.phase === "peek") return
+            if (Engine.view === Engine.View.Tabs || Engine.view === Engine.View.Workspaces) return
+            root.alert(Engine.View.Switcher)
         }
     }
 

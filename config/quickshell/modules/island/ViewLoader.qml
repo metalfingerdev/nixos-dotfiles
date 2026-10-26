@@ -9,7 +9,8 @@ import QtQuick
 //   Backtab / Left / Up    previous
 //   Escape                 cancel() (Bar: Engine.back(), which closes when there is no history)
 // Every key that reaches here, and every focus move inside the view, emits activity() (Bar:
-// Engine.key(), which restarts the countdown).
+// Engine.key(), which restarts the countdown). The same, minus the focus a view gets when it
+// loads, emits navigated() (Bar: focus rings show; see Config.focusVisible).
 // A view that accepts keys itself reports them the same way (see views/Launcher.qml).
 // Enter/Space press the focused Pill (Pill handles that itself).
 //
@@ -21,6 +22,12 @@ Loader {
 
     signal cancel()
     signal activity()
+    signal navigated()
+
+    // focus that lands this soon after a load is the view settling (the window activating
+    // included), not the user moving it
+    property double loadedAt: 0
+    readonly property int settleMs: 400
 
     focus: true
 
@@ -28,6 +35,7 @@ Loader {
     // and every key that reaches here must count as activity.
     Keys.onPressed: event => {
         activity()
+        navigated()
         switch (event.key) {
         case Qt.Key_Tab: case Qt.Key_Right: case Qt.Key_Down: step(true);  break
         case Qt.Key_Backtab: case Qt.Key_Left: case Qt.Key_Up: step(false); break
@@ -38,9 +46,16 @@ Loader {
 
     // Tab on a Pill never gets here: Qt's own activeFocusOnTab navigation takes it. Focus moving
     // inside the view is the user too, so it counts as activity as well.
-    Window.onActiveFocusItemChanged: if (inView(Window.activeFocusItem)) activity()
+    Window.onActiveFocusItemChanged: {
+        if (!inView(Window.activeFocusItem)) return
+        activity()
+        if (Date.now() - loadedAt > settleMs) navigated()
+    }
 
-    onLoaded: if (!focusedInside(item)) step(true)
+    onLoaded: {
+        loadedAt = Date.now()
+        if (!focusedInside(item)) step(true)
+    }
 
     // inside the loaded view (and not the view's root itself)
     function inView(it) {

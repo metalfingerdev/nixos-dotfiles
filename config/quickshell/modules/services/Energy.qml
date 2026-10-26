@@ -48,6 +48,15 @@ Singleton {
 
     readonly property string level: percent <= criticalAt ? "critical" : percent <= lowAt ? "low" : "ok"
 
+    // the Material Symbols glyph for the state of charge
+    readonly property string glyph: {
+        if (!present) return "power"
+        if (charging) return "battery_charging_full"
+        if (full || percent >= 95) return "battery_full"
+        if (level === "critical") return "battery_alert"
+        return "battery_" + Math.max(0, Math.min(6, Math.floor(percent / 15))) + "_bar"
+    }
+
     signal warn(bool critical)
 
     function duration(minutes) {

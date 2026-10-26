@@ -22,7 +22,10 @@ QtObject {
         Clock,
         Power,
         Theme,
-        Workspaces
+        Workspaces,
+        Tabs,
+        Dashboard,
+        Switcher
     }
 
     // ---- config ----
@@ -31,7 +34,10 @@ QtObject {
     property int graceMs: 140          // Peek collapses this long after the pointer leaves
     property int hoverMs: 140          // Peek waits this long before showing (0 = instant)
     property int hideMs: 700           // auto-hide: how long the island lingers at rest before hiding
-    property bool debug: true         // Debug overlay + Bar's proxy box. IPC: island debug / toggleDebug
+    property bool debug: false         // Debug overlay + Bar's proxy box. IPC: island debug / toggleDebug
+    // What was typed into Expanded's search bar, handed to the launcher it opens (which takes it
+    // and clears it). Not machine state: only text in transit between two views.
+    property string query: ""
 
     // ---- state: one immutable snapshot, replaced whole by send() ----
     property var snapshot: Machine.initial(restView, true)

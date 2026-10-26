@@ -245,7 +245,7 @@ hl.bind(mainMod .. " + SHIFT + Z",        hl.dsp.exec_cmd("quickshell ipc call i
 hl.bind(mainMod .. " + B",                hl.dsp.exec_cmd("quickshell ipc call island open bluetooth"))
 hl.bind(mainMod .. " + N",                hl.dsp.exec_cmd("quickshell ipc call island open network"))
 hl.bind(mainMod .. " + P",                hl.dsp.exec_cmd("quickshell ipc call island open notifications"))
-hl.bind(mainMod .. " + O",                hl.dsp.exec_cmd("quickshell ipc call island open expanded"))   -- keyboard entry: Tab to a pill, Enter
+hl.bind(mainMod .. " + O",                hl.dsp.exec_cmd("quickshell ipc call island open expanded"))   -- the glance: type to search
 
 -- Peek: Super+Z shows the island's rest view (revealing it from auto-hide), Super+Z again hides it
 hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd("quickshell ipc call island togglePeek"))

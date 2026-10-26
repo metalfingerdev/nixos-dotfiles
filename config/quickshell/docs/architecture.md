@@ -85,8 +85,9 @@ Loader item ──implicit size──► proxy (invisible, snaps instantly, the 
   **anti-corners** (Shapes outside the surface, from the same sprung rect) curve it into the screen
   edge. With `Config.glass` the colour is translucent, a 1 px rim lights its edge, and Bar asks Hyprland to
   blur the layer (`Desktops.blurLayer`).
-- A click on the surface's own background (under the view's controls) pins what it shows: `pinShown()`
-  opens the peeking or toasting view (Pinned), or, at rest, the peek view.
+- A click on the surface's own background (under the view's controls), `pinShown()`: a toast is pinned
+  (its view opens Pinned); the clock (Compact, at rest) and the glance (Expanded, peeking or pinned) open
+  the hub, `Tabs`. Elsewhere it does nothing.
 - **Privacy dots** sit beside the surface while `Privacy.microphone` / `Privacy.camera` is true.
 - The **Loader** inside the surface (`ViewLoader.qml`) is always the view's *final* size. As the surface grows, it reveals
   the content instead of squashing it. It is centred horizontally (or pinned to its final screen position
@@ -133,6 +134,11 @@ through the view, and whatever the view doesn't accept reaches the defaults:
 Every key that reaches `ViewLoader`, and every focus move inside the view, emits `activity()`, which Bar
 maps to `Engine.key()`. Keys a view accepts itself never reach it, so such a view calls `Engine.key()`
 itself (the launcher's field does, in `Keys.onPressed`).
+
+The same, minus the focus a view takes as it loads (`settleMs`), emits `navigated()`, which turns on
+`Config.focusVisible`; the pointer moving over the island turns it off. Components draw focus rings only
+while it is on (Material's "focus visible"), so a view opened with the mouse doesn't look as if its
+first control were selected.
 
 On load, the item the view marked `focus: true` gets focus, else the first focusable one. `ViewLoader`
 is plain QtQuick (no `Engine`), so `modules/tests/tst_keyboard.qml` tests it with real key events.

@@ -4,12 +4,24 @@
 
 - [ ] Favourite apps dock (dynamicGlacier's "apps" panel): pinned launchers, saved to a state file.
 - [ ] Battery: charge limit and power profiles, for hardware that has them (see old-shell-notes.md).
-- [ ] Dashboard / settings views (the `open dashboard` / `open settings` binds in hyprland.lua).
+- [ ] Power profiles: the dashboard's segmented row shows once power-profiles-daemon runs
+      (`services.power-profiles-daemon.enable`); it is hidden until then.
+- [ ] The media view's "Playing next": MPRIS has no queue, so it lists outputs and other players instead.
 - [ ] Keyboard, next steps: give each view real keyboard rules as it gets real content.
 - [ ] Tests: `modules/tests/machine.test.js` mirrors `Registry.qml` by hand. Keep its `REG` table in sync,
       or generate it.
 
 ## Done
+
+- [x] Material 3 redesign (Android's quick settings): Config roles, QuickTile, Slider, Segmented, Chip,
+      SearchBar; every view restyled. Focus rings only while the keyboard is in use.
+- [x] Compact and Expanded are indicators (clock, media, recording, what's on); Expanded's status group
+      opens the dashboard and its search bar the launcher. Tabs is the hub (a click on either opens it).
+- [x] Dashboard: Wi-Fi/Bluetooth tiles, quick settings (Do not disturb, night light, caffeine, airplane,
+      microphone, dark theme, screen record, screenshot), volume/brightness sliders, power profiles,
+      media, notifications. `open settings` is the theme view.
+- [x] Launcher: All / Apps / Files / Actions, usage ranking, file search, island actions, a calculator.
+- [x] Workspace switch toast with GNOME-style dots (`Switcher`, `Triggers.switcherToasts`).
 
 - [x] Real Network (Quickshell.Networking) and Bluetooth (Quickshell.Bluetooth) views, plus Media,
       Battery, Clock, Power, Theme (+ wallpaper) and a Workspaces overview with live previews.

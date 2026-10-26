@@ -31,10 +31,16 @@ The contract:
 - **Clicks**: call `Engine` methods directly. To open a view next to the clicked element, pass the scene x.
   `Pill.clicked(sceneX)` already provides it: `onClicked: x => Engine.open(Engine.View.MyView, x)`.
   Only a mouse click has an x. Pressed from the keyboard, a Pill sends `-1`, so the view opens centred.
-- **Style**: take every colour, font and size from `Config` (`import qs.modules.components`):
-  `Config.text`, `Config.dim`, `Config.raised`, `Config.accent`, `Config.font`, `Config.body`, ... so the
-  view follows the palette. Never hard-code a colour. Reuse the components (`Header`, `ListEntry`, `Tile`,
-  `Toggle`, `ScrollList`, `Progress`, `Icon`, ...). No view file may be called `Config.qml`.
+- **Style**: Material 3. Take every colour, font and size from `Config` (`import qs.modules.components`):
+  the roles `Config.surface`, `container`, `high`, `primary` / `primaryInk` (text on primary),
+  `secondary` / `secondaryInk`, `text`, `dim`, `outline`, and `Config.font`, `Config.body`,
+  `Config.title`, `Config.radius`, ... so the view follows the palette. Never hard-code a colour.
+  `Config.state(base, ink, hovered, pressed)` gives the hover/press state layer. Reuse the components
+  (`Header`, `QuickTile`, `Slider`, `Segmented`, `Chip`, `SearchBar`, `ListEntry`, `Pill`, `Toggle`,
+  `ScrollList`, `Progress`, `Icon`, ...) and the shared parts (`import qs.modules.island.parts`:
+  `MediaCard`, `NotificationCard`, `StatusGroup`, `WorkspaceDots`). No view file may be called
+  `Config.qml`. A QML property can't be named `onSomething` (QML reads it as a signal handler and it
+  stays black), hence `primaryInk`.
 - **Keyboard**: nothing to do for the basics. A pinned view, and the peek view (while hovered), gets the
   keyboard, and `ViewLoader` gives it default keys: Tab/arrows move between focusable items (every `Pill`
   is one), Enter/Space press the focused Pill, and Escape goes back. For your own rules, add `Keys`
@@ -55,7 +61,8 @@ In `Engine.qml`, add `MyView` to `enum View`. Add it at the end so existing valu
 
 **Restart the shell after changing the enum** (`qs kill -p .`, then start it again). A hot reload keeps the
 old enum, so the new name is `undefined` until a restart. `Registry.get()` rejects non-numbers, so until
-then the view is ignored, not stuck.
+then the view is ignored, not stuck. Changes to `parts/` need a restart as well: a hot reload keeps those
+types.
 
 ## 3. Register it
 

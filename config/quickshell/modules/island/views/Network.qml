@@ -13,7 +13,7 @@ import qs.modules.services
 Item {
     id: root
 
-    readonly property int rowH: 46
+    readonly property int rowH: 62
     readonly property int maxRows: 6
 
     // the network whose row is open (password field or actions)
@@ -41,19 +41,18 @@ Item {
     Component.onCompleted: Net.scan(true)
     Component.onDestruction: Net.scan(false)
 
-    implicitWidth: 420
-    implicitHeight: column.implicitHeight + 24
+    implicitWidth: 440
+    implicitHeight: column.implicitHeight + 32
 
     Column {
         id: column
-        x: 12; y: 12
-        width: parent.width - 24
-        spacing: 6
+        x: 16; y: 16
+        width: parent.width - 32
+        spacing: 8
 
         Header {
             width: parent.width
-            icon: Net.current ? "wifi" : Net.ethernet ? "lan" : Net.wifiEnabled ? "wifi_find" : "wifi_off"
-            title: "Network"
+            title: "Internet"
             subtitle: Net.attempt ? "Connecting to " + Net.attempt.name + "…" : Net.summary
             onBack: Engine.back()
 
@@ -69,7 +68,7 @@ Item {
             width: parent.width
             icon: "lan"
             title: "Ethernet"
-            subtitle: Net.linkSpeed > 0 ? "Connected · " + Net.linkSpeed + " Mb/s" : "Connected"
+            subtitle: Net.linkSpeed > 0 ? "Connected  ·  " + Net.linkSpeed + " Mb/s" : "Connected"
             active: true
             activeFocusOnTab: false
         }
@@ -92,7 +91,8 @@ Item {
 
         ScrollList {
             width: parent.width
-            maxHeight: root.maxRows * root.rowH + (root.selected ? 36 : 0)
+            maxHeight: root.maxRows * root.rowH + (root.selected ? 52 : 0)
+            spacing: 2
 
             Repeater {
                 // ScriptModel: an update (a scan, a signal change) moves, adds and removes rows. A
@@ -121,41 +121,36 @@ Item {
                                 : entry.net.connected ? "Connected"
                                 : entry.net.known ? "Saved"
                                 : Net.secured(entry.net) ? "Secured" : "Open"
-                        lead: Component {
-                            SignalBars {
-                                strength: entry.net.signalStrength
-                                color: entry.net.connected ? Config.accent : Config.text
-                            }
-                        }
+                        icon: Net.glyph(entry.net.signalStrength)
                         onClicked: root.choose(entry.net)
 
                         Icon {
                             visible: Net.secured(entry.net)
                             name: "lock"
-                            size: 14
-                            color: Config.faint
+                            size: 16
+                            color: entry.net.connected ? Config.secondaryInk : Config.dim
                         }
                     }
 
                     // ---- the open row: a password, or the network's actions ----
                     Row {
                         visible: entry.open && !entry.net.connected
-                        x: 42
-                        width: parent.width - 42
-                        height: visible ? 32 : 0
+                        x: 62
+                        width: parent.width - 62
+                        height: visible ? 44 : 0
                         spacing: 8
 
                         Rectangle {
                             width: parent.width - join.width - parent.spacing
-                            height: 30
-                            radius: Config.innerRadius
-                            color: Config.raised
-                            border.width: password.activeFocus ? 1 : 0
-                            border.color: Config.faint
+                            height: 40
+                            radius: height / 2
+                            color: Config.high
+                            border.width: password.activeFocus ? 2 : 0
+                            border.color: Config.primary
 
                             TextInput {
                                 id: password
-                                anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
+                                anchors { fill: parent; leftMargin: 16; rightMargin: 16 }
                                 verticalAlignment: TextInput.AlignVCenter
                                 echoMode: TextInput.Password
                                 enabled: !entry.connecting
@@ -174,7 +169,7 @@ Item {
                                     visible: password.text === ""
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: entry.connecting ? "Connecting…" : "Password"
-                                    color: Config.faint
+                                    color: Config.dim
                                     font: password.font
                                 }
                             }
@@ -182,7 +177,9 @@ Item {
 
                         Pill {
                             id: join
-                            text: entry.connecting ? "…" : "join"
+                            implicitHeight: 40
+                            kind: "filled"
+                            text: entry.connecting ? "…" : "Connect"
                             enabled: password.text.length >= 8 && !entry.connecting     // WPA: 8..63 characters
                             onClicked: {
                                 Net.connect(entry.net, password.text)
@@ -193,16 +190,18 @@ Item {
 
                     Row {
                         visible: entry.open && entry.net.connected
-                        x: 42
-                        height: visible ? 30 : 0
+                        x: 62
+                        height: visible ? 40 : 0
                         spacing: 8
 
                         Pill {
-                            text: "disconnect"
+                            icon: "link_off"
+                            text: "Disconnect"
                             onClicked: Net.disconnect(entry.net)
                         }
                         Pill {
-                            text: "forget"
+                            icon: "delete"
+                            text: "Forget"
                             onClicked: { Net.forget(entry.net); root.close() }
                         }
                     }
@@ -217,7 +216,7 @@ Item {
         Text {
             visible: Net.lastError !== ""
             width: parent.width
-            leftPadding: 10
+            leftPadding: 12
             text: Net.lastError
             elide: Text.ElideRight
             color: Config.bad
