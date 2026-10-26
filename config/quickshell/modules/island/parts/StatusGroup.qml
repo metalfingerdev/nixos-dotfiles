@@ -13,7 +13,7 @@ Item {
     property real maxText: 110
     // the most the group may take: labels share what's left after the icons, and elide
     property real maxWidth: Infinity
-    property real segmentHeight: 36
+    property real segmentHeight: 40
     property bool keyboardSelected: activeFocus && Config.focusVisible
     signal clicked(real sceneX)
 
@@ -110,11 +110,11 @@ Item {
 
     // focus ring around the whole group
     Rectangle {
-        anchors { fill: row; margins: -3 }
+        anchors { fill: row; margins: -6 }
         visible: root.keyboardSelected
         radius: height / 2
         color: "transparent"
-        border.width: 2
+        border.width: 3
         border.color: Config.primary
     }
 

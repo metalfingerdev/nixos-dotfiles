@@ -5,7 +5,8 @@ import QtQuick
 // in its field. The field takes its own keys and reports them as signals, so the view decides
 // what they do:
 //   key()              any keystroke (for Engine.key(): ViewLoader never sees these)
-//   accepted()         Enter            up() / down()   arrows
+//   accepted()         Enter            up() / down()   arrows, only with `takesArrows` (otherwise
+//                                       they move focus out of the field, like Tab)
 //   tab(backward)      Tab / Backtab, only with `takesTab` (otherwise Tab moves focus as usual)
 //   escaped()          Escape           backspaceEmpty()  Backspace on an empty field
 // With `readOnly` it's a button that looks like a field: clicked() on a click.
@@ -17,7 +18,8 @@ FocusScope {
     property string placeholder: "Search"
     property bool readOnly: false
     property bool takesTab: false
-    property int fieldSize: 15
+    property bool takesArrows: false
+    property int fieldSize: 16
     default property alias trailing: side.data
 
     signal key()
@@ -30,7 +32,7 @@ FocusScope {
     signal clicked()
 
     implicitWidth: 400
-    implicitHeight: 48
+    implicitHeight: 56
 
     Rectangle {
         anchors.fill: parent
@@ -84,8 +86,10 @@ FocusScope {
             root.key()
             switch (event.key) {
             case Qt.Key_Return: case Qt.Key_Enter: root.accepted(); break
-            case Qt.Key_Up:      root.up(); break
-            case Qt.Key_Down:    root.down(); break
+            case Qt.Key_Up: case Qt.Key_Down:
+                if (!root.takesArrows) { event.accepted = false; return }
+                if (event.key === Qt.Key_Up) root.up(); else root.down()
+                break
             case Qt.Key_Escape:  root.escaped(); break
             case Qt.Key_Tab: case Qt.Key_Backtab:
                 if (!root.takesTab) { event.accepted = false; return }

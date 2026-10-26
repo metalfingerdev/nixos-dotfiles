@@ -19,8 +19,8 @@ ClippingRectangle {
     Component.onCompleted: Players.watch(true)
     Component.onDestruction: Players.watch(false)
 
-    implicitWidth: 400
-    implicitHeight: compact ? 76 : 148
+    implicitWidth: 420
+    implicitHeight: compact ? 84 : 164
     radius: Config.cardRadius
     color: Config.container
 
@@ -63,8 +63,8 @@ ClippingRectangle {
             id: thumb
             x: 14
             anchors.verticalCenter: parent.verticalCenter
-            width: 48
-            height: 48
+            width: 56
+            height: 56
             radius: Config.smallRadius
             color: Config.high
 
@@ -119,7 +119,7 @@ ClippingRectangle {
 
             Pill { kind: "text"; icon: "skip_previous"; iconSize: 22; enabled: root.player?.canGoPrevious ?? false; onClicked: Players.previous() }
             Pill {
-                implicitHeight: 40
+                implicitHeight: 48
                 kind: "filled"
                 icon: Players.playing ? "pause" : "play_arrow"
                 iconSize: 22
@@ -196,10 +196,10 @@ ClippingRectangle {
         Pill {
             id: play
             anchors { right: parent.right; verticalCenter: words.verticalCenter; verticalCenterOffset: -6 }
-            implicitHeight: 56
+            implicitHeight: 64
             kind: "filled"
             icon: Players.playing ? "pause" : "play_arrow"
-            iconSize: 28
+            iconSize: 30
             enabled: Players.canToggle
             onClicked: Players.toggle()
         }
@@ -212,8 +212,8 @@ ClippingRectangle {
                 id: prev
                 kind: "text"
                 icon: "skip_previous"
-                iconSize: 22
-                implicitHeight: 32
+                iconSize: 24
+                implicitHeight: 40
                 enabled: root.player?.canGoPrevious ?? false
                 onClicked: Players.previous()
             }
@@ -229,8 +229,8 @@ ClippingRectangle {
                 id: next
                 kind: "text"
                 icon: "skip_next"
-                iconSize: 22
-                implicitHeight: 32
+                iconSize: 24
+                implicitHeight: 40
                 enabled: root.player?.canGoNext ?? false
                 onClicked: Players.next()
             }

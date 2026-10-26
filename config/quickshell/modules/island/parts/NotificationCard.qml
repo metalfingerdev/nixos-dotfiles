@@ -6,7 +6,8 @@ import qs.modules.services
 
 // One notification as a card (Material 3): the app's icon in a circle, "app · time", the summary,
 // up to two lines of body, its named actions, and a close button. A critical one has a red edge.
-//   center: true   (the notification center, the dashboard) click: default action, x: dismiss
+//   center: true   (the notification center) click or Enter: default action, x or Delete: dismiss.
+//                  Focusable: Tab/arrows reach it
 //   center: false  (a popup) left click: close it (it stays in the center), middle: default action,
 //                  right: close all, x: close
 Rectangle {
@@ -27,10 +28,15 @@ Rectangle {
         return m < 1 ? "now" : m < 60 ? m + " min" : Qt.formatTime(new Date(t), "HH:mm")
     }
 
-    implicitWidth: 380
-    implicitHeight: Math.max(64, column.implicitHeight + 28)
+    activeFocusOnTab: center
+    Keys.onReturnPressed: Notifier.invoke(modelData.id, "default")
+    Keys.onEnterPressed:  Notifier.invoke(modelData.id, "default")
+    Keys.onDeletePressed: Notifier.dismiss(modelData.id)
+
+    implicitWidth: 420
+    implicitHeight: Math.max(72, column.implicitHeight + 32)
     radius: Config.innerRadius + 4
-    color: Config.state(Config.container, Config.text, area.containsMouse, area.pressed)
+    color: Config.state(Config.container, Config.text, area.containsMouse, area.pressed || (activeFocus && Config.focusVisible))
     border.width: modelData.critical ? 1 : 0
     border.color: Config.bad
     Behavior on color { ColorAnimation { duration: 120 } }
@@ -51,10 +57,10 @@ Rectangle {
 
     ClippingRectangle {
         id: badge
-        x: 14; y: 14
-        width: 36
-        height: 36
-        radius: 18
+        x: 16; y: 16
+        width: 40
+        height: 40
+        radius: 20
         color: Config.high
 
         Image {
@@ -83,7 +89,7 @@ Rectangle {
 
     Column {
         id: column
-        anchors { left: badge.right; leftMargin: 12; right: close.left; rightMargin: 6; top: parent.top; topMargin: 13 }
+        anchors { left: badge.right; leftMargin: 14; right: close.left; rightMargin: 6; top: parent.top; topMargin: 15 }
         spacing: 2
 
         Text {
@@ -128,7 +134,7 @@ Rectangle {
                 model: parent.actions
                 delegate: Pill {
                     required property var modelData
-                    implicitHeight: 30
+                    implicitHeight: 36
                     text: modelData.text
                     onClicked: Notifier.invoke(root.modelData.id, modelData.identifier)
                 }
@@ -141,9 +147,11 @@ Rectangle {
         anchors { right: parent.right; rightMargin: 8; top: parent.top; topMargin: 8 }
         kind: "text"
         icon: "close"
-        iconSize: 18
-        implicitHeight: 30
+        iconSize: 20
+        implicitHeight: 36
         activeFocusOnTab: false
         onClicked: root.center ? Notifier.dismiss(root.modelData.id) : Notifier.close(root.modelData.id)
     }
+
+    FocusRing {}
 }

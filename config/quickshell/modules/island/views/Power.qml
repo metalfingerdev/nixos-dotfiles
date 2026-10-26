@@ -5,6 +5,7 @@ import qs.modules.services
 
 // Lock, suspend, log out, restart, shut down. The last three ask first: the first press arms the
 // tile (it turns red and says "again?"), a second press within `confirmMs` runs it.
+// Keys: L S O R P (each tile shows its own), arrows/Tab move, Enter presses, Escape back.
 Item {
     id: root
 
@@ -21,14 +22,14 @@ Item {
     Timer { id: disarm; interval: root.confirmMs; onTriggered: root.armed = "" }
     Component.onCompleted: Session.refresh()
 
-    implicitWidth: tiles.implicitWidth + 32
-    implicitHeight: column.implicitHeight + 32
+    implicitWidth: tiles.implicitWidth + 48
+    implicitHeight: column.implicitHeight + 48
 
     Column {
         id: column
-        x: 16; y: 16
-        width: parent.width - 32
-        spacing: 12
+        x: 24; y: 24
+        width: parent.width - 48
+        spacing: 18
 
         Header {
             width: parent.width
@@ -39,7 +40,7 @@ Item {
 
         Row {
             id: tiles
-            spacing: 8
+            spacing: 12
 
             Repeater {
                 model: Session.actions
@@ -49,25 +50,26 @@ Item {
                     required property var modelData
                     readonly property bool waiting: root.armed === modelData.id
 
-                    width: 88
-                    height: 88
-                    radius: Config.cardRadius
+                    width: 128
+                    height: 128
+                    radius: Config.cardRadius + 4
+                    shortcut: modelData.key
                     tint: waiting ? Config.bad : "transparent"
                     onClicked: root.press(modelData)
 
                     Column {
                         anchors.centerIn: parent
-                        spacing: 8
+                        spacing: 12
 
                         Rectangle {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            width: 40; height: 40; radius: 20
+                            width: 56; height: 56; radius: 28
                             color: tile.waiting ? Qt.rgba(0, 0, 0, 0.15) : Config.high
 
                             Icon {
                                 anchors.centerIn: parent
                                 name: tile.modelData.icon
-                                size: 22
+                                size: 28
                                 color: tile.waiting ? Config.surface : Config.text
                             }
                         }
@@ -76,7 +78,7 @@ Item {
                             text: tile.waiting ? "Again?" : tile.modelData.label
                             color: tile.waiting ? Config.surface : Config.text
                             font.family: Config.font
-                            font.pixelSize: Config.small
+                            font.pixelSize: Config.body
                             font.weight: tile.waiting ? Font.DemiBold : Font.Normal
                         }
                     }

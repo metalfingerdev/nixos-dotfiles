@@ -126,19 +126,26 @@ through the view, and whatever the view doesn't accept reaches the defaults:
 
 | Key | Default |
 |---|---|
-| Tab, Right, Down | next item with `activeFocusOnTab` in the view, wrapping |
-| Backtab, Left, Up | previous |
-| Enter, Space | press the focused `Pill` (handled by `Pill`) |
-| Escape | `cancel()`, which Bar maps to `Engine.back()` (closes when there is no history) |
+| Tab / Backtab | next / previous item with `activeFocusOnTab` in the view, wrapping |
+| arrows | the nearest focusable item that way, by screen position (so grids work); nothing that way: next (Right/Down) or previous (Left/Up), wrapping |
+| a letter, digit or sign | presses the control whose `shortcut` it is (shown as a keycap while the keyboard is in use) |
+| Enter, Space | press the focused control (handled by the control) |
+| Escape, Backspace | `cancel()`, which Bar maps to `Engine.back()` (closes when there is no history) |
 
 Every key that reaches `ViewLoader`, and every focus move inside the view, emits `activity()`, which Bar
 maps to `Engine.key()`. Keys a view accepts itself never reach it, so such a view calls `Engine.key()`
 itself (the launcher's field does, in `Keys.onPressed`).
 
 The same, minus the focus a view takes as it loads (`settleMs`), emits `navigated()`, which turns on
-`Config.focusVisible`; the pointer moving over the island turns it off. Components draw focus rings only
-while it is on (Material's "focus visible"), so a view opened with the mouse doesn't look as if its
-first control were selected.
+`Config.focusVisible`; so does `Ipc.open` (a view opened over IPC is a keybind). The pointer *moving*
+over the island turns it off: Bar compares positions, because Qt re-sends hover every frame something
+animates under a still pointer. While it is on, components draw a `FocusRing` (3 px, just outside the
+control, in the primary colour) and their `KeyBadge`, and views show their `KeyHints` footer; a view
+opened with the mouse shows none of them.
+
+Bar draws the view slot at `Config.scale` (Theme's Size): the proxy takes the view's implicit size
+times the scale, and `ViewLoader` is laid out at 100 % with a `scale` transform, so views know nothing
+about it.
 
 On load, the item the view marked `focus: true` gets focus, else the first focusable one. `ViewLoader`
 is plain QtQuick (no `Engine`), so `modules/tests/tst_keyboard.qml` tests it with real key events.

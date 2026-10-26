@@ -11,21 +11,22 @@ import qs.modules.services
 //   tabs         one icon per view (and a screenshot), each opens it
 //   status       what's on (the same group as the glance): opens the dashboard
 //   clock        the time and date: opens the calendar
-// Keys: Tab/arrows move between buttons, Enter presses, 1-9 switch workspace, Escape goes back.
+// Keys: arrows/Tab move between buttons, Enter presses, 1-9 switch workspace, each tab's letter
+// opens it (shown as a keycap while the keyboard is in use), Escape goes back.
 // View contract: set implicitWidth / implicitHeight. The island sizes itself to them.
 Item {
     id: root
 
     readonly property var tabs: [
-        { icon: "tune",               view: Engine.View.Dashboard },
-        { icon: "calendar_month",     view: Engine.View.Clock },
-        { icon: "music_note",         view: Engine.View.Media },
-        { icon: "apps",               view: Engine.View.Launcher },
-        { icon: "notifications",      view: Engine.View.Notifications },
-        { icon: "grid_view",          view: Engine.View.Workspaces },
-        { icon: "photo_camera",       view: -1 },                      // screenshot
-        { icon: "palette",            view: Engine.View.Theme },
-        { icon: "power_settings_new", view: Engine.View.Power }
+        { icon: "tune",               key: "d", view: Engine.View.Dashboard },
+        { icon: "calendar_month",     key: "c", view: Engine.View.Clock },
+        { icon: "music_note",         key: "m", view: Engine.View.Media },
+        { icon: "apps",               key: "a", view: Engine.View.Launcher },
+        { icon: "notifications",      key: "n", view: Engine.View.Notifications },
+        { icon: "grid_view",          key: "w", view: Engine.View.Workspaces },
+        { icon: "photo_camera",       key: "s", view: -1 },            // screenshot
+        { icon: "palette",            key: "t", view: Engine.View.Theme },
+        { icon: "power_settings_new", key: "p", view: Engine.View.Power }
     ]
 
     function activate(tab, x) {
@@ -34,8 +35,8 @@ Item {
         Toggles.screenshot()
     }
 
-    implicitWidth: row.implicitWidth + 20
-    implicitHeight: 60
+    implicitWidth: row.implicitWidth + 32
+    implicitHeight: 80
 
     SystemClock {
         id: clock
@@ -54,20 +55,20 @@ Item {
     component Divider: Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         width: 1
-        height: 28
+        height: 36
         color: Config.divider
     }
 
     Row {
         id: row
         anchors.centerIn: parent
-        spacing: 10
+        spacing: 14
 
         // ---- workspaces ----
         Row {
             id: workspaces
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 4
+            spacing: 6
 
             Repeater {
                 model: Desktops.span(5)
@@ -81,14 +82,12 @@ Item {
                     readonly property bool ring: activeFocus && Config.focusVisible
 
                     anchors.verticalCenter: parent.verticalCenter
-                    width: current ? 52 : 36
-                    height: 36
+                    width: current ? 68 : 46
+                    height: 46
                     radius: height / 2
                     color: current ? Config.state(Config.primary, Config.primaryInk, area.containsMouse, area.pressed || ring)
                          : used ? Config.state(Config.container, Config.text, area.containsMouse, area.pressed || ring)
                          : Qt.rgba(Config.text.r, Config.text.g, Config.text.b, area.pressed || ring ? 0.12 : area.containsMouse ? 0.08 : 0)
-                    border.width: ring ? 2 : 0
-                    border.color: current ? Config.primaryInk : Config.primary
                     Behavior on width { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
                     Behavior on color { ColorAnimation { duration: 160 } }
 
@@ -102,9 +101,11 @@ Item {
                         text: ws.wsId
                         color: ws.current ? Config.primaryInk : ws.used ? Config.text : Config.dim
                         font.family: Config.font
-                        font.pixelSize: Config.body
+                        font.pixelSize: Config.body + 2
                         font.weight: ws.current || ws.used ? Font.DemiBold : Font.Normal
                     }
+
+                    FocusRing { on: ws.ring }
 
                     MouseArea {
                         id: area
@@ -138,10 +139,11 @@ Item {
                     id: tab
                     required property var modelData
                     anchors.verticalCenter: parent.verticalCenter
-                    implicitHeight: 40
+                    implicitHeight: 52
                     kind: "text"
                     icon: modelData.icon
-                    iconSize: 22
+                    iconSize: 26
+                    shortcut: modelData.key
                     visible: modelData.view >= 0 || Toggles.has("grimblast")
                     onClicked: x => root.activate(modelData, x)
 
@@ -149,7 +151,7 @@ Item {
                     Rectangle {
                         visible: tab.modelData.view === Engine.View.Notifications && Notifier.count > 0
                         x: parent.width - width + 2
-                        y: 2
+                        y: parent.height - height - 2           // the corner above is the keycap's
                         width: Math.max(16, unread.implicitWidth + 8)
                         height: 16
                         radius: 8
@@ -181,7 +183,8 @@ Item {
         // ---- status ----
         StatusGroup {
             anchors.verticalCenter: parent.verticalCenter
-            maxText: 90
+            segmentHeight: 46
+            maxText: 100
             onClicked: x => Engine.open(Engine.View.Dashboard, x)
         }
 
@@ -192,12 +195,10 @@ Item {
             id: when
             readonly property bool ring: activeFocus && Config.focusVisible
             anchors.verticalCenter: parent.verticalCenter
-            width: dateColumn.implicitWidth + 20
-            height: 48
+            width: dateColumn.implicitWidth + 24
+            height: 56
             radius: Config.innerRadius
             color: Qt.rgba(Config.text.r, Config.text.g, Config.text.b, whenArea.pressed || ring ? 0.12 : whenArea.containsMouse ? 0.08 : 0)
-            border.width: ring ? 2 : 0
-            border.color: Config.primary
 
             activeFocusOnTab: true
             Keys.onReturnPressed: Engine.open(Engine.View.Clock)
@@ -214,7 +215,7 @@ Item {
                     text: Qt.formatDateTime(clock.date, "HH:mm")
                     color: Config.text
                     font.family: Config.font
-                    font.pixelSize: Config.title
+                    font.pixelSize: Config.title + 2
                     font.weight: Font.DemiBold
                     font.features: { "tnum": 1 }
                 }
@@ -234,6 +235,8 @@ Item {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: mouse => Engine.open(Engine.View.Clock, mapToItem(null, mouse.x, mouse.y).x)
             }
+
+            FocusRing { on: when.ring }
         }
     }
 }

@@ -109,7 +109,10 @@ Bar: Loader shows Registry.get(view).url
 | | `graceMs` | 140 | how long a peek stays after the pointer leaves |
 | | `hideMs` | 700 | auto-hide: how long the island lingers before hiding |
 | | initial `autoHide` | `true` | second argument to `Machine.initial(...)` |
-| `Config.qml` | `name` | `teal` | palette (teal blue graphite midnight nord rose forest paper); IPC `palette` |
+| `Config.qml` | `source` | `preset` | where colours come from: `preset`, `accent` or `wallpaper`; IPC `colours` |
+| | `name` | `teal` | preset palette (teal blue graphite midnight nord rose forest paper); IPC `palette` |
+| | `accent` / `variant` / `darkMode` | / `tonal` / `true` | a generated scheme: its colour, how colourful, dark or light; IPC `accent` `variant` `mode` |
+| | `scale` | 1.0 | the whole island's size (0.8 .. 1.4); IPC `size` |
 | | `style` | `pill` | `pill` floats below the edge; `notch` is flush with it, with anti-corners; IPC `style` |
 | | `handle` | `strip` | auto-hide: a thin bar stays at the top edge while hidden (`none`: nothing); IPC `handle` |
 | | `glass` / `glassOpacity` | `false` / 0.85 | frosted glass over Hyprland's blur; IPC `glass` / `toggleGlass` |

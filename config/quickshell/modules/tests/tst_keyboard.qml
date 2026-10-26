@@ -50,6 +50,39 @@ Item {
 
     Component { id: empty; Item {} }
 
+    // a 2 x 2 grid: arrows should move like on a grid, not along the Tab order
+    Component {
+        id: grid
+        Item {
+            property alias a: a
+            property alias b: b
+            property alias c: c
+            property alias d: d
+            Grid {
+                columns: 2
+                spacing: 8
+                Pill { id: a; text: "a" }
+                Pill { id: b; text: "b" }
+                Pill { id: c; text: "c" }
+                Pill { id: d; text: "d" }
+            }
+        }
+    }
+
+    // shortcuts: a typed key presses the control that has it
+    Component {
+        id: keyed
+        Item {
+            property alias plain: plainPill
+            Row {
+                Pill { id: plainPill; text: "plain"; onClicked: x => harness.pressed.push(["plain", x]) }
+                Pill { text: "mute"; shortcut: "m"; onClicked: x => harness.pressed.push(["m", x]) }
+                Pill { text: "hidden"; shortcut: "h"; visible: false; onClicked: x => harness.pressed.push(["h", x]) }
+                Pill { text: "plus"; shortcut: "+"; onClicked: x => harness.pressed.push(["+", x]) }
+            }
+        }
+    }
+
     TestCase {
         name: "keyboard"
         when: windowShown
@@ -127,6 +160,34 @@ Item {
                 verify(harness.activity > before, "key " + k)
             }
             verify(slot.item.c.activeFocus, "reporting activity doesn't swallow the defaults")
+        }
+
+        function test_arrows_follow_the_grid() {
+            load(grid)
+            const v = slot.item
+            verify(v.a.activeFocus)
+            keyClick(Qt.Key_Down);  verify(v.c.activeFocus, "Down: the one below, not the next in Tab order")
+            keyClick(Qt.Key_Right); verify(v.d.activeFocus, "Right")
+            keyClick(Qt.Key_Up);    verify(v.b.activeFocus, "Up")
+            keyClick(Qt.Key_Left);  verify(v.a.activeFocus, "Left")
+            keyClick(Qt.Key_Left);  verify(v.d.activeFocus, "nothing to the left: the previous one, wrapping")
+        }
+
+        function test_shortcuts_press_their_control() {
+            load(keyed)
+            keyClick(Qt.Key_M)
+            keyClick(Qt.Key_H)                       // hidden: ignored
+            keyClick(Qt.Key_Plus)
+            keyClick(Qt.Key_Q)                       // nobody's: ignored
+            compare(harness.pressed.map(p => p[0]).join(""), "m+")
+            keyClick(Qt.Key_M, Qt.ControlModifier)   // with a modifier: not a shortcut
+            compare(harness.pressed.length, 2)
+        }
+
+        function test_backspace_goes_back() {
+            load(plain)
+            keyClick(Qt.Key_Backspace)
+            compare(harness.escapes, 1)
         }
 
         function test_view_without_focusable_items() {

@@ -13,6 +13,13 @@
 
 ## Done
 
+- [x] Keyboard everywhere: spatial arrows, a `shortcut` per control (keycaps while the keyboard is in use),
+      Backspace back, bold focus rings that no longer vanish under a still pointer, `KeyHints` footers.
+- [x] Theme: colours from a preset, an accent or the wallpaper (generated Material-You-style, with
+      tonal/vibrant/muted/mono and dark/light), and a Size for the whole island.
+- [x] Wide views with big controls; Network and Bluetooth laid out like the dashboard; the dashboard
+      without its notification list (a bell with a count opens the center).
+
 - [x] Material 3 redesign (Android's quick settings): Config roles, QuickTile, Slider, Segmented, Chip,
       SearchBar; every view restyled. Focus rings only while the keyboard is in use.
 - [x] Compact and Expanded are indicators (clock, media, recording, what's on); Expanded's status group

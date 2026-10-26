@@ -4,6 +4,7 @@ import QtQuick
 // With `seekable`, click or drag to seek: while dragging it shows the drag position, and seek()
 // fires once, on release, so a player isn't spammed. It grows and shows a knob under the pointer.
 // The fill is deliberately not animated: a 250 ms position poll would keep restarting it.
+// Seekable, it is focusable too: Left/Right seek by `step`.
 Item {
     id: root
 
@@ -11,6 +12,7 @@ Item {
     property color color: Config.primary
     property bool seekable: false
     property int thickness: 4
+    property real step: 0.02
 
     readonly property bool hovered: area.containsMouse
     readonly property bool dragging: area.pressed && seekable
@@ -21,13 +23,17 @@ Item {
 
     function clamp(v) { return isFinite(v) ? Math.max(0, Math.min(1, v)) : 0 }
 
+    activeFocusOnTab: seekable
+    Keys.onLeftPressed:  seek(clamp(fraction - step))
+    Keys.onRightPressed: seek(clamp(fraction + step))
+
     implicitWidth: 200
-    implicitHeight: seekable ? 16 : thickness           // a tall hit area, a thin track
+    implicitHeight: seekable ? 20 : thickness           // a tall hit area, a thin track
 
     Rectangle {
         id: track
         width: parent.width
-        height: root.seekable && (root.hovered || root.dragging) ? root.thickness * 1.5 : root.thickness
+        height: root.seekable && (root.hovered || root.dragging || root.activeFocus) ? root.thickness * 1.5 : root.thickness
         anchors.verticalCenter: parent.verticalCenter
         radius: height / 2
         color: Config.track
@@ -39,10 +45,12 @@ Item {
             radius: parent.radius
             color: root.color
         }
+
+        FocusRing { on: root.activeFocus }
     }
 
     Rectangle {
-        visible: root.seekable && (root.hovered || root.dragging)
+        visible: root.seekable && (root.hovered || root.dragging || (root.activeFocus && Config.focusVisible))
         width: root.thickness * 2.5
         height: width
         radius: width / 2

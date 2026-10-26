@@ -23,7 +23,7 @@ Item {
 
     readonly property int maxRows: 7         // shown at once; the rest scroll
     readonly property int maxResults: 24     // per source
-    readonly property int rowH: 56
+    readonly property int rowH: 64
     readonly property string terminal: "kitty"
     readonly property var filters: [
         { key: "all",     label: "All" },
@@ -222,17 +222,18 @@ Item {
         }
     }
 
-    implicitWidth: 680
-    implicitHeight: 16 + bar.height + 10 + (results.length > 0 ? list.height : 52) + 14
+    implicitWidth: 800
+    implicitHeight: 20 + bar.height + 12 + (results.length > 0 ? list.height : 56) + 18
 
     SearchBar {
         id: bar
-        x: 16; y: 16
-        width: parent.width - 32
-        implicitHeight: 52
-        fieldSize: 17
+        x: 20; y: 20
+        width: parent.width - 40
+        implicitHeight: 60
+        fieldSize: 18
         placeholder: "Search"
         takesTab: true
+        takesArrows: true
         focus: true
 
         onKey: Engine.key()
@@ -259,8 +260,8 @@ Item {
 
     Text {
         visible: root.hint !== ""
-        x: 32
-        y: bar.y + bar.height + 26
+        x: 36
+        y: bar.y + bar.height + 28
         text: root.hint
         color: Config.dim
         font.family: Config.font
@@ -269,9 +270,9 @@ Item {
 
     ListView {
         id: list
-        x: 16
-        y: bar.y + bar.height + 10
-        width: parent.width - 32
+        x: 20
+        y: bar.y + bar.height + 12
+        width: parent.width - 40
         height: Math.min(root.results.length, root.maxRows) * (root.rowH + spacing)
         spacing: 2
         clip: true
@@ -293,10 +294,10 @@ Item {
             // an app's own icon, or a glyph in a tonal circle
             Item {
                 id: lead
-                x: 10
+                x: 12
                 anchors.verticalCenter: parent.verticalCenter
-                width: 40
-                height: 40
+                width: 44
+                height: 44
 
                 // "" when the theme has no such icon: then the glyph circle shows instead
                 readonly property string appIcon: row.modelData.kind === "app" ? Quickshell.iconPath(row.modelData.app.icon ?? "", true) : ""
@@ -304,14 +305,14 @@ Item {
                 IconImage {
                     visible: lead.appIcon !== ""
                     anchors.centerIn: parent
-                    implicitSize: 34
+                    implicitSize: 40
                     asynchronous: true
                     source: lead.appIcon
                 }
                 Rectangle {
                     visible: lead.appIcon === ""
                     anchors.fill: parent
-                    radius: 20
+                    radius: 22
                     color: row.current ? Config.primary : Config.high
 
                     Icon {

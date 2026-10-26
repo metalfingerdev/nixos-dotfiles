@@ -20,18 +20,22 @@ Item {
     readonly property real shown: clamp(dragging ? dragValue : value)
 
     signal moved(real value)
+    // the value the user settled on: on release, and on every key or wheel step. For a setting that
+    // shouldn't change mid-drag (the island's Size: it rescales the slider under the pointer)
+    signal committed(real value)
     signal iconClicked()
 
     function clamp(v) { return isFinite(v) ? Math.max(0, Math.min(1, v)) : 0 }
 
     activeFocusOnTab: true
-    Keys.onLeftPressed:   moved(clamp(value - step))
-    Keys.onRightPressed:  moved(clamp(value + step))
+    function nudge(by) { const v = clamp(value + by); moved(v); committed(v) }
+    Keys.onLeftPressed:   nudge(-step)
+    Keys.onRightPressed:  nudge(step)
     Keys.onReturnPressed: if (iconClickable) iconClicked()
     Keys.onSpacePressed:  if (iconClickable) iconClicked()
 
     implicitWidth: 300
-    implicitHeight: 44
+    implicitHeight: 52
     opacity: enabled ? 1 : 0.38
 
     property bool overIcon: false
@@ -41,8 +45,6 @@ Item {
         anchors.fill: parent
         radius: height / 2
         color: Config.high
-        border.width: root.keyboardSelected ? 2 : 0
-        border.color: Config.primary
 
         // the fill never gets narrower than the icon's circle, so the icon always sits on it
         Rectangle {
@@ -59,10 +61,12 @@ Item {
             x: (track.height - width) / 2
             anchors.verticalCenter: parent.verticalCenter
             name: root.icon
-            size: 20
+            size: 22
             filled: true
             color: Config.primaryInk
         }
+
+        FocusRing { on: root.keyboardSelected }
 
         // the value, at the far end: dim on the track, and the same text clipped to the fill on
         // top of it, so it reads wherever the fill's edge cuts through it
@@ -111,8 +115,12 @@ Item {
             const v = at(mouse.x)
             if (Math.abs(v - root.dragValue) >= 0.005) { root.dragValue = v; root.moved(v) }
         }
-        onReleased: mouse => { if (root.overIcon && mouse.x < track.height) root.iconClicked(); root.overIcon = false }
+        onReleased: mouse => {
+            if (root.overIcon && mouse.x < track.height) root.iconClicked()
+            else if (!root.overIcon) root.committed(root.dragValue)
+            root.overIcon = false
+        }
         // the wheel nudges it
-        onWheel: wheel => root.moved(root.clamp(root.value + (wheel.angleDelta.y > 0 ? root.step : -root.step)))
+        onWheel: wheel => root.nudge(wheel.angleDelta.y > 0 ? root.step : -root.step)
     }
 }

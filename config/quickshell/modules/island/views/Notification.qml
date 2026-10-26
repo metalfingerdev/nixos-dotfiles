@@ -11,7 +11,7 @@ import qs.modules.island.parts
 //            left click: close it (it stays in the center)  middle: default action  right: close all
 //   center (Pinned, e.g. `qs ipc call island open notifications`): everything not dismissed,
 //          newest first, scrollable, with Do not disturb and Clear all.
-//            click: default action   x: dismiss
+//            click or Enter: default action   x or Delete: dismiss   D: Do not disturb   C: clear all
 Item {
     id: root
 
@@ -19,8 +19,8 @@ Item {
     readonly property var popups: Notifier.popups.slice(0, Notifier.maxPopups)
     readonly property int more: Notifier.popups.length - popups.length
 
-    implicitWidth: 420
-    implicitHeight: (center ? centerColumn.implicitHeight : popupColumn.implicitHeight) + (center ? 32 : 16)
+    implicitWidth: center ? 720 : 480
+    implicitHeight: (center ? centerColumn.implicitHeight : popupColumn.implicitHeight) + (center ? 48 : 16)
 
     // ---- popups: the first few, critical first; the rest wait ----
     Column {
@@ -52,9 +52,9 @@ Item {
     Column {
         id: centerColumn
         visible: root.center
-        x: 16; y: 16
-        width: parent.width - 32
-        spacing: 10
+        x: 24; y: 24
+        width: parent.width - 48
+        spacing: 14
 
         Header {
             width: parent.width
@@ -64,13 +64,18 @@ Item {
 
             Pill {
                 icon: Notifier.dnd ? "do_not_disturb_on" : "do_not_disturb_off"
+                text: "Do not disturb"
+                implicitHeight: 48
                 active: Notifier.dnd
+                shortcut: "d"
                 onClicked: Notifier.dnd = !Notifier.dnd
             }
             Pill {
                 visible: Notifier.count > 0
+                implicitHeight: 48
                 kind: "text"
                 text: "Clear all"
+                shortcut: "c"
                 onClicked: Notifier.dismissAll()
             }
         }
@@ -79,13 +84,13 @@ Item {
             id: notes
             visible: Notifier.count > 0
             width: parent.width
-            maxHeight: 520
-            spacing: 8
+            maxHeight: 600
+            spacing: 10
 
             Repeater {
                 model: ScriptModel { values: root.center ? Notifier.items : []; objectProp: "id" }
                 delegate: NotificationCard {
-                    width: notes.width
+                    width: notes.innerWidth
                     center: true
                 }
             }
@@ -111,6 +116,11 @@ Item {
                 font.family: Config.font
                 font.pixelSize: Config.body
             }
+        }
+
+        KeyHints {
+            width: parent.width
+            keys: [["Enter", "open"], ["Del", "dismiss"], ["Esc", "back"]]
         }
     }
 }

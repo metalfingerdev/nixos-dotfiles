@@ -258,6 +258,7 @@ hl.bind(mainMod .. " + U",                hl.dsp.exec_cmd("quickshell ipc call i
 hl.bind(mainMod .. " + T",                hl.dsp.exec_cmd("quickshell ipc call island open theme"))
 hl.bind(mainMod .. " + C",                hl.dsp.exec_cmd("quickshell ipc call island open clock"))
 hl.bind(mainMod .. " + X",                hl.dsp.exec_cmd("quickshell ipc call island open power"))
+hl.bind(mainMod .. " + H",                hl.dsp.exec_cmd("quickshell ipc call island open tabs"))       -- the hub: Tab/arrows, letters open views
 
 hl.bind(mainMod .. " + SPACE", function()
     hl.dispatch(hl.dsp.window.cycle_next({

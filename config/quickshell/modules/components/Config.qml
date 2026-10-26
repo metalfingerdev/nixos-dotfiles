@@ -58,8 +58,57 @@ QtObject {
     })
     readonly property var names: Object.keys(palettes)
 
+    // ---- where the colours come from (views/Theme.qml) ----
+    //   source   "preset": a palette above, by `name`
+    //            "accent": generated from `accent`, Material You style
+    //            "wallpaper": generated from the wallpaper's dominant colour (`wallpaperSeed`,
+    //                         kept up to date by shell.qml from services/Wallpaper.qml)
+    //   variant  how colourful a generated scheme is: "tonal" | "vibrant" | "muted" | "mono"
+    //   darkMode a generated scheme's light or dark version
+    property string source: "preset"
     property string name: "teal"
-    readonly property var current: palettes[name] ?? palettes.teal
+    property color accent: "#4f9d8f"
+    property color wallpaperSeed: "#4f9d8f"
+    property string variant: "tonal"
+    property bool darkMode: true
+    readonly property color seed: source === "wallpaper" ? wallpaperSeed : accent
+    readonly property var current: source === "preset" ? (palettes[name] ?? palettes.teal) : scheme(seed, variant, darkMode)
+
+    // A whole palette from one colour: the seed's hue at Material's tones for each role, with
+    // a saturation per role set by the variant. HSL, not Material's HCT, so tones are approximate.
+    function scheme(seed, variant, dark) {
+        const h = Math.max(0, seed.hslHue)
+        const c = ({ tonal:   { p: 0.50, s: 0.22, n: 0.10 },
+                     vibrant: { p: 0.82, s: 0.40, n: 0.16 },
+                     muted:   { p: 0.28, s: 0.12, n: 0.05 },
+                     mono:    { p: 0,    s: 0,    n: 0 } })[variant] ?? { p: 0.5, s: 0.22, n: 0.1 }
+        const mono = variant === "mono"
+        const tone = (sat, light) => Qt.hsla(h, sat, light, 1)
+        return dark ? {
+            label: "Generated", dark: true,
+            surface: tone(c.n, 0.065), container: tone(c.n, 0.105), high: tone(c.n, 0.145), highest: tone(c.n, 0.185),
+            primary: tone(c.p, mono ? 0.90 : 0.72), onPrimary: tone(c.p, mono ? 0.10 : 0.14),
+            secondary: tone(c.s, 0.26), onSecondary: tone(c.s, 0.88),
+            text: tone(c.n, 0.91), dim: tone(c.n, 0.75), outline: tone(c.n, 0.52),
+            good: "#8bd5a0", warn: "#f2c36b", bad: "#ffb4ab"
+        } : {
+            label: "Generated", dark: false,
+            surface: tone(c.n, 0.975), container: tone(c.n, 0.935), high: tone(c.n, 0.895), highest: tone(c.n, 0.855),
+            primary: tone(c.p, mono ? 0.12 : 0.40), onPrimary: tone(c.p, 0.985),
+            secondary: tone(c.s, 0.86), onSecondary: tone(c.s, 0.16),
+            text: tone(c.n, 0.10), dim: tone(c.n, 0.32), outline: tone(c.n, 0.50),
+            good: "#2e9b5f", warn: "#b7791f", bad: "#d64545"
+        }
+    }
+    // the "Dark theme" tile: a preset swaps to Paper and back; a generated scheme flips its mode
+    function setDark(on) {
+        if (source === "preset") name = on ? lastDark : "paper"
+        else darkMode = on
+    }
+
+    // Size of the whole island (views/Theme.qml): Bar scales every view by this, so all sizes
+    // below are at 100 %. 0.8 .. 1.4.
+    property real scale: 1.0
 
     // ---- Material roles ----
     readonly property color surface:     current.surface
@@ -88,7 +137,6 @@ QtObject {
     readonly property color selected: highest
     readonly property color track:    high
     readonly property color faint:    outline
-    readonly property color accent:   primary
 
     // a + (b - a) * t, per channel: Material's state layers and tonal blends
     function mix(a, b, t) {
@@ -137,19 +185,24 @@ QtObject {
     readonly property string mono: "JetBrains Mono"
     readonly property string icons: "Material Symbols Rounded"
 
-    // type scale: label, body, title, headline, display
-    readonly property int small: 11
-    readonly property int body: 13
-    readonly property int large: 16
-    readonly property int title: 20
-    readonly property int headline: 28
-    readonly property int display: 48
+    // type scale: label, body, title, headline, display (a laptop at arm's length: on the big side)
+    readonly property int small: 12
+    readonly property int body: 14
+    readonly property int large: 17
+    readonly property int title: 22
+    readonly property int headline: 30
+    readonly property int display: 56
 
     // ~/.local/state/quickshell/island.ini. The config dir is a read-only Nix store path.
     property Settings store: Settings {
         location: StandardPaths.writableLocation(StandardPaths.GenericStateLocation) + "/quickshell/island.ini"
         category: "theme"
+        property alias source: root.source
         property alias name: root.name
+        property alias accent: root.accent
+        property alias variant: root.variant
+        property alias darkMode: root.darkMode
+        property alias scale: root.scale
         property alias style: root.style
         property alias handle: root.handle
         property alias glass: root.glass

@@ -10,11 +10,11 @@ Singleton {
     id: root
 
     readonly property var actions: [
-        { id: "lock",     label: "Lock",      icon: "lock",               confirm: false },
-        { id: "suspend",  label: "Suspend",   icon: "bedtime",            confirm: false },
-        { id: "logout",   label: "Log out",   icon: "logout",             confirm: true },
-        { id: "reboot",   label: "Restart",   icon: "restart_alt",        confirm: true },
-        { id: "poweroff", label: "Shut down", icon: "power_settings_new", confirm: true }
+        { id: "lock",     label: "Lock",      icon: "lock",               confirm: false, key: "l" },
+        { id: "suspend",  label: "Suspend",   icon: "bedtime",            confirm: false, key: "s" },
+        { id: "logout",   label: "Log out",   icon: "logout",             confirm: true,  key: "o" },
+        { id: "reboot",   label: "Restart",   icon: "restart_alt",        confirm: true,  key: "r" },
+        { id: "poweroff", label: "Shut down", icon: "power_settings_new", confirm: true,  key: "p" }
     ]
 
     // lock: asks logind, so whatever locker listens (hypridle -> hyprlock, ...) does the locking.

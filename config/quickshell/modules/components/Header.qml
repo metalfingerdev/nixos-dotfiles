@@ -15,7 +15,7 @@ Item {
     default property alias actions: tools.data
     signal back()
 
-    implicitHeight: 48
+    implicitHeight: 52
 
     RowLayout {
         anchors.fill: parent
@@ -26,9 +26,9 @@ Item {
             Layout.alignment: Qt.AlignVCenter
             kind: "text"
             icon: "arrow_back"
-            iconSize: 22
-            implicitHeight: 40
-            activeFocusOnTab: false             // Escape goes back; Tab starts on the view itself
+            iconSize: 24
+            implicitHeight: 48
+            activeFocusOnTab: false             // Escape/Backspace go back; Tab starts on the view itself
             onClicked: root.back()
         }
 

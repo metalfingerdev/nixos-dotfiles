@@ -71,9 +71,9 @@ Singleton {
     readonly property QtObject colors: QtObject {
         readonly property color tile: Config.raised
         readonly property color tileHover: Config.hover
-        readonly property color tileHoverBorder: Config.accent
+        readonly property color tileHoverBorder: Config.primary
         readonly property color number: Config.text
-        readonly property color accent: Config.accent
+        readonly property color accent: Config.primary
         readonly property color window: Config.raised
         readonly property color windowHover: Config.hover
         readonly property color windowActive: Config.selected

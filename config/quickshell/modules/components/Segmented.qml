@@ -1,8 +1,9 @@
 import QtQuick
 
 // A segmented button (Material 3): an outlined pill split into options; the chosen one takes the
-// secondary fill and a check. options: [{ key, label, icon? }]; bind `current` to the real value
-// and act in onPicked. Each segment is focusable: Tab reaches it, Enter/Space pick it.
+// secondary fill and a check. options: [{ key, label, icon?, shortcut? }]; bind `current` to the
+// real value and act in onPicked. Each segment is focusable: Tab/arrows reach it, Enter/Space pick
+// it, and an option's `shortcut` key picks it from anywhere in the view.
 //   Segmented { options: [{ key: "pill", label: "Pill" }, { key: "notch", label: "Notch" }]
 //               current: Config.style; onPicked: k => Config.style = k }
 Rectangle {
@@ -14,12 +15,11 @@ Rectangle {
     signal picked(string key)
 
     implicitWidth: 320
-    implicitHeight: 40
+    implicitHeight: 48
     radius: height / 2
     color: "transparent"
     border.width: 1
     border.color: Config.outline
-    clip: true
 
     Row {
         anchors.fill: parent
@@ -32,6 +32,10 @@ Rectangle {
                 required property var modelData
                 required property int index
                 readonly property bool chosen: modelData.key === root.current
+                readonly property string shortcut: modelData.shortcut ?? ""
+                readonly property bool ring: activeFocus && Config.focusVisible
+
+                function activate() { root.picked(modelData.key) }
 
                 width: root.width / Math.max(1, root.options.length)
                 height: root.height
@@ -41,13 +45,13 @@ Rectangle {
                 topRightRadius: index === root.options.length - 1 ? root.radius : 0
                 bottomRightRadius: index === root.options.length - 1 ? root.radius : 0
                 color: Config.state(chosen ? Config.secondary : Qt.rgba(Config.surface.r, Config.surface.g, Config.surface.b, 0),
-                                    Config.text, area.containsMouse, area.pressed || (activeFocus && Config.focusVisible))
+                                    Config.text, area.containsMouse, area.pressed || ring)
                 Behavior on color { ColorAnimation { duration: 140 } }
 
                 activeFocusOnTab: true
-                Keys.onReturnPressed: root.picked(modelData.key)
-                Keys.onEnterPressed:  root.picked(modelData.key)
-                Keys.onSpacePressed:  root.picked(modelData.key)
+                Keys.onReturnPressed: activate()
+                Keys.onEnterPressed:  activate()
+                Keys.onSpacePressed:  activate()
 
                 // divider to the left of every segment but the first
                 Rectangle {
@@ -66,7 +70,7 @@ Rectangle {
                         visible: glyph !== ""
                         anchors.verticalCenter: parent.verticalCenter
                         name: glyph
-                        size: 18
+                        size: 20
                         color: segment.chosen ? Config.secondaryInk : Config.text
                     }
                     Text {
@@ -84,8 +88,22 @@ Rectangle {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: root.picked(segment.modelData.key)
+                    onClicked: segment.activate()
                 }
+
+                // inside the segment: it touches its neighbours
+                Rectangle {
+                    anchors { fill: parent; margins: 4 }
+                    visible: segment.ring
+                    topLeftRadius: Math.max(0, segment.topLeftRadius - 4)
+                    bottomLeftRadius: Math.max(0, segment.bottomLeftRadius - 4)
+                    topRightRadius: Math.max(0, segment.topRightRadius - 4)
+                    bottomRightRadius: Math.max(0, segment.bottomRightRadius - 4)
+                    color: "transparent"
+                    border.width: 3
+                    border.color: Config.primary
+                }
+                KeyBadge { key: segment.shortcut; anchors { right: parent.right; top: parent.top; rightMargin: 8; topMargin: -8 } }
             }
         }
     }

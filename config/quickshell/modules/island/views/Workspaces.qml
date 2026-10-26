@@ -40,7 +40,8 @@ Item {
     readonly property int pad: cfg.padding
 
     // the configured scale, shrunk when the island wouldn't fit on the screen
-    readonly property real maxContentWidth: (screen?.width ?? usableW) * cfg.maxWidthFraction - pad * 2
+    // Bar draws views at Config.scale, so at 100 % the screen is that much narrower
+    readonly property real maxContentWidth: (screen?.width ?? usableW) * cfg.maxWidthFraction / Config.scale - pad * 2
     readonly property real previewScale: Math.max(0.02, Math.min(cfg.scale,
         (maxContentWidth - (columns - 1) * gap) / (columns * usableW)))
     readonly property real tileW: Math.round(usableW * previewScale)

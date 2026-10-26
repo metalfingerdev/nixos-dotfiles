@@ -30,8 +30,8 @@ Item {
         Energy.cycles > 0 ? { icon: "autorenew", text: Energy.cycles + " cycles" } : null
     ].filter(d => d !== null)
 
-    implicitWidth: 400
-    implicitHeight: column.implicitHeight + 32
+    implicitWidth: 600
+    implicitHeight: column.implicitHeight + 48
 
     // a toast pins on click; the pinned view has the back arrow instead
     MouseArea {
@@ -42,9 +42,9 @@ Item {
 
     Column {
         id: column
-        x: 16; y: 16
-        width: parent.width - 32
-        spacing: 14
+        x: 24; y: 24
+        width: parent.width - 48
+        spacing: 18
 
         Header {
             visible: Engine.pinned
@@ -56,18 +56,18 @@ Item {
 
         Item {
             width: parent.width
-            height: 56
+            height: 76
 
             Rectangle {
                 id: badge
                 anchors.verticalCenter: parent.verticalCenter
-                width: 56; height: 56; radius: 28
+                width: 76; height: 76; radius: 38
                 color: Config.mix(Config.container, root.levelColor, 0.22)
 
                 Icon {
                     anchors.centerIn: parent
                     name: Energy.glyph
-                    size: 28
+                    size: 38
                     filled: true
                     color: root.levelColor
                 }
@@ -79,7 +79,7 @@ Item {
                     text: Energy.present ? (Energy.percent >= 0 ? Energy.percent + "%" : "…") : "No battery"
                     color: Config.text
                     font.family: Config.font
-                    font.pixelSize: Config.headline + 4
+                    font.pixelSize: Config.display
                     font.weight: Font.Normal
                     font.features: { "tnum": 1 }
                 }
@@ -99,7 +99,7 @@ Item {
         Progress {
             visible: Energy.present
             width: parent.width
-            thickness: 12
+            thickness: 16
             fraction: Energy.percent / 100
             color: root.levelColor
         }
@@ -114,9 +114,9 @@ Item {
 
                 Rectangle {
                     required property var modelData
-                    width: chip.implicitWidth + 24
-                    height: 32
-                    radius: 16
+                    width: chip.implicitWidth + 28
+                    height: 40
+                    radius: 20
                     color: Config.container
 
                     Row {

@@ -15,7 +15,12 @@ default.
 | `qs ipc call island back` | go back one step in history |
 | `qs ipc call island autohide <true\|false>` | set auto-hide |
 | `qs ipc call island toggleAutohide` | toggle auto-hide |
-| `qs ipc call island palette <name>` | switch colours; `palettes` lists them |
+| `qs ipc call island palette <name>` | a preset palette; `palettes` lists them |
+| `qs ipc call island colours <preset\|accent\|wallpaper>` | where colours come from |
+| `qs ipc call island accent <#rrggbb>` | a scheme generated from that colour (Material You style) |
+| `qs ipc call island variant <tonal\|vibrant\|muted\|mono>` | how colourful a generated scheme is |
+| `qs ipc call island mode <dark\|light>` | a generated scheme's dark or light version |
+| `qs ipc call island size <80..140>` | the whole island's size, in percent |
 | `qs ipc call island style <pill\|notch>` | the island's shape |
 | `qs ipc call island glass <true\|false>` | frosted glass; `toggleGlass` flips it |
 | `qs ipc call island handle <strip\|none>` | auto-hide: what stays at the top edge while hidden |
@@ -26,8 +31,9 @@ default.
 
 `open compact` (the rest view) goes home, the same as `close`. `alert compact` is ignored.
 
-Every view opened this way is Pinned, so it has the keyboard (Tab/arrows, Enter, Escape) until it
-closes, and each keystroke restarts its timeout. Names: `expanded` (the glance: typing searches),
+Every view opened this way is Pinned, so it has the keyboard (Tab/arrows, Enter, Escape, each
+control's shortcut key) until it closes, and each keystroke restarts its timeout. It opens in keyboard
+mode: focus rings and shortcut keycaps show until the pointer moves. Names: `expanded` (the glance: typing searches),
 `tabs` (the hub), `dashboard` (everything), `launcher`, `network`, `bluetooth`, `media`,
 `notifications` (`open` = the center, `alert` = the popups), `workspaces` (the overview), `clock`,
 `battery`, `power`, `theme` (palette, look, wallpaper; also `settings`), and the toast `switcher`
@@ -76,6 +82,7 @@ Hyprland:
 bind = SUPER, Space, exec, qs ipc call island open launcher
 bind = SUPER, I, exec, qs ipc call island open expanded       # the glance: type to search
 bind = SUPER, G, exec, qs ipc call island open dashboard
+bind = SUPER, H, exec, qs ipc call island open tabs
 bind  = SUPER, B, exec, qs ipc call island peek true          # hold Super+B to show the clock
 bindr = SUPER, B, exec, qs ipc call island peek false
 bind = SUPER, Z, exec, qs ipc call island togglePeek          # or: Super+Z shows it, Super+Z again hides it

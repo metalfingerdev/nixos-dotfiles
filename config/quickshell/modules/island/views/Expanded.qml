@@ -20,8 +20,8 @@ Item {
     readonly property bool media: Players.active !== null && (Players.active.trackTitle ?? "") !== ""
     readonly property var newest: Notifier.items[0] ?? null
 
-    implicitWidth: 440
-    implicitHeight: column.implicitHeight + 32
+    implicitWidth: 580
+    implicitHeight: column.implicitHeight + 40
 
     SystemClock {
         id: clock
@@ -36,9 +36,9 @@ Item {
 
     Column {
         id: column
-        x: 16; y: 16
-        width: parent.width - 32
-        spacing: 12
+        x: 20; y: 20
+        width: parent.width - 40
+        spacing: 14
 
         // ---- time, date, and what's on ----
         Item {
@@ -54,7 +54,7 @@ Item {
                     text: Qt.formatDateTime(clock.date, "HH:mm")
                     color: Config.text
                     font.family: Config.font
-                    font.pixelSize: Config.display - 4
+                    font.pixelSize: Config.display
                     font.weight: Font.Normal
                     font.features: { "tnum": 1 }
                 }
@@ -62,15 +62,16 @@ Item {
                     text: Qt.formatDateTime(clock.date, "dddd, d MMMM")
                     color: Config.dim
                     font.family: Config.font
-                    font.pixelSize: Config.body
+                    font.pixelSize: Config.large
                 }
             }
 
             StatusGroup {
                 id: statusGroup
                 anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                maxText: 96
-                maxWidth: parent.width - time.implicitWidth - 16
+                segmentHeight: 46
+                maxText: 110
+                maxWidth: parent.width - time.implicitWidth - 20
                 onClicked: x => Engine.open(Engine.View.Dashboard, x)
             }
         }
@@ -86,15 +87,15 @@ Item {
             id: glance
             visible: root.newest !== null
             width: parent.width
-            height: 48
+            height: 56
             radius: height / 2
             color: Config.state(Config.container, Config.text, glanceArea.containsMouse, glanceArea.pressed)
 
             Rectangle {
                 id: bell
-                x: 6
+                x: 8
                 anchors.verticalCenter: parent.verticalCenter
-                width: 36; height: 36; radius: 18
+                width: 42; height: 42; radius: 21
                 color: Config.secondary
 
                 Icon {

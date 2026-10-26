@@ -42,9 +42,13 @@ The contract:
   `Config.qml`. A QML property can't be named `onSomething` (QML reads it as a signal handler and it
   stays black), hence `primaryInk`.
 - **Keyboard**: nothing to do for the basics. A pinned view, and the peek view (while hovered), gets the
-  keyboard, and `ViewLoader` gives it default keys: Tab/arrows move between focusable items (every `Pill`
-  is one), Enter/Space press the focused Pill, and Escape goes back. For your own rules, add `Keys`
-  handlers in the view. Keys you handle are yours, and anything you don't accept still bubbles to the
+  keyboard, and `ViewLoader` gives it default keys: Tab moves through focusable items (every control is
+  one), arrows move to the nearest one that way, Enter/Space press the focused one, Escape and
+  Backspace go back. Give a control a `shortcut: "x"` (Pill, QuickTile, Tile, ListEntry, Chip, a
+  Segmented option) and typing x presses it; it shows as a keycap while the keyboard is in use. Keys
+  with no control to badge go in a `KeyHints { keys: [["+ −", "volume"]] }` footer. A focusable item of
+  your own needs `FocusRing {}` inside it, and an `activate()` if it has a shortcut. For your own rules,
+  add `Keys` handlers in the view. Keys you handle are yours, and anything you don't accept still bubbles to the
   defaults. Put `focus: true` on the item that should start focused (otherwise it's the first focusable
   one). Set `activeFocusOnTab: false` on items Tab should skip. See `views/Launcher.qml`: the field keeps
   focus, and Up/Down move a selection instead.

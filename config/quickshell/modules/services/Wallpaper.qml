@@ -22,6 +22,24 @@ Singleton {
     property string current: ""
     readonly property int currentIndex: files.indexOf(current)
 
+    // ---- its colours, for a theme generated from the wallpaper (components/Config.qml) ----
+    ColorQuantizer {
+        id: quantizer
+        source: root.current ? root.fileUrl(root.current) : ""
+        depth: 3                     // 2^3 = 8 colours
+        rescaleSize: 96              // decode small: it only needs the colours
+    }
+    readonly property var swatches: Array.from(quantizer.colors ?? [])
+    // Material's "source colour": the most colourful swatch that isn't near black or white
+    readonly property color seed: {
+        let best = null, score = -1
+        for (const c of swatches) {
+            const s = c.hslSaturation * (1 - Math.abs(c.hslLightness - 0.5) * 1.6)
+            if (s > score) { score = s; best = c }
+        }
+        return best ?? "#4f9d8f"
+    }
+
     function fileUrl(p) { return "file://" + p.split("/").map(encodeURIComponent).join("/") }
     function baseName(p) { return p ? p.split("/").pop() : "" }
 

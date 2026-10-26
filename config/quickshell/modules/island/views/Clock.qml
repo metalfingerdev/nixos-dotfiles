@@ -3,9 +3,12 @@ import Quickshell
 import qs.modules.island
 import qs.modules.components
 
-// The time with seconds, the date, and a month calendar in a card (‹ › change month, "Today" returns).
+// The time with seconds and the date beside a month calendar.
+// Keys: [ ] change month, T back to today, Escape back.
 Item {
     id: root
+
+    readonly property int pad: 24
 
     SystemClock {
         id: clock
@@ -15,105 +18,110 @@ Item {
     // the month on show, as an offset from the current one
     property int shift: 0
     readonly property date shown: new Date(clock.date.getFullYear(), clock.date.getMonth() + shift, 1)
+    // ISO week number, for the line under the date
+    readonly property int week: {
+        const d = new Date(Date.UTC(clock.date.getFullYear(), clock.date.getMonth(), clock.date.getDate()))
+        const day = d.getUTCDay() || 7
+        d.setUTCDate(d.getUTCDate() + 4 - day)
+        return Math.ceil(((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 86400000 + 1) / 7)
+    }
 
-    implicitWidth: 340
-    implicitHeight: column.implicitHeight + 32
+    implicitWidth: 780
+    implicitHeight: column.implicitHeight + 2 * pad
 
     Column {
         id: column
-        x: 16; y: 16
-        width: parent.width - 32
-        spacing: 14
+        x: root.pad; y: root.pad
+        width: parent.width - 2 * root.pad
+        spacing: 16
 
-        Item {
+        Header {
             width: parent.width
-            height: time.implicitHeight
+            title: "Calendar"
+            onBack: Engine.back()
 
-            Row {
-                anchors.left: parent.left
-                leftPadding: 4
-                spacing: 6
-
-                Text {
-                    id: time
-                    text: Qt.formatDateTime(clock.date, "HH:mm")
-                    color: Config.text
-                    font.family: Config.font
-                    font.pixelSize: Config.display + 8
-                    font.weight: Font.Light
-                    font.features: { "tnum": 1 }
-                }
-                Text {
-                    anchors.baseline: time.baseline
-                    text: Qt.formatDateTime(clock.date, "ss")
-                    color: Config.primary
-                    font.family: Config.font
-                    font.pixelSize: Config.title
-                    font.features: { "tnum": 1 }
-                }
-            }
-
-            Pill {
-                anchors { right: parent.right; top: parent.top; topMargin: 6 }
-                kind: "text"
-                icon: "arrow_back"
-                iconSize: 22
-                implicitHeight: 40
-                activeFocusOnTab: false
-                onClicked: Engine.back()
-            }
+            Pill { visible: root.shift !== 0; implicitHeight: 48; kind: "text"; text: "Today"; shortcut: "t"; onClicked: root.shift = 0 }
+            Pill { icon: "chevron_left";  implicitHeight: 48; iconSize: 24; shortcut: "["; onClicked: root.shift-- }
+            Pill { icon: "chevron_right"; implicitHeight: 48; iconSize: 24; shortcut: "]"; onClicked: root.shift++ }
         }
 
-        Text {
-            leftPadding: 4
-            text: Qt.formatDateTime(clock.date, "dddd, d MMMM yyyy")
-            color: Config.dim
-            font.family: Config.font
-            font.pixelSize: Config.large
-        }
-
-        Rectangle {
+        Row {
             width: parent.width
-            height: month.implicitHeight + 24
-            radius: Config.cardRadius
-            color: Config.container
+            spacing: 24
 
             Column {
-                id: month
-                x: 12; y: 12
-                width: parent.width - 24
-                spacing: 6
+                width: parent.width - card.width - parent.spacing
+                anchors.verticalCenter: card.verticalCenter
+                spacing: 8
 
-                Item {
-                    width: parent.width
-                    height: 36
+                Row {
+                    spacing: 8
 
                     Text {
-                        anchors { left: parent.left; leftMargin: 8; verticalCenter: parent.verticalCenter }
+                        id: time
+                        text: Qt.formatDateTime(clock.date, "HH:mm")
+                        color: Config.text
+                        font.family: Config.font
+                        font.pixelSize: 88
+                        font.weight: Font.Light
+                        font.features: { "tnum": 1 }
+                    }
+                    Text {
+                        anchors.baseline: time.baseline
+                        text: Qt.formatDateTime(clock.date, "ss")
+                        color: Config.primary
+                        font.family: Config.font
+                        font.pixelSize: Config.headline
+                        font.features: { "tnum": 1 }
+                    }
+                }
+                Text {
+                    text: Qt.formatDateTime(clock.date, "dddd")
+                    color: Config.text
+                    font.family: Config.font
+                    font.pixelSize: Config.title
+                }
+                Text {
+                    text: Qt.formatDateTime(clock.date, "d MMMM yyyy") + "  ·  week " + root.week
+                    color: Config.dim
+                    font.family: Config.font
+                    font.pixelSize: Config.large
+                }
+            }
+
+            Rectangle {
+                id: card
+                width: month.implicitWidth + 32
+                height: month.implicitHeight + 32
+                radius: Config.cardRadius
+                color: Config.container
+
+                Column {
+                    id: month
+                    x: 16; y: 16
+                    spacing: 8
+
+                    Text {
+                        leftPadding: 8
                         text: Qt.formatDateTime(root.shown, "MMMM yyyy")
                         color: Config.text
                         font.family: Config.font
                         font.pixelSize: Config.large
                         font.weight: Font.Medium
                     }
-                    Row {
-                        anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                        spacing: 2
-
-                        Pill { visible: root.shift !== 0; kind: "text"; text: "Today"; onClicked: root.shift = 0 }
-                        Pill { kind: "text"; icon: "chevron_left";  iconSize: 22; onClicked: root.shift-- }
-                        Pill { kind: "text"; icon: "chevron_right"; iconSize: 22; onClicked: root.shift++ }
+                    CalendarGrid {
+                        cell: 44
+                        year: root.shown.getFullYear()
+                        month: root.shown.getMonth()
+                        today: clock.date
                     }
                 }
-
-                CalendarGrid {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    cell: 40
-                    year: root.shown.getFullYear()
-                    month: root.shown.getMonth()
-                    today: clock.date
-                }
             }
+        }
+
+        KeyHints {
+            width: parent.width
+            keys: [["[ ]", "month"], ["T", "today"], ["Esc", "back"]]
         }
     }
 }

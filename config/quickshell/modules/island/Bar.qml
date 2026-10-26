@@ -32,7 +32,7 @@ Scope {
     readonly property real edgePad: 8              // keep the island this far from the screen sides
     readonly property real hotZone: 4              // auto-hide: height of the top-edge strip that reveals the island
     readonly property bool debug: Engine.debug     // show the proxy as a faint green box (watch it snap)
-    readonly property int space: gap + 36          // height reserved at the top when auto-hide is off
+    readonly property int space: gap + Math.ceil(36 * Config.scale)   // height reserved at the top when auto-hide is off
 
     // auto-hide's handle: what stays of the island while it is hidden
     readonly property bool strip: Engine.hidden && Config.handle === "strip"
@@ -176,8 +176,20 @@ Scope {
         // take the hover from it.
         HoverHandler {
             id: pointer
-            // the pointer is back: focus rings hide until the keyboard moves focus again
-            onPointChanged: if (Config.focusVisible) Config.focusVisible = false
+            // The pointer is back: focus rings hide until the keyboard moves focus again. Only a real
+            // move counts: Qt re-sends hover every frame something animates under a still pointer
+            // (the morph, a toast), and that used to hide the ring right after every key.
+            // The first position after the pointer enters (or the island appears under it) is
+            // only the baseline.
+            property point last: Qt.point(-1, -1)
+            onHoveredChanged: if (!hovered) last = Qt.point(-1, -1)
+            onPointChanged: {
+                const p = point.position
+                if (last.x < 0) { last = Qt.point(p.x, p.y); return }
+                if (Math.abs(p.x - last.x) + Math.abs(p.y - last.y) < 3) return
+                last = Qt.point(p.x, p.y)
+                if (Config.focusVisible) Config.focusVisible = false
+            }
         }
         readonly property bool onIsland: pointer.hovered
             && pointer.point.position.x >= proxy.x && pointer.point.position.x < proxy.x + proxy.width
@@ -188,19 +200,20 @@ Scope {
         Item {
             id: proxy
 
-            // size of the last loaded view; held while the next one loads, so it never flashes to 0
+            // size of the last loaded view, at Config.scale (the island's Size); held while the next
+            // one loads, so it never flashes to 0
             property real viewW: 0
             property real viewH: 0
 
             Binding {
                 target: proxy; property: "viewW"
-                value: loader.item ? loader.item.implicitWidth : 0
+                value: loader.item ? Math.round(loader.item.implicitWidth * Config.scale) : 0
                 when: loader.item !== null
                 restoreMode: Binding.RestoreNone
             }
             Binding {
                 target: proxy; property: "viewH"
-                value: loader.item ? loader.item.implicitHeight : 0
+                value: loader.item ? Math.round(loader.item.implicitHeight * Config.scale) : 0
                 when: loader.item !== null
                 restoreMode: Binding.RestoreNone
             }
@@ -257,7 +270,7 @@ Scope {
         Rectangle {
             id: surface
 
-            readonly property real r: Math.min(height / 2, Config.radius)
+            readonly property real r: Math.min(height / 2, Config.radius * Config.scale)
 
             x: root.sx
             y: root.sy
@@ -296,10 +309,13 @@ Scope {
                     onActivity: Engine.key()
                     onNavigated: Config.focusVisible = true
 
-                    width: proxy.viewW
-                    height: proxy.viewH
+                    // laid out at 100 %, drawn at the island's Size
+                    width: proxy.viewW / Config.scale
+                    height: proxy.viewH / Config.scale
+                    scale: Config.scale
+                    transformOrigin: Item.TopLeft
 
-                    x: root.pinView ? proxy.x - surface.x : (surface.width - width) / 2
+                    x: root.pinView ? proxy.x - surface.x : (surface.width - proxy.viewW) / 2
                     y: root.pinView ? proxy.y - surface.y : 0
 
                     source: Registry.get(root.shown)?.url ?? ""

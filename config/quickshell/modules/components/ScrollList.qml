@@ -1,32 +1,43 @@
 import QtQuick
 
 // A vertical list that grows with its rows up to `maxHeight`, then scrolls (wheel or drag).
-// Children stack like a Column. Keyboard focus moving to a row out of sight scrolls it into view.
+// Children stack like a Column, `inset` in from every edge so focus rings (drawn just outside a
+// row) aren't clipped. Keyboard focus moving to a row out of sight scrolls it into view.
 Flickable {
     id: root
 
     property real maxHeight: 300
+    property real inset: 7
     property alias spacing: column.spacing
+    readonly property real innerWidth: width - 2 * inset
     default property alias rows: column.data
 
-    implicitHeight: Math.min(column.implicitHeight, maxHeight)
+    implicitHeight: Math.min(column.implicitHeight + 2 * inset, maxHeight)
     contentWidth: width
-    contentHeight: column.implicitHeight
+    contentHeight: column.implicitHeight + 2 * inset
     clip: true
     interactive: contentHeight > height
     boundsBehavior: Flickable.StopAtBounds
 
     Column {
         id: column
-        width: root.width
+        x: root.inset
+        y: root.inset
+        width: root.innerWidth
     }
+
+    // A row focused while the list was still being laid out may have scrolled it for a height it
+    // didn't keep: keep the scroll inside what there is to scroll.
+    function settle() { contentY = Math.max(0, Math.min(contentY, contentHeight - height)) }
+    onHeightChanged: settle()
+    onContentHeightChanged: settle()
 
     function reveal(item) {
         for (let p = item; p; p = p.parent) {
             if (p === column) {
                 const y = item.mapToItem(column, 0, 0).y
                 if (y < contentY) contentY = y
-                else if (y + item.height > contentY + height) contentY = y + item.height - height
+                else if (y + item.height + 2 * inset > contentY + height) contentY = y + item.height + 2 * inset - height
                 return
             }
         }

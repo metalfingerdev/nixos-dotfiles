@@ -16,8 +16,8 @@ Item {
     Keys.onEnterPressed:  flip()
     Keys.onSpacePressed:  flip()
 
-    implicitWidth: 46
-    implicitHeight: 28
+    implicitWidth: 52
+    implicitHeight: 32
     opacity: enabled ? 1 : 0.38
 
     Rectangle {
@@ -29,15 +29,7 @@ Item {
         border.color: Config.outline
         Behavior on color { ColorAnimation { duration: 140 } }
 
-        // focus ring, outside the track
-        Rectangle {
-            anchors { fill: parent; margins: -4 }
-            visible: root.activeFocus && Config.focusVisible
-            radius: height / 2
-            color: "transparent"
-            border.width: 2
-            border.color: Config.primary
-        }
+        FocusRing { on: root.activeFocus }
 
         // the handle grows when on, and under the pointer
         Rectangle {

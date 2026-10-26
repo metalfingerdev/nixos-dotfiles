@@ -5,7 +5,7 @@ import QtQuick.Layouts
 // text, then any children (buttons, an icon). `active` marks the current one (connected, playing):
 // its circle takes the primary colour and the row a tonal fill. `lead` replaces the icon with a
 // component of the view's own (an app icon, album art).
-// Mouse: click. Keyboard: Tab/arrows reach it, Enter/Space press it, like Pill.
+// Mouse: click. Keyboard: Tab/arrows reach it, Enter/Space press it, its `shortcut` key too.
 Rectangle {
     id: root
 
@@ -14,6 +14,7 @@ Rectangle {
     property string subtitle: ""
     property string trailing: ""
     property bool active: false
+    property string shortcut: ""
     property bool keyboardSelected: activeFocus && Config.focusVisible
     readonly property bool hovered: area.containsMouse
     property Component lead: null
@@ -22,21 +23,20 @@ Rectangle {
 
     activeFocusOnTab: true
     function press() { clicked() }
+    function activate() { press() }
     Keys.onReturnPressed: press()
     Keys.onEnterPressed:  press()
     Keys.onSpacePressed:  press()
 
     implicitWidth: 320
-    implicitHeight: subtitle !== "" ? 60 : 48
-    radius: Config.innerRadius
+    implicitHeight: subtitle !== "" ? 64 : 52
+    radius: Config.innerRadius + 4
     color: {
         const base = active ? Config.secondary : Qt.rgba(Config.container.r, Config.container.g, Config.container.b, 0)
         return keyboardSelected || area.pressed ? Config.mix(active ? base : Config.container, Config.text, 0.10)
              : area.containsMouse ? Config.mix(active ? base : Config.container, Config.text, 0.05)
              : base
     }
-    border.width: keyboardSelected ? 2 : 0
-    border.color: Config.primary
     Behavior on color { ColorAnimation { duration: 120 } }
 
     // under the children, so buttons in the row still get their own clicks
@@ -49,13 +49,13 @@ Rectangle {
     }
 
     RowLayout {
-        anchors { fill: parent; leftMargin: 10; rightMargin: 12 }
-        spacing: 12
+        anchors { fill: parent; leftMargin: 12; rightMargin: 14 }
+        spacing: 14
 
         Rectangle {
-            Layout.preferredWidth: 40
-            Layout.preferredHeight: 40
-            radius: 20
+            Layout.preferredWidth: 44
+            Layout.preferredHeight: 44
+            radius: 22
             color: root.lead !== null ? "transparent" : root.active ? Config.primary : Config.high
 
             Loader {
@@ -67,7 +67,7 @@ Rectangle {
                 anchors.centerIn: parent
                 visible: root.lead === null && root.icon !== ""
                 name: root.icon
-                size: 20
+                size: 22
                 filled: root.active
                 color: root.active ? Config.primaryInk : Config.text
             }
@@ -111,4 +111,7 @@ Rectangle {
             spacing: 6
         }
     }
+
+    FocusRing { on: root.keyboardSelected }
+    KeyBadge { key: root.shortcut; anchors { right: parent.right; top: parent.top; rightMargin: -6; topMargin: -6 } }
 }

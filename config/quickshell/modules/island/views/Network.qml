@@ -4,23 +4,27 @@ import qs.modules.island
 import qs.modules.components
 import qs.modules.services
 
-// Wi-Fi and Ethernet. Scans while it's on screen.
-//   click a network: connect (a new secured one asks for its password first)
-//   click the connected one: its actions (disconnect, forget)
-//   the password row stays open while connecting, closes once connected, and stays for another
-//   try if it fails. While a row is open the list keeps its order, so nothing moves under you.
-//   Escape in the password field closes it; a second Escape goes back
+// Internet, laid out like the dashboard. Scans while it's on screen.
+//   the Wi-Fi tile switches Wi-Fi (W); Ethernet shows when a cable is in
+//   the networks, two to a row (1-9 pick one): a click connects; a new secured one asks for its
+//   password, the connected one offers Disconnect and Forget, in the panel underneath
+//   the panel stays while connecting, closes once connected, and stays for another try if it
+//   fails. While it's open the list keeps its order, so nothing moves under you.
+//   Escape closes the panel, then goes back
 Item {
     id: root
 
-    readonly property int rowH: 62
-    readonly property int maxRows: 6
+    readonly property int pad: 24
+    readonly property int tileH: 72
+    readonly property int maxRows: 4
 
-    // the network whose row is open (password field or actions)
+    // the network whose panel is open (password or actions)
     property var selected: null
-    // the list's order when that row opened; networks that vanish since drop out, new ones wait
+    // the list's order when that panel opened; networks that vanish since drop out, new ones wait
     property var frozen: []
     readonly property var shown: selected ? frozen.filter(n => Net.networks.includes(n)) : Net.networks
+    readonly property bool asking: selected !== null && !selected.connected
+    readonly property bool connecting: selected !== null && (Net.attempt === selected || Net.busy(selected))
 
     function open(n) { frozen = Net.networks.slice(); selected = n }
     function close()  { selected = null }
@@ -31,184 +35,234 @@ Item {
         close()
         if (!Net.busy(n)) Net.connect(n)
     }
+    function status(n) {
+        if (Net.attempt === n || Net.busy(n)) return n.connected ? "Disconnecting…" : "Connecting…"
+        if (n.connected) return "Connected"
+        return (n.known ? "Saved" : Net.secured(n) ? "Secured" : "Open")
+    }
 
-    // the open network came up (password row) or went down (actions row): that row is done
+    // the open network came up (password panel) or went down (actions panel): that panel is done
     Connections {
         target: root.selected
         function onConnectedChanged() { root.close() }
     }
+    // focus the field as soon as it appears, and again after a failed try
+    onAskingChanged: if (asking) password.forceActiveFocus()
+    onConnectingChanged: if (asking && !connecting) password.forceActiveFocus()
 
     Component.onCompleted: Net.scan(true)
     Component.onDestruction: Net.scan(false)
 
-    implicitWidth: 440
-    implicitHeight: column.implicitHeight + 32
+    // Escape closes the panel first (the field has its own); otherwise it goes on to "back"
+    Keys.onEscapePressed: event => { if (root.selected) { root.close(); Engine.key() } else event.accepted = false }
+
+    implicitWidth: 720
+    implicitHeight: column.implicitHeight + 2 * pad
 
     Column {
         id: column
-        x: 16; y: 16
-        width: parent.width - 32
-        spacing: 8
+        x: root.pad
+        y: root.pad
+        width: parent.width - 2 * root.pad
+        spacing: 16
 
         Header {
             width: parent.width
             title: "Internet"
             subtitle: Net.attempt ? "Connecting to " + Net.attempt.name + "…" : Net.summary
             onBack: Engine.back()
-
-            Toggle {
-                checked: Net.wifiEnabled
-                enabled: Net.available && !Net.wifiBlocked
-                onToggled: on => Net.setWifi(on)
-            }
         }
 
-        ListEntry {
-            visible: Net.wired !== null && Net.ethernet
+        Row {
             width: parent.width
-            icon: "lan"
-            title: "Ethernet"
-            subtitle: Net.linkSpeed > 0 ? "Connected  ·  " + Net.linkSpeed + " Mb/s" : "Connected"
-            active: true
-            activeFocusOnTab: false
+            spacing: 12
+
+            QuickTile {
+                width: Net.ethernet ? (parent.width - 12) / 2 : parent.width
+                implicitHeight: 80
+                focus: !Net.wifiEnabled || Net.networks.length === 0
+                icon: Net.wifiEnabled ? "wifi" : "wifi_off"
+                title: "Wi-Fi"
+                subtitle: Net.wifiBlocked ? "Blocked by a hardware switch or rfkill"
+                        : !Net.wifiEnabled ? "Off" : Net.current ? Net.current.name : "On"
+                on: Net.wifiEnabled
+                showSwitch: true
+                shortcut: "w"
+                enabled: Net.available && !Net.wifiBlocked
+                onToggled: Net.setWifi(!Net.wifiEnabled)
+            }
+            QuickTile {
+                visible: Net.ethernet
+                width: (parent.width - 12) / 2
+                implicitHeight: 80
+                activeFocusOnTab: false
+                icon: "lan"
+                title: "Ethernet"
+                subtitle: Net.linkSpeed > 0 ? "Connected  ·  " + Net.linkSpeed + " Mb/s" : "Connected"
+                on: true
+            }
         }
 
         Text {
             visible: text !== ""
             width: parent.width
-            topPadding: 6
-            bottomPadding: 6
+            topPadding: 8
+            bottomPadding: 8
             horizontalAlignment: Text.AlignHCenter
             text: !Net.available ? "NetworkManager isn't running"
                 : Net.wifi === null ? "No Wi-Fi device"
-                : Net.wifiBlocked ? "Wi-Fi is blocked by a hardware switch or rfkill"
-                : !Net.wifiEnabled ? "Wi-Fi is off"
+                : !Net.wifiEnabled ? "Turn Wi-Fi on to see networks"
                 : Net.networks.length === 0 ? "Searching…" : ""
             color: Config.dim
             font.family: Config.font
             font.pixelSize: Config.body
         }
 
+        // ---- the networks ----
         ScrollList {
+            id: list
+            visible: Net.wifiEnabled && root.shown.length > 0
             width: parent.width
-            maxHeight: root.maxRows * root.rowH + (root.selected ? 52 : 0)
-            spacing: 2
+            maxHeight: root.maxRows * (root.tileH + 12) + 2 * inset
 
-            Repeater {
-                // ScriptModel: an update (a scan, a signal change) moves, adds and removes rows. A
-                // plain array rebuilt every row each time: a stall while the island morphs in, and a
-                // half-typed password lost
-                model: ScriptModel { values: Net.wifiEnabled ? root.shown : [] }
+            Grid {
+                id: grid
+                width: list.innerWidth
+                columns: 2
+                spacing: 12
 
-                Column {
-                    id: entry
-                    required property var modelData
-                    required property int index
-                    readonly property var net: modelData
-                    readonly property bool open: root.selected === net
-                    readonly property bool connecting: Net.attempt === net || Net.busy(net)
+                Repeater {
+                    // ScriptModel: an update (a scan, a signal change) moves, adds and removes tiles
+                    // instead of rebuilding them all (a stall while the island morphs in)
+                    model: ScriptModel { values: Net.wifiEnabled ? root.shown : [] }
 
+                    QuickTile {
+                        id: tile
+                        required property var modelData
+                        required property int index
+                        readonly property var net: modelData
+
+                        width: (grid.width - 12) / 2
+                        implicitHeight: root.tileH
+                        // the keyboard starts on the list, not on the Wi-Fi tile above it
+                        focus: index === 0
+                        icon: Net.glyph(net.signalStrength)
+                        title: net.name
+                        subtitle: root.status(net)
+                        on: net.connected || root.selected === net
+                        shortcut: index < 9 ? String(index + 1) : ""
+                        onToggled: root.choose(net)
+                    }
+                }
+            }
+        }
+
+        // ---- the panel: a password, or the connected network's actions ----
+        Rectangle {
+            visible: root.selected !== null
+            width: parent.width
+            height: panel.implicitHeight + 32
+            radius: Config.cardRadius
+            color: Config.container
+
+            Column {
+                id: panel
+                x: 16; y: 16
+                width: parent.width - 32
+                spacing: 12
+
+                Text {
+                    leftPadding: 4
+                    text: !root.selected ? "" : root.asking ? "Connect to " + root.selected.name : root.selected.name
+                    color: Config.text
+                    font.family: Config.font
+                    font.pixelSize: Config.large
+                    font.weight: Font.Medium
+                }
+
+                Row {
+                    visible: root.asking
                     width: parent.width
-                    spacing: 4
+                    spacing: 10
 
-                    ListEntry {
-                        width: parent.width
-                        // the keyboard starts on the list, not on the Wi-Fi switch above it
-                        focus: entry.index === 0
-                        title: entry.net.name
-                        active: entry.net.connected
-                        subtitle: entry.connecting ? (entry.net.connected ? "Disconnecting…" : "Connecting…")
-                                : entry.net.connected ? "Connected"
-                                : entry.net.known ? "Saved"
-                                : Net.secured(entry.net) ? "Secured" : "Open"
-                        icon: Net.glyph(entry.net.signalStrength)
-                        onClicked: root.choose(entry.net)
+                    Rectangle {
+                        width: parent.width - join.width - cancel.width - 2 * parent.spacing
+                        height: 52
+                        radius: height / 2
+                        color: Config.high
+                        border.width: password.activeFocus ? 2 : 0
+                        border.color: Config.primary
 
-                        Icon {
-                            visible: Net.secured(entry.net)
-                            name: "lock"
-                            size: 16
-                            color: entry.net.connected ? Config.secondaryInk : Config.dim
-                        }
-                    }
+                        TextInput {
+                            id: password
+                            anchors { fill: parent; leftMargin: 20; rightMargin: 20 }
+                            verticalAlignment: TextInput.AlignVCenter
+                            echoMode: TextInput.Password
+                            enabled: !root.connecting
+                            color: Config.text
+                            font.family: Config.font
+                            font.pixelSize: Config.large
+                            clip: true
 
-                    // ---- the open row: a password, or the network's actions ----
-                    Row {
-                        visible: entry.open && !entry.net.connected
-                        x: 62
-                        width: parent.width - 62
-                        height: visible ? 44 : 0
-                        spacing: 8
+                            // the field accepts its keys, so ViewLoader never sees them: report them here
+                            Keys.onPressed: event => { Engine.key(); event.accepted = false }
+                            Keys.onReturnPressed: join.press()
+                            Keys.onEnterPressed:  join.press()
+                            Keys.onEscapePressed: root.close()
 
-                        Rectangle {
-                            width: parent.width - join.width - parent.spacing
-                            height: 40
-                            radius: height / 2
-                            color: Config.high
-                            border.width: password.activeFocus ? 2 : 0
-                            border.color: Config.primary
-
-                            TextInput {
-                                id: password
-                                anchors { fill: parent; leftMargin: 16; rightMargin: 16 }
-                                verticalAlignment: TextInput.AlignVCenter
-                                echoMode: TextInput.Password
-                                enabled: !entry.connecting
-                                color: Config.text
-                                font.family: Config.font
-                                font.pixelSize: Config.body
-                                clip: true
-
-                                // the field accepts its keys, so ViewLoader never sees them: report them here
-                                Keys.onPressed: event => { Engine.key(); event.accepted = false }
-                                Keys.onReturnPressed: join.press()
-                                Keys.onEnterPressed:  join.press()
-                                Keys.onEscapePressed: root.close()
-
-                                Text {
-                                    visible: password.text === ""
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    text: entry.connecting ? "Connecting…" : "Password"
-                                    color: Config.dim
-                                    font: password.font
-                                }
-                            }
-                        }
-
-                        Pill {
-                            id: join
-                            implicitHeight: 40
-                            kind: "filled"
-                            text: entry.connecting ? "…" : "Connect"
-                            enabled: password.text.length >= 8 && !entry.connecting     // WPA: 8..63 characters
-                            onClicked: {
-                                Net.connect(entry.net, password.text)
-                                password.text = ""
+                            Text {
+                                visible: password.text === ""
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: root.connecting ? "Connecting…" : "Password"
+                                color: Config.dim
+                                font: password.font
                             }
                         }
                     }
-
-                    Row {
-                        visible: entry.open && entry.net.connected
-                        x: 62
-                        height: visible ? 40 : 0
-                        spacing: 8
-
-                        Pill {
-                            icon: "link_off"
-                            text: "Disconnect"
-                            onClicked: Net.disconnect(entry.net)
-                        }
-                        Pill {
-                            icon: "delete"
-                            text: "Forget"
-                            onClicked: { Net.forget(entry.net); root.close() }
+                    Pill {
+                        id: join
+                        implicitHeight: 52
+                        kind: "filled"
+                        text: root.connecting ? "Connecting…" : "Connect"
+                        enabled: password.text.length >= 8 && !root.connecting      // WPA: 8..63 characters
+                        onClicked: {
+                            Net.connect(root.selected, password.text)
+                            password.text = ""
                         }
                     }
+                    Pill {
+                        id: cancel
+                        implicitHeight: 52
+                        kind: "text"
+                        text: "Cancel"
+                        onClicked: root.close()
+                    }
+                }
 
-                    // focus the field as soon as it appears, and again after a failed try
-                    onOpenChanged: if (open && !net.connected) password.forceActiveFocus()
-                    onConnectingChanged: if (open && !connecting && !net.connected) password.forceActiveFocus()
+                Row {
+                    visible: root.selected !== null && !root.asking
+                    spacing: 10
+
+                    Pill {
+                        implicitHeight: 52
+                        icon: "link_off"
+                        text: "Disconnect"
+                        shortcut: "x"
+                        onClicked: Net.disconnect(root.selected)
+                    }
+                    Pill {
+                        implicitHeight: 52
+                        icon: "delete"
+                        text: "Forget"
+                        shortcut: "f"
+                        onClicked: { Net.forget(root.selected); root.close() }
+                    }
+                    Pill {
+                        implicitHeight: 52
+                        kind: "text"
+                        text: "Cancel"
+                        onClicked: root.close()
+                    }
                 }
             }
         }
@@ -221,7 +275,12 @@ Item {
             elide: Text.ElideRight
             color: Config.bad
             font.family: Config.font
-            font.pixelSize: Config.small
+            font.pixelSize: Config.body
+        }
+
+        KeyHints {
+            width: parent.width
+            keys: [["1–9", "a network"], ["W", "Wi-Fi on/off"], ["Esc", root.selected ? "close the panel" : "back"]]
         }
     }
 }
