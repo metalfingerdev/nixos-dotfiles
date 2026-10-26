@@ -40,7 +40,7 @@ Scope {
     readonly property real stripH: 5
 
     // Morph feel (SpringAnimation). Higher stiffness = snappier; lower damping = more overshoot.
-    // A redirect mid-flight keeps the current velocity, so the island never lurches.
+    // A redirect mid-flight keeps the current velocity, but the restart stalls it for a frame or two.
     readonly property real stiffness: 3.2
     readonly property real damping: 0.34
 
@@ -52,6 +52,17 @@ Scope {
     readonly property int target: Engine.view
     property int shown: -1
     onTargetChanged: swap.restart()
+
+    // The x the shown view is centred on (Engine.anchorX, -1 = screen centre). Opening a view moves
+    // Engine.anchorX at once, but the island only follows once swap has loaded that view, so it moves
+    // in one go. Sliding off at the old size first put the load (it blocks) and the new size's
+    // redirect in the middle of the slide: a visible stutter.
+    property real anchor: -1
+    Connections {
+        target: Engine
+        // the snapshot, not Engine.view: that binding may not have caught up yet
+        function onAnchorXChanged() { if (Engine.snapshot.view === root.shown) root.anchor = Engine.anchorX }
+    }
 
     // ---- sprung rect, in window coords. Only snap() writes these. ----
     // The Behaviors are off until `armed`, so the startup layout (window going 0 -> real size) and
@@ -98,7 +109,7 @@ Scope {
     SequentialAnimation {
         id: swap
         NumberAnimation { target: loader; property: "opacity"; to: 0; duration: root.shown === -1 ? 0 : 90 }
-        ScriptAction    { script: root.shown = root.target }
+        ScriptAction    { script: { root.anchor = Engine.anchorX; root.shown = root.target } }
         NumberAnimation { target: loader; property: "opacity"; to: 1; duration: 140 }
     }
 
@@ -157,6 +168,17 @@ Scope {
             onPressed: Engine.close()
         }
 
+        // HOVER: the pointer is on the island while it is inside the FINAL rect (the proxy, like the
+        // input mask), not the sprung surface. A spring overshoots: a notch revealed by auto-hide dips
+        // a pixel below the top edge, out from under a pointer resting there, and the peek collapsed
+        // and reopened until it settled. On the window's root item, so no control in the view can
+        // take the hover from it.
+        HoverHandler { id: pointer }
+        readonly property bool onIsland: pointer.hovered
+            && pointer.point.position.x >= proxy.x && pointer.point.position.x < proxy.x + proxy.width
+            && pointer.point.position.y >= proxy.y && pointer.point.position.y < proxy.y + proxy.height
+        onOnIslandChanged: Engine.hover(onIsland)
+
         // PROXY: invisible. The final size and position, in window coordinates. Never animated.
         Item {
             id: proxy
@@ -180,7 +202,7 @@ Scope {
 
             width: root.strip ? root.stripW : viewW
             height: root.strip ? root.stripH : viewH
-            x: root.abscissa(width, Engine.anchorX)
+            x: root.abscissa(width, root.anchor)
             y: root.strip ? 0 : Engine.hidden ? -height - root.gap : root.gap
 
             // callLater coalesces the burst of x/y/w/h changes into one snap
@@ -244,8 +266,6 @@ Scope {
             color: Config.island
             Behavior on color { ColorAnimation { duration: 200 } }
             clip: true                     // content is revealed, never squished
-
-            HoverHandler { onHoveredChanged: Engine.hover(hovered) }
 
             // the island's own background: under every control of the view
             MouseArea {

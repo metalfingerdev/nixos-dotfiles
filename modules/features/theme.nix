@@ -4,7 +4,7 @@
     fonts.fontconfig.enable = true;
 
     home.packages = with pkgs; [
-      maple-mono.NF
+      jetbrains-mono
       inter
       material-symbols
       adwaita-icon-theme

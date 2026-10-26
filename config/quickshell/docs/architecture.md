@@ -66,14 +66,16 @@ Loader item ──implicit size──► proxy (invisible, snaps instantly, the 
 
 - **proxy** is an invisible `Item` placed at the island's *final* rect:
   - size = the loaded view's `implicitWidth/Height`, held across view swaps so it never collapses to 0
-  - x = `abscissa(width, Engine.anchorX)`: centred on the click x (or the screen), clamped to `edgePad`
+  - x = `abscissa(width, anchor)`: centred on the click x (or the screen), clamped to `edgePad`.
+    `anchor` is `Engine.anchorX`, but taken only when the swap loads the view it belongs to (see View swaps)
   - y = `gap` from the top (0 in notch style), or above the screen when `Engine.hidden`; with the strip
     handle, a `stripW` x `stripH` bar at the top edge instead
 
   It is never animated, so the input mask is correct on the first frame.
 - Any change to the proxy's x/y/width/height is coalesced with `Qt.callLater(snap)`. `snap()`
   assigns the proxy rect to `sx/sy/sw/sh`. Each has a `Behavior` with a `SpringAnimation` (`stiffness`,
-  `damping`). A redirect mid-flight keeps the current velocity, so the island never lurches.
+  `damping`). A redirect mid-flight keeps the current velocity, but restarting the animation stalls it
+  for a frame or two, so Bar avoids redirects it can see coming (see View swaps).
 - The Behaviors are enabled only while `armed`, so the same assignment jumps instead of springing.
   `disarm(ms)` turns them off for a while: 500 ms at startup (so the
   window going from 0 to its real size doesn't animate in) and 150 ms when a Bar becomes the active one.
@@ -95,6 +97,10 @@ Loader item ──implicit size──► proxy (invisible, snaps instantly, the 
 When `Engine.view` changes, `swap` fades the loader out (90 ms), sets `shown = target` (the Loader loads
 the new file, which resizes the proxy and starts the morph), then fades in (140 ms).
 
+The swap also takes the new `Engine.anchorX` at that moment, not when it changes, so x, width and height
+all start together once the view is in. If x started first, the load (synchronous, tens of ms for a
+list view) and the new size's redirect would land mid-slide and the island would visibly stutter.
+
 ### Keyboard and hover
 
 | | Peek (hover) | Pinned (click, IPC) | Rest, Toast, Hidden |
@@ -107,8 +113,11 @@ The peek key (IPC `peek true`/`peek false`, see [ipc.md](ipc.md)) calls `Engine.
 rest view while held (revealing it from Hidden) and, in auto-hide mode, hides it at once on release. The
 rest view doesn't take the keyboard.
 
-A `HoverHandler` on the **surface** reports `Engine.hover(on)`. Because the surface animates, hover follows
-what you see, while clicks follow the proxy mask.
+A `HoverHandler` on the overlay's root item reports `Engine.hover(on)` while the pointer is inside the
+**proxy** rect, the same final rect the input mask uses. It used to sit on the surface, but a spring
+overshoots: a notch revealed from auto-hide dips a pixel below the top edge, out from under a pointer
+resting there, and the peek would collapse and reopen until the spring settled. It's on the root item
+because Qt stops hover at the first sibling that takes it, while ancestors always get it.
 
 `ViewLoader` is a focus scope with the default keys. A key goes to the focused item and bubbles up
 through the view, and whatever the view doesn't accept reaches the defaults:

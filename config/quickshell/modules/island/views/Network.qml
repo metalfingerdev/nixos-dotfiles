@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import qs.modules.island
 import qs.modules.components
 import qs.modules.services
@@ -94,7 +95,10 @@ Item {
             maxHeight: root.maxRows * root.rowH + (root.selected ? 36 : 0)
 
             Repeater {
-                model: Net.wifiEnabled ? root.shown : []
+                // ScriptModel: an update (a scan, a signal change) moves, adds and removes rows. A
+                // plain array rebuilt every row each time: a stall while the island morphs in, and a
+                // half-typed password lost
+                model: ScriptModel { values: Net.wifiEnabled ? root.shown : [] }
 
                 Column {
                     id: entry
