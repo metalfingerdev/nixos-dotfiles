@@ -111,7 +111,8 @@ list view) and the new size's redirect would land mid-slide and the island would
 
 The peek key (IPC `peek true`/`peek false`, see [ipc.md](ipc.md)) calls `Engine.peek(on)`: it shows the
 rest view while held (revealing it from Hidden) and, in auto-hide mode, hides it at once on release. The
-rest view doesn't take the keyboard.
+rest view doesn't take the keyboard. `Engine.togglePeek()` (IPC `togglePeek`) is the one-binding version:
+`peek(!Engine.peeking)`.
 
 A `HoverHandler` on the overlay's root item reports `Engine.hover(on)` while the pointer is inside the
 **proxy** rect, the same final rect the input mask uses. It used to sit on the surface, but a spring

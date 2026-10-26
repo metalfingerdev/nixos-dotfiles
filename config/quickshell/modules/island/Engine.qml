@@ -42,6 +42,7 @@ QtObject {
     readonly property string phase:   snapshot.phase
     readonly property int    view:    snapshot.view
     readonly property bool   hovered: snapshot.hovered
+    readonly property bool   peeking: snapshot.peeking   // the peek key is down (or toggled on)
     readonly property real   anchorX: snapshot.x      // window x to centre on, -1 = screen centre
     readonly property bool   pinned:  snapshot.phase === Machine.Phase.Pinned
     // the island takes the keyboard: a pinned view, or the peek view (hovered)
@@ -87,6 +88,9 @@ QtObject {
     function setAutoHide(on)   { send({ type: Machine.Event.Mode, on: on }) }
     function hover(on)     { send({ type: on ? Machine.Event.Hover : Machine.Event.Leave }) }
     function peek(on)      { send({ type: on ? Machine.Event.Peek : Machine.Event.Unpeek }) }  // the peek key: the rest view while held
+    // The peek key as one binding: press to show, press again to hide. Reads the snapshot, so it never
+    // gets out of step: anything that clears `peeking` (a hover peek, a view opening) resets it too.
+    function togglePeek()  { peek(!peeking) }
     function key()         { send({ type: Machine.Event.Key }) }     // any keystroke in the island
 
     // ---- the shell ----

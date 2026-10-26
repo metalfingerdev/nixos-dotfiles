@@ -247,9 +247,8 @@ hl.bind(mainMod .. " + N",                hl.dsp.exec_cmd("quickshell ipc call i
 hl.bind(mainMod .. " + P",                hl.dsp.exec_cmd("quickshell ipc call island open notifications"))
 hl.bind(mainMod .. " + O",                hl.dsp.exec_cmd("quickshell ipc call island open expanded"))   -- keyboard entry: Tab to a pill, Enter
 
--- Hold to peek: the island shows its peek view while Super+Z is down
-hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd("quickshell ipc call island peek true"))
-hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd("quickshell ipc call island peek false"))
+-- Peek: Super+Z shows the island's rest view (revealing it from auto-hide), Super+Z again hides it
+hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd("quickshell ipc call island togglePeek"))
 
 hl.bind(mainMod .. " + TAB",              hl.dsp.exec_cmd("quickshell ipc call island open workspaces"))
 hl.bind(mainMod .. " + G",                hl.dsp.exec_cmd("quickshell ipc call island open dashboard"))

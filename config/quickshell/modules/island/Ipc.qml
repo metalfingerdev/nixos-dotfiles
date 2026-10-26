@@ -8,6 +8,7 @@ import qs.modules.components
 //   qs ipc call island screens             list screen names
 //   qs ipc call island alert volume        trigger a toast view
 //   qs ipc call island peek true           the rest view (clock) until `peek false`, which hides it
+//   qs ipc call island togglePeek          the same from one key: press to show, press again to hide
 //   qs ipc call island close
 //   qs ipc call island back
 //   qs ipc call island autohide true
@@ -33,6 +34,8 @@ IpcHandler {
 
     // bind `peek true` to a key's press and `peek false` to its release
     function peek(on: bool): void { Engine.peek(on) }
+    // or bind just this, to a key's press
+    function togglePeek(): void   { Engine.togglePeek() }
 
     function screen(name: string): void { Engine.setScreen(name) }
     function screens(): string           { return Engine.screens().join("\n") }

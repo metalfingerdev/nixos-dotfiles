@@ -8,6 +8,7 @@ default.
 | `qs ipc call island open <name>` | pin a view, centred horizontally at the top gap. Opening the open view closes it |
 | `qs ipc call island alert <name>` | raise the view as a toast (priority and queue rules apply) |
 | `qs ipc call island peek <true\|false>` | show the rest view (Compact) until `peek false`, then hide it (auto-hide) |
+| `qs ipc call island togglePeek` | `peek true` if the peek isn't on, else `peek false`: the peek key as one binding |
 | `qs ipc call island screen <name>` | show the island on that screen (e.g. `DP-1`); unknown names are ignored |
 | `qs ipc call island screens` | list screen names, one per line |
 | `qs ipc call island close` | close the current view |
@@ -37,6 +38,10 @@ pointer leaves (then it lingers `hideMs`, as usual). The rest view never takes t
 the key doesn't steal typing. Without auto-hide the rest view is always up and the key changes nothing
 visible. While a hover peek, a pinned view or a toast is up, `peek` does nothing. Hovering the island
 still peeks into `Engine.peekView`; for the expanded view from the keyboard, use `open expanded`.
+
+`togglePeek` is the same from a single binding on the key's press: the first press is `peek true`,
+the next `peek false`. It reads `Engine.peeking`, so it never gets out of step: when something else
+clears the peek (a hover peek, a view opening), the next press shows it again.
 
 ## Wallpaper
 
@@ -70,6 +75,7 @@ bind = SUPER, Space, exec, qs ipc call island open launcher
 bind = SUPER, I, exec, qs ipc call island open expanded       # keyboard entry point: Tab to a pill, Enter
 bind  = SUPER, B, exec, qs ipc call island peek true          # hold Super+B to show the clock
 bindr = SUPER, B, exec, qs ipc call island peek false
+bind = SUPER, Z, exec, qs ipc call island togglePeek          # or: Super+Z shows it, Super+Z again hides it
 bind = SUPER, Escape, exec, qs ipc call island close
 bind = SUPER, N, exec, qs ipc call island open notifications
 ```
