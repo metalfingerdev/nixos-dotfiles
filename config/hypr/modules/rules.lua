@@ -31,6 +31,26 @@ hl.window_rule({
     no_focus = true,
 })
 
+-- Video stays solid: the 80 % glass (look.lua) washes the blurred wallpaper into the picture.
+-- Fullscreen is already opaque; these cover video in a tiled or floating window.
+hl.window_rule({
+    -- Players that say they're showing video (mpv and others speaking wp-content-type)
+    name  = "opaque-video-content",
+    match = { content = "video" },
+
+    opaque = true,
+})
+
+-- Firefox doesn't say, so go by the tab title (rules re-run when it changes). Add a site here to keep it solid.
+local videoTitles = { "YouTube", "Stremio", "Netflix", "Twitch", "Picture-in-Picture" }
+
+hl.window_rule({
+    name  = "opaque-video-tabs",
+    match = { class = "^firefox$", title = ".*(" .. table.concat(videoTitles, "|") .. ").*" },
+
+    opaque = true,
+})
+
 -- Layer rules also return a handle.
 -- local overlayLayerRule = hl.layer_rule({
 --     name  = "no-anim-overlay",
