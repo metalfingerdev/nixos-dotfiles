@@ -13,6 +13,10 @@
 
 ## Done
 
+- [x] The glance (Expanded) is gone: hovering the clock peeks into the hub (Tabs). Each segment of
+      Tabs' status group opens its own view (network, Bluetooth, notifications, battery). No media toast
+      when a track starts. A Mixer view: the output, the microphone and each app's stream, a slider
+      each; the media view shows every output's volume, and the wheel over one sets it.
 - [x] Keyboard everywhere: spatial arrows, a `shortcut` per control (keycaps while the keyboard is in use),
       Backspace back, bold focus rings that no longer vanish under a still pointer, `KeyHints` footers.
 - [x] Theme: colours from a preset, an accent or the wallpaper (generated Material-You-style, with

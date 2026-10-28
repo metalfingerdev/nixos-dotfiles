@@ -7,8 +7,7 @@ QtObject {
 
     readonly property var entries: [
         { name: "compact",    priority: 0, timeout: 0,    view: Engine.View.Compact,    url: Qt.resolvedUrl("views/Compact.qml") },
-        { name: "expanded",   priority: 1, timeout: 4000, view: Engine.View.Expanded,   url: Qt.resolvedUrl("views/Expanded.qml") },
-        // the hub: a click on Compact or Expanded opens it
+        // the hub: hovering the clock (Compact) peeks into it, a click opens it
         { name: "tabs",       priority: 2, timeout: 8000, view: Engine.View.Tabs,       url: Qt.resolvedUrl("views/Tabs.qml") },
         // everything: quick settings, sliders, media, notifications
         { name: "dashboard",  priority: 2, timeout: 12000, view: Engine.View.Dashboard, url: Qt.resolvedUrl("views/Dashboard.qml") },
@@ -24,6 +23,8 @@ QtObject {
         // closes the view when the last one goes. `critical`: the priority a critical one alerts with.
         { name: "notifications", priority: 2, critical: 3, timeout: 0, view: Engine.View.Notifications, url: Qt.resolvedUrl("views/Notification.qml"), queue: true },
         { name: "media",      priority: 2, timeout: 8000, view: Engine.View.Media,      url: Qt.resolvedUrl("views/Media.qml") },
+        // the output, the microphone and every app playing sound, each with its own level
+        { name: "mixer",      priority: 2, timeout: 8000, view: Engine.View.Mixer,      url: Qt.resolvedUrl("views/Mixer.qml") },
         // Toast = charger plugged/unplugged or battery low (critical: nearly empty), Pinned = details.
         { name: "battery",    priority: 2, critical: 3, timeout: 4000, view: Engine.View.Battery, url: Qt.resolvedUrl("views/Battery.qml"), queue: true },
         { name: "clock",      priority: 2, timeout: 8000, view: Engine.View.Clock,      url: Qt.resolvedUrl("views/Clock.qml") },

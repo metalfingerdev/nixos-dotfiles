@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Effects
+import QtQuick.Layouts
 import Quickshell.Widgets
 import qs.modules.island
 import qs.modules.components
@@ -8,10 +9,12 @@ import qs.modules.services
 // Now playing (the active MPRIS player), wide, with the album art blurred behind it:
 //   big art on the left; the player, title and artist; the position (click, drag, or focus it and
 //   use Left/Right to seek); shuffle · previous · play/pause · next · repeat
-//   Output: where the sound goes (click another device to move it there)
+//   Output: where the sound goes (click another device to move it there), each with its volume:
+//   the wheel over one sets it (+ and - too, while it has the focus)
 //   Players: the others, when there are several (click one to show and control it)
-// Keys: P play/pause, B previous, N next, S shuffle, R repeat, arrows/Tab move, Backspace back, Escape closes.
-// Also the toast Triggers raises when a track starts.
+//   the mixer button (M): every app's volume
+// Keys: P play/pause, B previous, N next, S shuffle, R repeat, M mixer, arrows/Tab move, Backspace back,
+// Escape closes.
 Item {
     id: root
 
@@ -23,6 +26,14 @@ Item {
         if (!(seconds >= 0)) return "-:--"
         const s = Math.floor(seconds), m = Math.floor(s / 60)
         return (m >= 60 ? Math.floor(m / 60) + ":" + String(m % 60).padStart(2, "0") : m) + ":" + String(s % 60).padStart(2, "0")
+    }
+
+    component MixerButton: Pill {
+        kind: "text"
+        icon: Config.symbol.mixer
+        iconSize: 22
+        shortcut: "m"
+        onClicked: x => Engine.open(Engine.View.Mixer, x)
     }
 
     Component.onCompleted: Players.watch(true)
@@ -70,6 +81,8 @@ Item {
             title: "Media"
             subtitle: "Nothing is playing"
             onBack: Engine.back()
+
+            MixerButton {}
         }
         Icon {
             anchors.horizontalCenter: parent.horizontalCenter
@@ -100,6 +113,7 @@ Item {
                 running: Players.playing
                 color: Config.primary
             }
+            MixerButton {}
         }
 
         Row {
@@ -294,13 +308,45 @@ Item {
                 Repeater {
                     model: Audio.sinks.slice(0, 4)
 
+                    // a click plays here; the wheel, or + and - while focused, sets its volume
                     ListEntry {
+                        id: output
                         required property var modelData
+                        readonly property int level: Audio.level(modelData)
+                        readonly property bool silent: Audio.isMuted(modelData)
+                        function step(by) { Audio.setLevel(modelData, level + 5 * by) }
+
                         width: parent.width
                         icon: Audio.glyph(modelData)
                         title: Audio.label(modelData)
                         active: modelData === Audio.sink
+                        wheelable: true
                         onClicked: Audio.setSink(modelData)
+                        onScrolled: by => step(by)
+                        Keys.onPressed: event => {
+                            const t = event.text
+                            if (t === "+" || t === "=") step(1)
+                            else if (t === "-") step(-1)
+                            else { event.accepted = false; return }
+                            Engine.key()
+                        }
+
+                        // its volume: a short bar, then the level
+                        Progress {
+                            Layout.preferredWidth: 72
+                            Layout.alignment: Qt.AlignVCenter
+                            fraction: output.silent ? 0 : output.level / 100
+                        }
+                        Text {
+                            Layout.preferredWidth: 44
+                            Layout.alignment: Qt.AlignVCenter
+                            horizontalAlignment: Text.AlignRight
+                            text: output.silent ? "Muted" : output.level + "%"
+                            color: output.active ? Config.secondaryInk : Config.dim
+                            font.family: Config.font
+                            font.pixelSize: Config.small + 1
+                            font.features: { "tnum": 1 }
+                        }
                     }
                 }
             }
@@ -350,7 +396,7 @@ Item {
 
         KeyHints {
             width: parent.width
-            keys: [["Space", "play / pause"], ["← →", "seek, on the bar"], ["⌫", "back"], ["Esc", "close"]]
+            keys: [["Space", "play / pause"], ["← →", "seek, on the bar"], ["+ −", "an output's volume"], ["⌫", "back"], ["Esc", "close"]]
         }
     }
 }

@@ -99,12 +99,12 @@ Scope {
 
     // A click on the island itself (not on a control in the view): a toast opens its full view (the
     // Registry's `opens`: the workspace dots open the overview) or stops timing out (its own view
-    // is pinned); the clock (Compact) and the glance (Expanded, peeking or pinned) open the hub,
-    // Tabs. Elsewhere it does nothing.
+    // is pinned); the clock (Compact) and the hub's peek open the hub, Tabs, pinned. Elsewhere it
+    // does nothing.
     function pinShown() {
         const x = Engine.anchorX >= 0 ? Engine.anchorX : undefined
         if (Engine.phase === "toast") Engine.open(Registry.get(Engine.view)?.opens ?? Engine.view, x)
-        else if (Engine.phase === "rest" || Engine.view === Engine.View.Expanded) Engine.open(Engine.View.Tabs)
+        else if (Engine.phase === "rest" || Engine.phase === "peek") Engine.open(Engine.View.Tabs)
     }
 
     // fade out -> load the new view (island starts resizing) -> fade in

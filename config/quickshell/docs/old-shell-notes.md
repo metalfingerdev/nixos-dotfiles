@@ -40,9 +40,9 @@ keyboard). On top of it:
 | old `IslandState.qml` + `dynamicGlacier` | **A click on the island itself** pins what it shows: the peek stays, a toast stops timing out; at rest it opens the peek view | `Bar.pinShown()`; Machine: pinning the peeking view adds no history |
 | `dynamicGlacier` | **Privacy dots**: orange while the microphone records, green while the camera does (PipeWire links; `fuser /dev/video*` for V4L2) | `services/Privacy.qml`, beside the island |
 | `dynamicGlacier` | **Follows the focused monitor** (while idle) | `Triggers.followFocus` |
-| `dynamicGlacier` (hover peek) | **A dashboard peek**: time and date, Wi-Fi / Bluetooth / battery at a glance (each opens its view), what's playing with its controls | `views/Expanded.qml` (plus one icon per view) |
+| `dynamicGlacier` (hover peek) | **A dashboard peek**: time and date, Wi-Fi / Bluetooth / battery at a glance (each opens its view), what's playing with its controls | was `views/Expanded.qml`; hover now peeks into `views/Tabs.qml`, whose status segments each open their view |
 | `dynamicGlacier` (collapsed bump) | **Media at rest**: the album cover (or bars) beside the clock; a bolt while charging | `views/Compact.qml` |
-| `dynamicGlacier` (`showMedia`) | **A media toast** when a track starts | `Triggers.mediaToasts` (priority 1: never interrupts an open view) |
+| `dynamicGlacier` (`showMedia`) | **A media toast** when a track starts | removed: a track starting no longer opens the media view |
 | `dynamicGlacier` (settings panel, `settings.json`) | The look is **editable and remembered** | `views/Theme.qml`, `Config` (QtCore Settings), IPC `style` / `glass` / `handle` |
 
 ## Kept as it is here (the new version is better)

@@ -7,7 +7,7 @@ import qs.modules.services
 // focused one takes the primary colour, and in a row it stretches like GNOME's bar; ones with
 // windows are filled; empty ones are only an outline and a dim number.
 // Click, or Enter/Space when focused, goes there; the wheel steps through them.
-//   across: 0   one row (Tabs)        across: n   a grid of circles n wide (the glance)
+//   across: 0   one row (Tabs)        across: n   a grid of circles n wide
 Grid {
     id: root
 

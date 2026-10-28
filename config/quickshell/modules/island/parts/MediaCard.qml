@@ -7,7 +7,7 @@ import qs.modules.services
 
 // What's playing, as a card (Android's media player): the album art blurred behind a scrim, the
 // output it plays on, title and artist, play/pause in a primary circle, previous/next around the
-// position. `compact`: one row for the glance (Expanded): art, text, three buttons, a thin line.
+// position. `compact`: one row: art, text, three buttons, a thin line.
 // A click on the text opens the full Media view.
 ClippingRectangle {
     id: root

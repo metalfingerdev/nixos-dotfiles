@@ -1,30 +1,26 @@
 # island
 
 A Dynamic-Island-style top bar for [Quickshell](https://quickshell.outfoxxed.me/). The island is a single
-rounded surface that morphs between views (a clock, a glance, a hub, detail panels, toasts), driven by
+rounded surface that morphs between views (a clock, a hub, detail panels, toasts), driven by
 a small pure state machine. It is drawn in Material 3, the way Android's quick settings are: tonal
 surfaces, pill tiles with an icon circle, thick pill sliders, segmented buttons, sentence-case type.
 
 How you move through it:
 
 ```
-Compact (rest) ──hover──► Expanded (the glance) ──click / Tab──► Tabs (the hub) ──► any view
-   clock + live              workspaces and round buttons │             back, workspaces, one tab per
-   indicators                · big clock · settings, each │             view, status, clock
-                             with an arrow to its view    │
-                             · search strip, Tabs, player │
-                                  │ type ──► Launcher (apps, files, actions)
-                                  └ arrow ──► Network, Bluetooth, Notifications, Media
+Compact (rest) ──hover (peek) / click (pin)──► Tabs (the hub) ──► any view
+   clock + live                                  back, workspaces, one tab per view,
+   indicators                                    status (each segment opens its view), clock
 
 Backspace, the mouse's back button, ← ──► the view that was open before
 Escape, a click outside, a timer      ──► home (the clock)
 ```
 
 > **Status:** prototype. The morphing surface (pill or notch, optional frosted glass), hover/peek,
-> pinning, back-history, auto-hide, IPC, multi-monitor, and every view work: the glance, the hub (tabs),
-> the dashboard, launcher, network, bluetooth, media, notifications, workspace overview, clock, battery,
-> power, theme and wallpaper, plus toasts (volume, brightness, notifications, battery, media, workspace
-> switch) and privacy dots.
+> pinning, back-history, auto-hide, IPC, multi-monitor, and every view work: the hub (tabs), the
+> dashboard, launcher, network, bluetooth, media, the volume mixer, notifications, workspace overview,
+> clock, battery, power, theme and wallpaper, plus toasts (volume, brightness, notifications, battery,
+> workspace switch) and privacy dots.
 > See [docs/roadmap.md](docs/roadmap.md) and [docs/old-shell-notes.md](docs/old-shell-notes.md).
 
 ## Running
@@ -60,8 +56,8 @@ modules/
     Ipc.qml                   `qs ipc call island ...` commands
     Triggers.qml              system events -> alerts (volume, brightness, battery, media, workspace switch)
     Debug.qml                 live snapshot overlay, toggled with `qs ipc call island debug true`
-    views/                    one QML file per view: Compact Expanded Tabs Dashboard Launcher Network
-                              Bluetooth Media Notification Workspaces Clock Battery Power Theme, and the
+    views/                    one QML file per view: Compact Tabs Dashboard Launcher Network Bluetooth
+                              Media Mixer Notification Workspaces Clock Battery Power Theme, and the
                               toasts Volume Brightness Switcher
       overview/               the Workspaces overview's tiles, live previews, special strip, options
     parts/                    pieces several views share: WorkspaceDots (GNOME-style), StatusGroup (what's
@@ -108,7 +104,7 @@ Bar: Loader shows Registry.get(view).url
 | Where | Property | Default | Meaning |
 |---|---|---|---|
 | `Engine.qml` | `debug` | `false` | debug overlay + proxy box; IPC `debug` / `toggleDebug` |
-| | `peekView` | `Expanded` | view shown when you hover the resting island; `-1` turns peeking off. The peek key shows the rest view instead |
+| | `peekView` | `Tabs` | view shown when you hover the resting island; `-1` turns peeking off. The peek key shows the rest view instead |
 | | `hoverMs` | 140 | hover delay before peeking |
 | | `graceMs` | 140 | how long a peek stays after the pointer leaves |
 | | `hideMs` | 700 | auto-hide: how long the island lingers before hiding |
@@ -131,7 +127,6 @@ Bar: Loader shows Registry.get(view).url
 | `Engine.qml` | `screenName` | `""` | screen that shows the island (`""` or an unplugged screen = the first) |
 | `Notifier.qml` | `lowMs` / `normalMs` / `criticalMs`, `maxPopups` | 10000 / 10000 / 0, 3 | dunst-style popup timing |
 | `Triggers.qml` | `followFocus` | `true` | the idle island moves to the monitor Hyprland focuses |
-| | `mediaToasts` | `true` | a track (or playback) starting shows the media card as a quiet toast |
 | | `switcherToasts` | `true` | switching workspace shows GNOME-style dots (`views/Switcher.qml`) |
 | `Notifier.qml` | `dnd` | `false` | Do not disturb: only critical notifications pop up; remembered |
 | `Toggles.qml` | `warmth` | 4500 | night light colour temperature (K), via hyprsunset; remembered |

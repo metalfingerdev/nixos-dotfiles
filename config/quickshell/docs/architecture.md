@@ -87,8 +87,8 @@ Loader item ──implicit size──► proxy (invisible, snaps instantly, the 
   blur the layer (`Desktops.blurLayer`).
 - A click on the surface's own background (under the view's controls), `pinShown()`: a toast opens its
   full view, the Registry's `opens` (the workspace dots open the overview, the volume and brightness
-  toasts the dashboard), or else its own view, Pinned; the clock (Compact, at rest) and the glance
-  (Expanded, peeking or pinned) open the hub, `Tabs`. Elsewhere it does nothing.
+  toasts the dashboard), or else its own view, Pinned; the clock (Compact, at rest) and the hub's peek
+  pin the hub, `Tabs`. Elsewhere it does nothing.
 - **Privacy dots** sit beside the surface while `Privacy.microphone` / `Privacy.camera` is true.
 - The **Loader** inside the surface (`ViewLoader.qml`) is always the view's *final* size. As the surface grows, it reveals
   the content instead of squashing it. It is centred horizontally (or pinned to its final screen position

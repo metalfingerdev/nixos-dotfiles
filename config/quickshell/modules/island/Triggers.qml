@@ -9,7 +9,6 @@ Scope {
 
     // ---- config ----
     property bool followFocus: true      // the idle island moves to the monitor Hyprland focuses
-    property bool mediaToasts: true      // a track starting (or playback starting) shows the media card
     property bool switcherToasts: true   // switching workspace shows the dots (views/Switcher.qml)
 
     // services report their initial values at startup; don't toast those
@@ -40,7 +39,7 @@ Scope {
     }
 
     // ---- workspaces: GNOME-style dots when the focused workspace changes. Not while a view that
-    // shows workspaces itself is open (Tabs, the overview), nor over the glance under the pointer.
+    // shows workspaces itself is open (Tabs, the overview), nor over the hub's peek under the pointer.
     // Priority 1 and queue: false (Registry), so it never interrupts anything and is never kept. ----
     Connections {
         target: Hyprland
@@ -51,19 +50,6 @@ Scope {
             if (Engine.view === Engine.View.Tabs || Engine.view === Engine.View.Workspaces) return
             root.alert(Engine.View.Switcher)
         }
-    }
-
-    // ---- media: a new track, or playback starting. A quiet toast: it never interrupts an open
-    // view (priority 1 is the lowest a pinned view has) and isn't kept for later. ----
-    Connections {
-        target: Players
-        enabled: root.mediaToasts
-        function onTrackChanged()   { root.media() }
-        function onPlayingChanged() { if (Players.playing) root.media() }
-    }
-    function media() {
-        if (armed && Players.playing && (Players.active?.trackTitle ?? "") !== "" && Engine.view !== Engine.View.Media)
-            Engine.alert(Engine.View.Media, 1)
     }
 
     // ---- battery: the charger coming or going, and running low (critical: nearly empty) ----

@@ -5,7 +5,8 @@ import QtQuick.Layouts
 // text, then any children (buttons, an icon). `active` marks the current one (connected, playing):
 // its circle takes the primary colour and the row a tonal fill. `lead` replaces the icon with a
 // component of the view's own (an app icon, album art).
-// Mouse: click. Keyboard: Tab/arrows reach it, Enter/Space press it, its `shortcut` key too.
+// Mouse: click; with `wheelable`, the wheel too: scrolled(+1 up, -1 down), e.g. an output's volume.
+// Keyboard: Tab/arrows reach it, Enter/Space press it, its `shortcut` key too.
 Rectangle {
     id: root
 
@@ -19,7 +20,10 @@ Rectangle {
     readonly property bool hovered: area.containsMouse
     property Component lead: null
     default property alias extra: side.data
+    // off by default: a list of entries still scrolls under the pointer
+    property bool wheelable: false
     signal clicked()
+    signal scrolled(int step)
 
     activeFocusOnTab: true
     function press() { clicked() }
@@ -46,6 +50,10 @@ Rectangle {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: root.clicked()
+        onWheel: wheel => {
+            if (!root.wheelable || wheel.angleDelta.y === 0) { wheel.accepted = false; return }
+            root.scrolled(wheel.angleDelta.y > 0 ? 1 : -1)
+        }
     }
 
     RowLayout {

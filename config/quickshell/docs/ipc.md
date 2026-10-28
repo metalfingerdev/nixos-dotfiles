@@ -33,8 +33,8 @@ default.
 
 Every view opened this way is Pinned, so it has the keyboard (Tab/arrows, Enter, Escape, each
 control's shortcut key) until it closes, and each keystroke restarts its timeout. It opens in keyboard
-mode: focus rings and shortcut keycaps show until the pointer moves. Names: `expanded` (the glance: typing searches),
-`tabs` (the hub), `dashboard` (everything), `launcher`, `network`, `bluetooth`, `media`,
+mode: focus rings and shortcut keycaps show until the pointer moves. Names: `tabs` (the hub, also
+what hovering shows), `dashboard` (everything), `launcher`, `network`, `bluetooth`, `media`, `mixer`,
 `notifications` (`open` = the center, `alert` = the popups), `workspaces` (the overview), `clock`,
 `battery`, `power`, `theme` (palette, look, wallpaper; also `settings`), and the toast `switcher`
 (`alert switcher` shows the workspace dots).
@@ -45,7 +45,7 @@ again at once, with no linger. If the pointer is on the island when you release,
 pointer leaves (then it lingers `hideMs`, as usual). The rest view never takes the keyboard, so holding
 the key doesn't steal typing. Without auto-hide the rest view is always up and the key changes nothing
 visible. While a hover peek, a pinned view or a toast is up, `peek` does nothing. Hovering the island
-still peeks into `Engine.peekView`; for the expanded view from the keyboard, use `open expanded`.
+still peeks into `Engine.peekView`; for the hub from the keyboard, use `open tabs`.
 
 `togglePeek` is the same from a single binding on the key's press: the first press is `peek true`,
 the next `peek false`. It reads `Engine.peeking`, so it never gets out of step: when something else
@@ -80,7 +80,7 @@ Hyprland:
 
 ```ini
 bind = SUPER, Space, exec, qs ipc call island open launcher
-bind = SUPER, I, exec, qs ipc call island open expanded       # the glance: type to search
+bind = SUPER, O, exec, qs ipc call island open mixer          # every app's volume
 bind = SUPER, G, exec, qs ipc call island open dashboard
 bind = SUPER, H, exec, qs ipc call island open tabs
 bind  = SUPER, B, exec, qs ipc call island peek true          # hold Super+B to show the clock
@@ -92,7 +92,7 @@ bind = SUPER, N, exec, qs ipc call island open notifications
 
 Note: a view opened over IPC isn't hovered, so its Registry `timeout` starts right away, and each
 keystroke starts it over. The timeout is the longest pause allowed between keys, so give views you open
-from keybinds one long enough to read and decide (the expanded view's is 4000 ms).
+from keybinds one long enough to read and decide (the hub's is 8000 ms).
 
 ## Adding a command
 

@@ -17,7 +17,6 @@ import qs.modules.services
 //   math      "12*7+3" shows the result; Enter copies it
 // Keys: type to filter, Up/Down select, Enter runs, Tab / Shift+Tab change the filter, Escape
 // closes, Backspace on an empty field goes back. The pointer only takes the selection when it moves.
-// Text typed into the glance's search bar (Engine.query) arrives already in the field.
 Item {
     id: root
 
@@ -87,6 +86,7 @@ Item {
         { name: "Bluetooth", description: "Devices", icon: "bluetooth", keys: "headphones pair", run: view(Engine.View.Bluetooth) },
         { name: "Notifications", description: "Everything that arrived", icon: Config.symbol.notifications, run: view(Engine.View.Notifications) },
         { name: "Media", description: "What's playing", icon: Config.symbol.media, keys: "music player song", run: view(Engine.View.Media) },
+        { name: "Mixer", description: "Volume for each app", icon: Config.symbol.mixer, keys: "volume sound audio apps", run: view(Engine.View.Mixer) },
         { name: "Workspaces", description: "Overview of every workspace", icon: Config.symbol.overview, keys: "overview windows", run: view(Engine.View.Workspaces) },
         { name: "Calendar", description: "The month, with today", icon: Config.symbol.calendar, keys: "clock date time", run: view(Engine.View.Clock) },
         { name: "Battery", description: "Charge, time left and health", icon: Config.symbol.battery, keys: "power energy", run: view(Engine.View.Battery) },
@@ -213,14 +213,6 @@ Item {
     function cycle(step) {
         const i = filters.findIndex(f => f.key === filter)
         filter = filters[(i + step + filters.length) % filters.length].key
-    }
-
-    Component.onCompleted: {
-        if (Engine.query !== "") {
-            bar.text = Engine.query
-            bar.field.cursorPosition = bar.text.length
-            Engine.query = ""
-        }
     }
 
     implicitWidth: 800

@@ -180,14 +180,15 @@ QtObject {
     readonly property color camera: "#35ff72"
     readonly property color recording: "#ff5449"
 
-    // One Material Symbols glyph per thing, used everywhere it appears (the glance, Tabs, the
+    // One Material Symbols glyph per thing, used everywhere it appears (Tabs, the
     // dashboard, the launcher's actions, headers), so the same thing always looks the same.
     readonly property var symbol: ({
         back: "arrow_back", open: "arrow_forward", close: "close",
         hub: "apps", dashboard: "tune", launcher: "search", notifications: "notifications",
         overview: "grid_view", calendar: "calendar_month", media: "music_note", theme: "palette",
         power: "power_settings_new", screenshot: "screenshot_region", record: "screen_record",
-        dnd: "do_not_disturb_on", sound: "volume_up", muted: "volume_off", battery: "battery_full"
+        dnd: "do_not_disturb_on", sound: "volume_up", muted: "volume_off", battery: "battery_full",
+        mixer: "instant_mix"
     })
 
     // Fonts come from modules/features/theme.nix (inter, jetbrains-mono, material-symbols).

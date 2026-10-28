@@ -5,13 +5,14 @@ import qs.modules.island.parts
 import qs.modules.components
 import qs.modules.services
 
-// The hub, opened by a click on the clock (Compact) or the glance (Expanded). One bar:
+// The hub: hovering the clock (Compact) peeks into it, a click pins it. One bar:
 //   back         the view that was open before (Backspace too); Escape closes
 //   workspaces   numbered, with the switcher's logic: up to the last one in use and one empty; the
 //                focused one a wide primary pill, ones with windows filled, empty ones an outline.
 //                Click to go there; the wheel steps through
 //   tabs         one icon per view (and a screenshot), each opens it
-//   status       what's on (the same group as the glance): opens the dashboard
+//   status       what's on, one button each: the network, Bluetooth, Do not disturb and the battery
+//                open their own views; a recording, or nothing on, the dashboard
 //   clock        the time and date: opens the calendar
 // Keys: arrows/Tab move between buttons, Enter presses, 1-9 switch workspace, each tab's letter
 // opens it (shown as a keycap while the keyboard is in use), Escape goes back.
@@ -23,6 +24,7 @@ Item {
         { icon: Config.symbol.dashboard,     key: "d", view: Engine.View.Dashboard },
         { icon: Config.symbol.calendar,      key: "c", view: Engine.View.Clock },
         { icon: Config.symbol.media,         key: "m", view: Engine.View.Media },
+        { icon: Config.symbol.mixer,         key: "v", view: Engine.View.Mixer },
         { icon: Config.symbol.launcher,      key: "a", view: Engine.View.Launcher },
         { icon: Config.symbol.notifications, key: "n", view: Engine.View.Notifications },
         { icon: Config.symbol.overview,      key: "w", view: Engine.View.Workspaces },
@@ -139,7 +141,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             segmentHeight: 46
             maxText: 100
-            onClicked: x => Engine.open(Engine.View.Dashboard, x)
+            onClicked: (view, x) => Engine.open(view, x)
         }
 
         Divider {}

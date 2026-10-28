@@ -8,11 +8,11 @@ const ctx = vm.createContext({}); vm.runInContext(src, ctx)
 const M = ctx
 
 // ---- fake Registry (mirrors Registry.qml) -----------------------------------------------------
-const V = { Compact: 0, Expanded: 1, Network: 2, Launcher: 3, Bluetooth: 4, Volume: 5, Brightness: 6, Notifications: 7,
-            Media: 8, Battery: 9, Clock: 10, Power: 11, Theme: 12, Workspaces: 13, Tabs: 14, Dashboard: 15, Switcher: 16 }
+const V = { Compact: 0, Network: 1, Launcher: 2, Bluetooth: 3, Volume: 4, Brightness: 5, Notifications: 6,
+            Media: 7, Battery: 8, Clock: 9, Power: 10, Theme: 11, Workspaces: 12, Tabs: 13, Dashboard: 14, Switcher: 15,
+            Mixer: 16 }
 const REG = {
     [V.Compact]:    { priority: 0, timeout: 0 },
-    [V.Expanded]:   { priority: 1, timeout: 4000 },
     [V.Network]:    { priority: 2, timeout: 5000 },
     [V.Launcher]:   { priority: 2, timeout: 8000 },
     [V.Bluetooth]:  { priority: 2, timeout: 5000 },
@@ -20,6 +20,7 @@ const REG = {
     [V.Brightness]: { priority: 1, timeout: 1500, queue: false },
     [V.Notifications]: { priority: 2, critical: 3, timeout: 0, queue: true },
     [V.Media]:      { priority: 2, timeout: 8000 },
+    [V.Mixer]:      { priority: 2, timeout: 8000 },
     [V.Battery]:    { priority: 2, critical: 3, timeout: 4000, queue: true },
     [V.Clock]:      { priority: 2, timeout: 8000 },
     [V.Power]:      { priority: 2, timeout: 8000 },
@@ -30,7 +31,7 @@ const REG = {
     [V.Switcher]:   { priority: 1, timeout: 1200, queue: false },
 }
 const cfg = {
-    restView: V.Compact, peekView: V.Expanded, graceMs: 140, hoverMs: 140, hideMs: 700,
+    restView: V.Compact, peekView: V.Tabs, graceMs: 140, hoverMs: 140, hideMs: 700,
     known:    v => REG[v] !== undefined,
     priority: v => REG[v] ? REG[v].priority : -1,
     queues:   v => REG[v] ? !!REG[v].queue : false,
@@ -108,32 +109,32 @@ test("alert <restView> is ignored", () => {
 })
 
 test("pinning the peeking view (a click on the peek) leaves no history entry", () => {
-    let s = run(M.initial(V.Compact, false), E.Hover, E.Expire)                  // peeking Expanded
-    s = run(s, open(V.Expanded))
+    let s = run(M.initial(V.Compact, false), E.Hover, E.Expire)                  // peeking Tabs
+    s = run(s, open(V.Tabs))
     assert.strictEqual(s.phase, P.Pinned); assert.strictEqual(s.history.length, 0)
-    assert.strictEqual(run(s, E.Back).phase, P.Rest)                             // Back closes, no Expanded twice
+    assert.strictEqual(run(s, E.Back).phase, P.Rest)                             // Back closes, no Tabs twice
     s = run(M.initial(V.Compact, false), E.Hover, E.Expire, open(V.Network))     // another view from the peek
     assert.strictEqual(s.history.length, 1)
 })
 
 console.log("anchor")
 test("Back restores the view's anchor x; the rest view always centres", () => {
-    let s = run(M.initial(V.Compact, false), open(V.Expanded, 120), open(V.Network, 300))
+    let s = run(M.initial(V.Compact, false), open(V.Tabs, 120), open(V.Network, 300))
     assert.strictEqual(s.x, 300)
-    s = run(s, E.Back); assert.strictEqual(s.view, V.Expanded); assert.strictEqual(s.x, 120)
+    s = run(s, E.Back); assert.strictEqual(s.view, V.Tabs); assert.strictEqual(s.x, 120)
     assert.strictEqual(run(s, E.Close).x, -1)
 })
 
 console.log("keyboard")
 test("a keystroke restarts the pinned countdown", () => {
-    const s = run(M.initial(V.Compact, false), open(V.Expanded))
+    const s = run(M.initial(V.Compact, false), open(V.Tabs))
     const k = run(s, E.Key)
     assert.strictEqual(k.phase, P.Pinned)
-    assert.strictEqual(k.timer.ms, REG[V.Expanded].timeout)
+    assert.strictEqual(k.timer.ms, REG[V.Tabs].timeout)
     assert.notStrictEqual(k.timer, s.timer)                // a new object: the shell restarts its Timer
 })
 test("a keystroke while hovered keeps the countdown held", () => {
-    const s = run(M.initial(V.Compact, false), open(V.Expanded), E.Hover, E.Key)
+    const s = run(M.initial(V.Compact, false), open(V.Tabs), E.Hover, E.Key)
     assert.strictEqual(s.timer, null)
 })
 test("a keystroke in Peek changes nothing", () => {
@@ -209,7 +210,7 @@ console.log("existing behaviour (regression)")
 test("hover intent then peek", () => {
     let s = run(M.initial(V.Compact, false), E.Hover)
     assert.deepStrictEqual(s.timer && s.timer.ms, 140)
-    s = run(s, E.Expire); assert.strictEqual(s.phase, P.Peek); assert.strictEqual(s.view, V.Expanded)
+    s = run(s, E.Expire); assert.strictEqual(s.phase, P.Peek); assert.strictEqual(s.view, V.Tabs)
 })
 test("peek grace then Rest", () => {
     let s = run(M.initial(V.Compact, false), E.Hover, E.Expire, E.Leave)
@@ -223,9 +224,9 @@ test("auto-hide: reveal, linger, hide", () => {
     assert.strictEqual(run(s, E.Expire).phase, P.Hidden)
 })
 test("toast over pinned: higher priority interrupts and Back returns", () => {
-    let s = run(M.initial(V.Compact, false), open(V.Expanded), alert(V.Notifications))
+    let s = run(M.initial(V.Compact, false), open(V.Tabs), alert(V.Notifications, CRIT))
     assert.strictEqual(s.phase, P.Toast)
-    s = run(s, E.Expire); assert.strictEqual(s.phase, P.Pinned); assert.strictEqual(s.view, V.Expanded)
+    s = run(s, E.Expire); assert.strictEqual(s.phase, P.Pinned); assert.strictEqual(s.view, V.Tabs)
 })
 test("toast over pinned: equal/lower priority waits or is dropped", () => {
     let s = run(M.initial(V.Compact, false), open(V.Network), alert(V.Notifications))
@@ -234,7 +235,7 @@ test("toast over pinned: equal/lower priority waits or is dropped", () => {
     assert.strictEqual(s.queued, -1)                                                // volume dropped
 })
 test("no interruption while hovered", () => {
-    const s = run(M.initial(V.Compact, false), open(V.Expanded), E.Hover, alert(V.Notifications))
+    const s = run(M.initial(V.Compact, false), open(V.Tabs), E.Hover, alert(V.Notifications, CRIT))
     assert.strictEqual(s.phase, P.Pinned)
 })
 test("queued alert is delivered when going home", () => {
@@ -273,7 +274,7 @@ test("a critical toast is not replaced by an equal-priority view", () => {
     assert.strictEqual(s.view, V.Notifications)
 })
 test("a parked alert keeps its priority until delivered", () => {
-    let s = run(M.initial(V.Compact, false), open(V.Expanded), E.Hover, alert(V.Notifications, CRIT))
+    let s = run(M.initial(V.Compact, false), open(V.Tabs), E.Hover, alert(V.Notifications, CRIT))
     assert.strictEqual(s.phase, P.Pinned); assert.strictEqual(s.queuedPrio, CRIT)  // hovered: waits
     s = run(s, alert(V.Notifications)); assert.strictEqual(s.queuedPrio, CRIT)       // same view: stays urgent
     s = run(s, E.Close)
@@ -299,11 +300,11 @@ test("auto-hide: toast end goes straight to Hidden", () => {
 })
 
 console.log("the hub (Tabs) and the workspace switcher")
-test("Back goes to whatever was open before: the glance, Tabs, a view", () => {
-    let s = run(M.initial(V.Compact, false), E.Hover, E.Expire)            // hover intent -> peek
-    s = run(s, open(V.Tabs), open(V.Network))
+test("Back goes to whatever was open before: the peeked hub (Tabs), a view", () => {
+    let s = run(M.initial(V.Compact, false), E.Hover, E.Expire)            // hover intent -> peek (Tabs)
+    s = run(s, open(V.Network), open(V.Mixer))
+    s = run(s, E.Back); assert.strictEqual(s.view, V.Network); assert.strictEqual(s.phase, P.Pinned)
     s = run(s, E.Back); assert.strictEqual(s.view, V.Tabs); assert.strictEqual(s.phase, P.Pinned)
-    s = run(s, E.Back); assert.strictEqual(s.view, V.Expanded); assert.strictEqual(s.phase, P.Pinned)
     s = run(s, E.Back); assert.strictEqual(s.phase, P.Rest)
 })
 test("Close (Escape) goes home from anywhere, history and all", () => {
