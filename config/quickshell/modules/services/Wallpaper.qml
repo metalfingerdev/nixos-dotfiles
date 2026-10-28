@@ -4,7 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Knows the wallpaper folder and awww (the wallpaper daemon hyprland.lua starts). Knows nothing
+// Knows the wallpaper folder and awww (the wallpaper daemon hypr/modules/autostart.lua starts). Knows nothing
 // about the island. awww restores the last wallpaper by itself, so at startup this only asks it
 // what is showing.
 //   qs ipc call wallpaper next | prev | random | reload | current

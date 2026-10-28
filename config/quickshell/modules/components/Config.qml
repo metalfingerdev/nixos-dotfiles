@@ -106,7 +106,7 @@ QtObject {
         else darkMode = on
     }
 
-    // Size of the whole island (views/Theme.qml): Bar scales every view by this, so all sizes
+    // Size of the whole island (views/Settings.qml): Bar scales every view by this, so all sizes
     // below are at 100 %. 0.8 .. 1.4.
     property real scale: 1.0
 
@@ -154,17 +154,25 @@ QtObject {
     readonly property int innerRadius: 16      // rows, fields
     readonly property int smallRadius: 12      // thumbnails, album art
 
-    // ---- the island's look (views/Theme.qml, IPC `style` / `glass`), remembered with the palette ----
+    // ---- the island's look (views/Settings.qml, IPC `style` / `handle`), remembered with the palette ----
     //   style   "pill":  floats below the top edge, every corner round
     //           "notch": flush with the top edge, square top, curving into the screen edge
     //   handle  auto-hide: what stays at the top edge while hidden: "strip" (a thin bar) or "none"
-    //   glass   frosted glass: a translucent surface over Hyprland's blur (Bar registers the rule)
     property string style: "pill"
     property string handle: "strip"
-    property bool glass: false
-    property real glassOpacity: 0.85                       // 0.2..1
-    readonly property color island: glass ? Qt.rgba(surface.r, surface.g, surface.b, Math.max(0.2, Math.min(1, glassOpacity)))
-                                          : surface
+
+    // Glass is Hyprland's (hypr/modules/look.lua): every window is drawn at decoration.active_opacity over
+    // its blur, and layers named glass:* get the same blur. The island is one (Bar), so it takes
+    // the windows' opacity, which shell.qml keeps in step with services/Desktops.qml.
+    property real windowOpacity: 1
+    readonly property color island: Qt.rgba(surface.r, surface.g, surface.b, Math.max(0, Math.min(1, windowOpacity)))
+
+    // ---- motion ----
+    // The island's morph spring (Bar). Anything inside a view that has to move with the island's
+    // edge springs with it too (parts/WorkspaceButtons.qml). Higher stiffness = snappier; lower
+    // damping = more overshoot.
+    readonly property real stiffness: 3.2
+    readonly property real damping: 0.34
 
     // the "Dark theme" tile: the dark palette to come back to from a light one
     property string lastDark: "teal"
@@ -185,7 +193,7 @@ QtObject {
     readonly property var symbol: ({
         back: "arrow_back", open: "arrow_forward", close: "close",
         hub: "apps", dashboard: "tune", launcher: "search", notifications: "notifications",
-        overview: "grid_view", calendar: "calendar_month", media: "music_note", theme: "palette",
+        overview: "grid_view", calendar: "calendar_month", media: "music_note", theme: "palette", settings: "settings",
         power: "power_settings_new", screenshot: "screenshot_region", record: "screen_record",
         dnd: "do_not_disturb_on", sound: "volume_up", muted: "volume_off", battery: "battery_full",
         mixer: "instant_mix"
@@ -216,8 +224,6 @@ QtObject {
         property alias scale: root.scale
         property alias style: root.style
         property alias handle: root.handle
-        property alias glass: root.glass
-        property alias glassOpacity: root.glassOpacity
         property alias lastDark: root.lastDark
     }
 }

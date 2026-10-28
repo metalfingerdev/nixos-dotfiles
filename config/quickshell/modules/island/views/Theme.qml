@@ -4,13 +4,13 @@ import qs.modules.island
 import qs.modules.components
 import qs.modules.services
 
-// How everything looks (also `open settings`). Each choice applies at once and is remembered
-// (components/Config.qml; the wallpaper by awww itself).
+// Colours and the wallpaper. Each choice applies at once and is remembered (components/Config.qml;
+// the wallpaper by awww itself). The island's size, shape and hiding are in views/Settings.qml.
 //   left   Colours: where they come from (a preset palette, an accent you pick, or the
 //          wallpaper), then for a generated scheme its style and dark or light
-//   right  Size of the whole island, its shape and handle, frosted glass, and the wallpaper
-// Keys: arrows/Tab move, Enter/Space choose, R random wallpaper, Backspace back, Escape closes. On the wallpaper
-// strip, Left/Right pick and Enter applies.
+//   right  the wallpapers, a grid of every image in Wallpaper.dir
+// Keys: arrows/Tab move, Enter/Space choose, R random wallpaper, I settings, Backspace back, Escape
+// closes. In the wallpaper grid the arrows pick (off its edge, they leave it) and Enter applies.
 Item {
     id: root
 
@@ -21,7 +21,7 @@ Item {
                                   "#1e9fc4", "#3b6fd8", "#5b5bd6", "#8a4fd0", "#c84f9b", "#8d6e63"]
 
     implicitWidth: 2 * colW + gutter + 2 * pad
-    implicitHeight: Math.max(colours.implicitHeight, look.implicitHeight) + header.height + 20 + 2 * pad
+    implicitHeight: Math.max(colours.implicitHeight, wallpapers.implicitHeight) + header.height + 20 + 2 * pad
 
     component Label: Text {
         leftPadding: 4
@@ -79,6 +79,8 @@ Item {
                  : Config.source === "accent" ? "From " + root.hex(Config.accent) : "From the wallpaper")
                 + (Wallpaper.current ? "  ·  " + Wallpaper.baseName(Wallpaper.current) : "")
         onBack: Engine.back()
+
+        Pill { kind: "text"; icon: Config.symbol.settings; iconSize: 22; shortcut: "i"; onClicked: x => Engine.open(Engine.View.Settings, x) }
     }
 
     // ================= left: colours =================
@@ -303,98 +305,15 @@ Item {
         }
     }
 
-    // ================= right: size, the island, wallpaper =================
+    // ================= right: the wallpaper =================
     Column {
-        id: look
+        id: wallpapers
         x: root.pad + root.colW + root.gutter
         y: colours.y
         width: root.colW
         spacing: 14
 
-        Label { text: "Size" }
-        Row {
-            width: parent.width
-            spacing: 10
-
-            // applied on release (or per key step): the island rescales under the slider
-            Slider {
-                id: size
-                width: parent.width - (reset.visible ? reset.width + parent.spacing : 0)
-                icon: "format_size"
-                value: (Config.scale - 0.8) / 0.6
-                valueText: Math.round((0.8 + shown * 0.6) * 100) + "%"
-                step: 0.05 / 0.6
-                onCommitted: v => Config.scale = Math.round((0.8 + v * 0.6) * 20) / 20
-            }
-            Pill {
-                id: reset
-                visible: Math.abs(Config.scale - 1) > 0.001
-                implicitHeight: 52
-                kind: "text"
-                text: "Reset"
-                onClicked: Config.scale = 1
-            }
-        }
-
-        Label { text: "Island"; topPadding: 4 }
-        Segmented {
-            width: parent.width
-            options: [{ key: "pill", label: "Floating" }, { key: "notch", label: "Notch" }]
-            current: Config.style
-            onPicked: key => Config.style = key
-        }
-        Segmented {
-            width: parent.width
-            options: [{ key: "strip", label: "Handle when hidden" }, { key: "none", label: "No handle" }]
-            current: Config.handle
-            onPicked: key => Config.handle = key
-        }
-
-        Item {
-            width: parent.width
-            height: 40
-
-            Text {
-                anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                text: "Frosted glass"
-                color: Config.text
-                font.family: Config.font
-                font.pixelSize: Config.body + 1
-            }
-            Toggle {
-                anchors { right: parent.right; rightMargin: 4; verticalCenter: parent.verticalCenter }
-                checked: Config.glass
-                onToggled: on => Config.glass = on
-            }
-        }
-        // opacity: 20 % .. 100 %
-        Slider {
-            visible: Config.glass
-            width: parent.width
-            icon: "opacity"
-            value: (Config.glassOpacity - 0.2) / 0.8
-            valueText: Math.round(Config.glassOpacity * 100) + "%"
-            onMoved: v => Config.glassOpacity = 0.2 + v * 0.8
-        }
-
-        // ---- wallpaper ----
-        Item {
-            width: parent.width
-            height: 48
-
-            Label {
-                anchors { left: parent.left; verticalCenter: parent.verticalCenter }
-                text: "Wallpaper"
-            }
-            Pill {
-                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                visible: Wallpaper.files.length > 1
-                icon: "shuffle"
-                text: "Random"
-                shortcut: "r"
-                onClicked: Wallpaper.random()
-            }
-        }
+        Label { text: "Wallpaper" }
 
         Text {
             visible: Wallpaper.files.length === 0
@@ -405,84 +324,116 @@ Item {
             font.pixelSize: Config.body
         }
 
-        ListView {
-            id: strip
-
+        // three across, up to three rows tall; more scroll
+        Item {
             visible: Wallpaper.files.length > 0
             width: parent.width
-            height: 96
-            orientation: ListView.Horizontal
-            spacing: 10
-            clip: true
-            boundsBehavior: Flickable.StopAtBounds
-            model: Wallpaper.files
-            highlightMoveDuration: 150
-            currentIndex: Math.max(0, Wallpaper.currentIndex)
-            Component.onCompleted: positionViewAtIndex(currentIndex, ListView.Center)
+            height: grid.height
 
-            // the list takes its keys itself, so ViewLoader never sees them: report them here
-            Keys.onPressed: event => { Engine.key(); event.accepted = false }
-            Keys.onLeftPressed:   decrementCurrentIndex()
-            Keys.onRightPressed:  incrementCurrentIndex()
-            Keys.onReturnPressed: Wallpaper.set(Wallpaper.files[currentIndex])
-            Keys.onEnterPressed:  Wallpaper.set(Wallpaper.files[currentIndex])
-            activeFocusOnTab: true
+            GridView {
+                id: grid
 
-            // the wheel scrolls sideways
-            WheelHandler {
-                onWheel: e => {
-                    const d = e.angleDelta.y !== 0 ? e.angleDelta.y : e.angleDelta.x
-                    strip.contentX = Math.max(0, Math.min(Math.max(0, strip.contentWidth - strip.width), strip.contentX - d))
-                }
-            }
+                readonly property int across: 3
+                readonly property real gap: 10
 
-            delegate: ClippingRectangle {
-                id: thumb
-                required property string modelData
-                required property int index
-                readonly property bool applied: modelData === Wallpaper.current
+                // each cell carries half a gap on every side: hang those outside the column so the
+                // thumbnails line up with its edges
+                x: -gap / 2
+                width: parent.width + gap
+                height: Math.max(1, Math.min(3, Math.ceil(count / across))) * cellHeight
+                cellWidth: width / across
+                cellHeight: Math.round((cellWidth - gap) * 0.62) + gap
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                model: Wallpaper.files
+                currentIndex: Math.max(0, Wallpaper.currentIndex)
+                Component.onCompleted: positionViewAtIndex(currentIndex, GridView.Contain)
 
-                width: 150
-                height: 96
-                radius: Config.innerRadius
-                color: Config.container
+                // the grid moves its own selection with the arrows (off its edge it lets them go,
+                // and ViewLoader moves focus out); report every key, so the countdown restarts
+                Keys.onPressed: event => { Engine.key(); event.accepted = false }
+                Keys.onReturnPressed: Wallpaper.set(Wallpaper.files[currentIndex])
+                Keys.onEnterPressed:  Wallpaper.set(Wallpaper.files[currentIndex])
+                activeFocusOnTab: true
 
-                Image {
-                    anchors.fill: parent
-                    source: Wallpaper.fileUrl(thumb.modelData)
-                    sourceSize: Qt.size(300, 192)            // decode small: wallpapers are big
-                    fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
-                }
+                delegate: Item {
+                    id: cell
+                    required property string modelData
+                    required property int index
+                    readonly property bool applied: modelData === Wallpaper.current
 
-                // applied: a primary ring and a check; the keyboard's pick: a thick ring
-                Rectangle {
-                    anchors.fill: parent
-                    radius: thumb.radius
-                    color: "transparent"
-                    border.width: strip.activeFocus && Config.focusVisible && thumb.ListView.isCurrentItem ? 4
-                                : thumb.applied ? 3 : 0
-                    border.color: thumb.applied && !(strip.activeFocus && thumb.ListView.isCurrentItem) ? Config.primary : Config.text
-                }
-                Rectangle {
-                    visible: thumb.applied
-                    anchors { right: parent.right; top: parent.top; margins: 8 }
-                    width: 24; height: 24; radius: 12
-                    color: Config.primary
+                    width: grid.cellWidth
+                    height: grid.cellHeight
 
-                    Icon {
-                        anchors.centerIn: parent
-                        name: "check"
-                        size: 16
-                        color: Config.primaryInk
+                    ClippingRectangle {
+                        id: thumb
+                        anchors { fill: parent; margins: grid.gap / 2 }
+                        radius: Config.innerRadius
+                        color: Config.container
+
+                        Image {
+                            anchors.fill: parent
+                            source: Wallpaper.fileUrl(cell.modelData)
+                            sourceSize: Qt.size(300, 192)            // decode small: wallpapers are big
+                            fillMode: Image.PreserveAspectCrop
+                            asynchronous: true
+                        }
+
+                        // applied: a primary ring and a check; the keyboard's pick: a thick ring
+                        Rectangle {
+                            readonly property bool picked: grid.activeFocus && cell.GridView.isCurrentItem
+                            anchors.fill: parent
+                            radius: thumb.radius
+                            color: "transparent"
+                            border.width: picked && Config.focusVisible ? 4 : cell.applied ? 3 : 0
+                            border.color: cell.applied && !picked ? Config.primary : Config.text
+                        }
+                        Rectangle {
+                            visible: cell.applied
+                            anchors { right: parent.right; top: parent.top; margins: 8 }
+                            width: 24; height: 24; radius: 12
+                            color: Config.primary
+
+                            Icon {
+                                anchors.centerIn: parent
+                                name: "check"
+                                size: 16
+                                color: Config.primaryInk
+                            }
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: { grid.currentIndex = cell.index; Wallpaper.set(cell.modelData) }
+                        }
                     }
                 }
+            }
+        }
 
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: { strip.currentIndex = thumb.index; Wallpaper.set(thumb.modelData) }
-                }
+        // where they come from, and a random one
+        Item {
+            visible: Wallpaper.files.length > 0
+            width: parent.width
+            height: 48
+
+            Text {
+                anchors { left: parent.left; leftMargin: 4; right: shuffle.left; rightMargin: 12; verticalCenter: parent.verticalCenter }
+                text: Wallpaper.files.length + (Wallpaper.files.length === 1 ? " image in " : " images in ") + Wallpaper.dir
+                elide: Text.ElideMiddle
+                color: Config.dim
+                font.family: Config.font
+                font.pixelSize: Config.body
+            }
+            Pill {
+                id: shuffle
+                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                visible: Wallpaper.files.length > 1
+                icon: "shuffle"
+                text: "Random"
+                shortcut: "r"
+                onClicked: Wallpaper.random()
             }
         }
 

@@ -10,7 +10,7 @@ const M = ctx
 // ---- fake Registry (mirrors Registry.qml) -----------------------------------------------------
 const V = { Compact: 0, Network: 1, Launcher: 2, Bluetooth: 3, Volume: 4, Brightness: 5, Notifications: 6,
             Media: 7, Battery: 8, Clock: 9, Power: 10, Theme: 11, Workspaces: 12, Tabs: 13, Dashboard: 14, Switcher: 15,
-            Mixer: 16 }
+            Mixer: 16, Settings: 17 }
 const REG = {
     [V.Compact]:    { priority: 0, timeout: 0 },
     [V.Network]:    { priority: 2, timeout: 5000 },
@@ -25,6 +25,7 @@ const REG = {
     [V.Clock]:      { priority: 2, timeout: 8000 },
     [V.Power]:      { priority: 2, timeout: 8000 },
     [V.Theme]:      { priority: 2, timeout: 8000 },
+    [V.Settings]:   { priority: 2, timeout: 8000 },
     [V.Workspaces]: { priority: 2, timeout: 8000 },
     [V.Tabs]:       { priority: 2, timeout: 8000 },
     [V.Dashboard]:  { priority: 2, timeout: 12000 },

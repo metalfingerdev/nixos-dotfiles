@@ -16,10 +16,10 @@ Backspace, the mouse's back button, ← ──► the view that was open before
 Escape, a click outside, a timer      ──► home (the clock)
 ```
 
-> **Status:** prototype. The morphing surface (pill or notch, optional frosted glass), hover/peek,
+> **Status:** prototype. The morphing surface (pill or notch, on Hyprland's frosted glass), hover/peek,
 > pinning, back-history, auto-hide, IPC, multi-monitor, and every view work: the hub (tabs), the
 > dashboard, launcher, network, bluetooth, media, the volume mixer, notifications, workspace overview,
-> clock, battery, power, theme and wallpaper, plus toasts (volume, brightness, notifications, battery,
+> clock, battery, power, theme and wallpaper, settings, plus toasts (volume, brightness, notifications, battery,
 > workspace switch) and privacy dots.
 > See [docs/roadmap.md](docs/roadmap.md) and [docs/old-shell-notes.md](docs/old-shell-notes.md).
 
@@ -51,14 +51,14 @@ modules/
     Engine.qml                singleton: holds the snapshot, owns the one Timer, public API
     Registry.qml              singleton: every view's name, priority, timeout, queue flag, QML file
     Bar.qml                   per screen: the windows, the proxy/surface morph, the look (pill/notch,
-                              glass, anti-corners, handle), outside-click close, privacy dots
+                              anti-corners, handle; the glass layer), outside-click close, privacy dots
     ViewLoader.qml            the view slot: a Loader plus the default keyboard
     Ipc.qml                   `qs ipc call island ...` commands
     Triggers.qml              system events -> alerts (volume, brightness, battery, media, workspace switch)
     Debug.qml                 live snapshot overlay, toggled with `qs ipc call island debug true`
     views/                    one QML file per view: Compact Tabs Dashboard Launcher Network Bluetooth
-                              Media Mixer Notification Workspaces Clock Battery Power Theme, and the
-                              toasts Volume Brightness Switcher
+                              Media Mixer Notification Workspaces Clock Battery Power Theme Settings,
+                              and the toasts Volume Brightness Switcher
       overview/               the Workspaces overview's tiles, live previews, special strip, options
     parts/                    pieces several views share: WorkspaceDots (GNOME-style), StatusGroup (what's
                               on, as a button group), MediaCard, NotificationCard
@@ -115,12 +115,12 @@ Bar: Loader shows Registry.get(view).url
 | | `scale` | 1.0 | the whole island's size (0.8 .. 1.4); IPC `size` |
 | | `style` | `pill` | `pill` floats below the edge; `notch` is flush with it, with anti-corners; IPC `style` |
 | | `handle` | `strip` | auto-hide: a thin bar stays at the top edge while hidden (`none`: nothing); IPC `handle` |
-| | `glass` / `glassOpacity` | `false` / 0.85 | frosted glass over Hyprland's blur; IPC `glass` / `toggleGlass` |
 | | `radius` | 28 | the island's largest corner (Material's extra large); lower shapes are capsules |
+| | `stiffness` / `damping` | 3.2 / 0.34 | morph spring: higher stiffness = snappier, lower damping = more overshoot. The workspace buttons in Tabs spring with it, so they move with the island's edge |
+| `hypr/modules/look.lua` | `active_opacity` / `inactive_opacity`, `blur`, layer rule `glass` | 0.8 | the glass: every window at 80 % over a frosted blur; layers named `glass` or `glass:*` (the island is `glass:island`) get the blur, and the island takes `active_opacity` too (`Desktops.windowOpacity`, re-read on `hyprctl reload`) |
 | `Bar.qml` | `gap` / `edgePad` | 8 (notch: 0) / 8 | distance from the top edge / from the screen sides |
 | | `space` | `gap` + 36 | height reserved at the top when auto-hide is off |
 | | `hotZone` | 4 | height of the top-edge strip that reveals the island |
-| | `stiffness` / `damping` | 3.2 / 0.34 | morph spring: higher stiffness = snappier, lower damping = more overshoot |
 | | `debug` | `Engine.debug` | draws the proxy as a translucent green box |
 | | `pinView` | `false` | content stays put while the surface slides over it |
 | `Registry.qml` | per view | | `priority`, `critical`, `timeout` (ms, 0 = none), `queue` |

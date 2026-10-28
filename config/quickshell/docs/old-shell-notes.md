@@ -34,7 +34,7 @@ keyboard). On top of it:
 | old `Island.qml` | **Pill vs notch**: floating with every corner round, or flush with the top edge with a square top | `Config.style`, Bar's per-corner radii |
 | `dynamicGlacier/IslandSurface.qml` | **Anti-corners**: in notch style the island curves into the screen edge | `AntiCorner` in `Bar.qml` |
 | `dynamicGlacier/IslandSurface.qml` | The corner follows the height: small shapes (the clock, HUDs) are capsules | `Config.radius`, `min(h / 2, radius)` |
-| `dynamicGlacier/DynamicGlacier.qml` + `FrostedGlassSurface.qml` | **Frosted glass**: a translucent surface plus a Hyprland layer rule (blur, ignore_alpha) registered at runtime, Lua `hyprctl eval` first, classic keywords as fallback; a faint rim | `Config.glass` / `glassOpacity`, `Desktops.blurLayer()`, namespace `quickshell:island` |
+| `dynamicGlacier/DynamicGlacier.qml` + `FrostedGlassSurface.qml` | **Frosted glass**: a translucent surface plus a Hyprland layer rule (blur, ignore_alpha) registered at runtime, Lua `hyprctl eval` first, classic keywords as fallback; a faint rim | moved to Hyprland: hypr/modules/look.lua makes every window 80 % glass and blurs layers named `glass:*`; the island is `glass:island` and takes the windows' opacity (`Desktops.windowOpacity`) |
 | `dynamicGlacier` (`handleStyle: strip`) + old `Island.qml` (collapsed handle) | **A visible handle** while auto-hide has hidden the island | `Config.handle` ("strip" / "none") |
 | old `Bar.qml` | **A click outside closes** a pinned view (the overlay takes the whole screen while pinned) | `outside` MouseArea, the overlay's mask |
 | old `IslandState.qml` + `dynamicGlacier` | **A click on the island itself** pins what it shows: the peek stays, a toast stops timing out; at rest it opens the peek view | `Bar.pinShown()`; Machine: pinning the peeking view adds no history |
@@ -43,7 +43,7 @@ keyboard). On top of it:
 | `dynamicGlacier` (hover peek) | **A dashboard peek**: time and date, Wi-Fi / Bluetooth / battery at a glance (each opens its view), what's playing with its controls | was `views/Expanded.qml`; hover now peeks into `views/Tabs.qml`, whose status segments each open their view |
 | `dynamicGlacier` (collapsed bump) | **Media at rest**: the album cover (or bars) beside the clock; a bolt while charging | `views/Compact.qml` |
 | `dynamicGlacier` (`showMedia`) | **A media toast** when a track starts | removed: a track starting no longer opens the media view |
-| `dynamicGlacier` (settings panel, `settings.json`) | The look is **editable and remembered** | `views/Theme.qml`, `Config` (QtCore Settings), IPC `style` / `glass` / `handle` |
+| `dynamicGlacier` (settings panel, `settings.json`) | The look is **editable and remembered** | `views/Theme.qml` (colours, wallpaper), `views/Settings.qml` (size, shape, hiding), `Config` (QtCore Settings), IPC `style` / `handle` |
 
 ## Kept as it is here (the new version is better)
 

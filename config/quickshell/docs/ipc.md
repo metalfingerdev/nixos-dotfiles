@@ -22,7 +22,6 @@ default.
 | `qs ipc call island mode <dark\|light>` | a generated scheme's dark or light version |
 | `qs ipc call island size <80..140>` | the whole island's size, in percent |
 | `qs ipc call island style <pill\|notch>` | the island's shape |
-| `qs ipc call island glass <true\|false>` | frosted glass; `toggleGlass` flips it |
 | `qs ipc call island handle <strip\|none>` | auto-hide: what stays at the top edge while hidden |
 | `qs ipc call island debug <true\|false>` | show the debug overlay and the proxy box |
 | `qs ipc call island toggleDebug` | toggle debug |
@@ -36,7 +35,8 @@ control's shortcut key) until it closes, and each keystroke restarts its timeout
 mode: focus rings and shortcut keycaps show until the pointer moves. Names: `tabs` (the hub, also
 what hovering shows), `dashboard` (everything), `launcher`, `network`, `bluetooth`, `media`, `mixer`,
 `notifications` (`open` = the center, `alert` = the popups), `workspaces` (the overview), `clock`,
-`battery`, `power`, `theme` (palette, look, wallpaper; also `settings`), and the toast `switcher`
+`battery`, `power`, `theme` (colours and the wallpaper), `settings` (the island's size, shape and
+auto-hide), and the toast `switcher`
 (`alert switcher` shows the workspace dots).
 
 `peek` is meant for a key's press and release: `peek true` on press, `peek false` on release. When
@@ -98,4 +98,4 @@ from keybinds one long enough to read and decide (the hub's is 8000 ms).
 
 Add a typed function to `Ipc.qml` that resolves strings with `Registry.byName` and calls one `Engine`
 method. Keep string handling in this file only. A Registry entry's `aliases` are other names
-`byName` accepts (`settings` is the theme view).
+`byName` accepts.

@@ -13,11 +13,12 @@ import qs.modules.services
 // One Bar exists per screen (see shell.qml). All Bars share the Engine, but only the one on
 // Engine.activeScreen draws the island; the others only keep their top-edge hot zone.
 //
-// The look comes from Config (views/Theme.qml):
+// The look comes from Config (views/Settings.qml, views/Theme.qml):
 //   style "pill"   floats `gap` below the top edge, every corner round
 //         "notch"  flush with the top edge, square top, anti-corners curving into the screen edge
-//   glass          translucent surface; Hyprland blurs what's behind it (namespace quickshell:island)
 //   handle "strip" while auto-hide has hidden the island, a thin bar stays at the top edge
+// The glass is Hyprland's: the overlay's namespace is glass:island, which hypr/modules/look.lua's `glass`
+// layer rule blurs, and the surface takes the windows' opacity (Config.island).
 // Any shape lower than twice Config.radius is a capsule (the compact clock, the volume HUD).
 Scope {
     id: root
@@ -39,10 +40,8 @@ Scope {
     readonly property real stripW: 96
     readonly property real stripH: 5
 
-    // Morph feel (SpringAnimation). Higher stiffness = snappier; lower damping = more overshoot.
-    // A redirect mid-flight keeps the current velocity, but the restart stalls it for a frame or two.
-    readonly property real stiffness: 3.2
-    readonly property real damping: 0.34
+    // Morph feel: Config.stiffness / damping (SpringAnimation). A redirect mid-flight keeps the
+    // current velocity, but the restart stalls it for a frame or two.
 
     // false: view is final-size, top-aligned and horizontally centred in the surface
     // true:  view is final-size AND sits at its final screen position; the surface slides over it
@@ -72,10 +71,10 @@ Scope {
     property real sw: 0
     property real sh: 0
 
-    Behavior on sx { enabled: root.armed; SpringAnimation { spring: root.stiffness; damping: root.damping; epsilon: 0.25 } }
-    Behavior on sy { enabled: root.armed; SpringAnimation { spring: root.stiffness; damping: root.damping; epsilon: 0.25 } }
-    Behavior on sw { enabled: root.armed; SpringAnimation { spring: root.stiffness; damping: root.damping; epsilon: 0.25 } }
-    Behavior on sh { enabled: root.armed; SpringAnimation { spring: root.stiffness; damping: root.damping; epsilon: 0.25 } }
+    Behavior on sx { enabled: root.armed; SpringAnimation { spring: Config.stiffness; damping: Config.damping; epsilon: 0.25 } }
+    Behavior on sy { enabled: root.armed; SpringAnimation { spring: Config.stiffness; damping: Config.damping; epsilon: 0.25 } }
+    Behavior on sw { enabled: root.armed; SpringAnimation { spring: Config.stiffness; damping: Config.damping; epsilon: 0.25 } }
+    Behavior on sh { enabled: root.armed; SpringAnimation { spring: Config.stiffness; damping: Config.damping; epsilon: 0.25 } }
 
     property bool armed: false
     Timer { id: armTimer; onTriggered: root.armed = true }
@@ -117,11 +116,6 @@ Scope {
 
     Component.onCompleted: { snap(); swap.start(); disarm(500) }
 
-    // Glass needs Hyprland to blur this layer. Asking once per switch-on is enough (the rule
-    // stays until Hyprland reloads; switching glass on again asks again).
-    readonly property bool wantsBlur: active && Config.glass
-    onWantsBlurChanged: if (wantsBlur) Desktops.blurLayer("quickshell:island")
-
     // Top strip. Auto-hide off: reserves screen space on the active screen only, fully click-through.
     // Auto-hide on: a thin hot zone on EVERY screen; reaching it reveals the island (on that screen).
     PanelWindow {
@@ -155,7 +149,7 @@ Scope {
         color: "transparent"
         mask: Region { item: Engine.hidden ? null : Engine.pinned ? outside : proxy }
 
-        WlrLayershell.namespace: "quickshell:island"
+        WlrLayershell.namespace: "glass:island"     // Hyprland's glass (hypr/modules/look.lua)
         WlrLayershell.layer: WlrLayer.Top
         // Pinned views and the peek view (hover) get the keyboard (the user is here).
         // Rest and Toast never take it, so a toast can't steal typing from an app.
@@ -323,22 +317,6 @@ Scope {
 
                     source: Registry.get(root.shown)?.url ?? ""
                 }
-            }
-
-            // glass rim: a faint edge where a curved pane would catch the light
-            Rectangle {
-                visible: Config.glass
-                x: 0
-                y: root.notch ? -1 : 0                   // a notch has no top edge to light
-                width: parent.width
-                height: parent.height - y
-                topLeftRadius: parent.topLeftRadius
-                topRightRadius: parent.topRightRadius
-                bottomLeftRadius: parent.bottomLeftRadius
-                bottomRightRadius: parent.bottomRightRadius
-                color: "transparent"
-                border.width: 1
-                border.color: Qt.rgba(1, 1, 1, 0.10)
             }
         }
 

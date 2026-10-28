@@ -29,7 +29,9 @@ QtObject {
         { name: "battery",    priority: 2, critical: 3, timeout: 4000, view: Engine.View.Battery, url: Qt.resolvedUrl("views/Battery.qml"), queue: true },
         { name: "clock",      priority: 2, timeout: 8000, view: Engine.View.Clock,      url: Qt.resolvedUrl("views/Clock.qml") },
         { name: "power",      priority: 2, timeout: 8000, view: Engine.View.Power,      url: Qt.resolvedUrl("views/Power.qml") },
-        { name: "theme",      priority: 2, timeout: 8000, view: Engine.View.Theme,      url: Qt.resolvedUrl("views/Theme.qml"), aliases: ["settings"] },
+        // colours and the wallpaper; the island's size, shape and hiding are its settings
+        { name: "theme",      priority: 2, timeout: 8000, view: Engine.View.Theme,      url: Qt.resolvedUrl("views/Theme.qml") },
+        { name: "settings",   priority: 2, timeout: 8000, view: Engine.View.Settings,   url: Qt.resolvedUrl("views/Settings.qml") },
         { name: "workspaces", priority: 2, timeout: 8000, view: Engine.View.Workspaces, url: Qt.resolvedUrl("views/Workspaces.qml") },
         // Toast = the workspace changed (GNOME-style dots). Transient: never interrupts, never waits.
         // `opens`: a click on the toast opens this instead of pinning the toast (its full view)
@@ -40,7 +42,7 @@ QtObject {
     // A non-number (e.g. an enum name that doesn't exist yet: Qt keeps a singleton's old enum across a
     // hot reload) must never match an entry, or the machine would accept a view nothing can show or end.
     function get(view) { return typeof view === "number" ? entries.find(e => e.view === view) || null : null }
-    // a name, or one of its aliases ("settings" is the theme view)
+    // a name, or one of its aliases
     function byName(name)    { return entries.find(e => e.name === name || (e.aliases ?? []).includes(name)) || null }
     // critical = true: the entry's `critical` priority, if it has one
     function priority(view, critical) {

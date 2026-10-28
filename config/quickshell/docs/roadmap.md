@@ -13,6 +13,13 @@
 
 ## Done
 
+- [x] Glass moved to Hyprland: every window at 80 % over a frosted blur, and a `glass` layer rule that
+      layers named `glass:*` opt into. The island is `glass:island` and takes the windows' opacity;
+      the island's own glass toggle and opacity slider are gone.
+- [x] Settings is its own view (size, shape, auto-hide and its handle); Theme is colours and a
+      wallpaper grid. Each links to the other.
+- [x] Tabs: a workspace button coming or going moves the bar and the island's edges as one motion
+      (the buttons spring on the island's spring, toward the width the island is already heading for).
 - [x] The glance (Expanded) is gone: hovering the clock peeks into the hub (Tabs). Each segment of
       Tabs' status group opens its own view (network, Bluetooth, notifications, battery). No media toast
       when a track starts. A Mixer view: the output, the microphone and each app's stream, a slider
@@ -30,7 +37,7 @@
       opens the dashboard and its search bar the launcher. Tabs is the hub (a click on either opens it).
 - [x] Dashboard: Wi-Fi/Bluetooth tiles, quick settings (Do not disturb, night light, caffeine, airplane,
       microphone, dark theme, screen record, screenshot), volume/brightness sliders, power profiles,
-      media, notifications. `open settings` is the theme view.
+      media, notifications.
 - [x] Launcher: All / Apps / Files / Actions, usage ranking, file search, island actions, a calculator.
 - [x] Workspace switch toast with GNOME-style dots (`Switcher`, `Triggers.switcherToasts`).
 
@@ -39,7 +46,7 @@
 - [x] `Config` singleton: palettes, the island's look, fonts; Bar, components and views use it.
 - [x] Launcher: ranking (prefix > word > substring > generic name/keywords > in-order letters), icons.
 - [x] The best of the old shell's `Bar` and `dynamicGlacier`, merged into the island: pill/notch,
-      anti-corners, frosted glass, capsule corners, strip handle, outside-click close, click to pin,
+      anti-corners, frosted glass (now Hyprland's), capsule corners, strip handle, outside-click close, click to pin,
       privacy dots, follow the focused monitor, the dashboard peek, media in Compact (see
       [old-shell-notes.md](old-shell-notes.md)).
 

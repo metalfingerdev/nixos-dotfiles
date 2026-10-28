@@ -98,21 +98,29 @@ Singleton {
         focus(target)
     }
 
-    // Glass: ask Hyprland to blur a layer namespace. The Lua config (Hyprland 0.55+) takes a
-    // guarded rule through `hyprctl eval`, so reloads don't stack duplicates; older Hyprland
-    // takes the classic keywords.
-    function blurLayer(namespace) {
-        const key = "island_blur_" + namespace.replace(/[^A-Za-z0-9]/g, "_")
-        blurLua.command = ["hyprctl", "eval",
-            "if rawget(_G, '" + key + "') == nil then _G." + key + " = hl.layer_rule({ name = '" + key
-          + "', match = { namespace = '^" + namespace + "$' }, blur = true, ignore_alpha = 0.18, xray = false }) end"]
-        blurClassic.command = ["hyprctl", "--batch",
-            "keyword layerrule blur," + namespace + " ; keyword layerrule ignorealpha 0.18," + namespace
-          + " ; keyword layerrule xray 0," + namespace]
-        blurLua.running = true
+    // ---- glass: Hyprland's (hypr/modules/look.lua) ----
+    // Every window is drawn at decoration.active_opacity over Hyprland's blur, and the `glass` layer
+    // rule blurs layers named glass:*. The island is one of those and takes the windows' opacity,
+    // read here at start and again each time Hyprland reloads its config.
+    property real windowOpacity: 1
+    function readOpacity() { opacityProc.running = true }
+    Process {
+        id: opacityProc
+        command: ["hyprctl", "getoption", "decoration:active_opacity", "-j"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    const v = Number(JSON.parse(text).float)
+                    if (v > 0 && v <= 1) root.windowOpacity = v
+                } catch (e) {}
+            }
+        }
     }
-    Process { id: blurLua; onExited: (code, status) => { if (code !== 0) blurClassic.running = true } }
-    Process { id: blurClassic }
+    Connections {
+        target: Hyprland
+        function onRawEvent(event) { if (event?.name === "configreloaded") root.readOpacity() }
+    }
+    Component.onCompleted: readOpacity()
 
     // ---- queries (all read the properties above, so bindings stay live) ----
     function isSpecial(win) { return String(win?.workspace?.name ?? "").startsWith("special:") }

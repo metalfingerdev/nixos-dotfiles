@@ -53,6 +53,10 @@
           "terminal.integrated.initialHint" = false;
           "git.autofetch" = true;
 
+          # Copilot ghost text / inline suggestions
+          "github.completions.enabled" = true;
+          "github.copilot.inlineSuggest.enable" = true;
+
           "workbench.editorAssociations" = {
             "*.copilotmd" = "vscode.markdown.preview.editor";
             "{git,gitlens,chat-editing-snapshot-text-model,copilot,git-graph,git-graph-3}:/**/*.qrc" = "default";

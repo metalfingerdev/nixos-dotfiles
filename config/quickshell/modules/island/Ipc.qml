@@ -19,7 +19,6 @@ import qs.modules.components
 //   qs ipc call island mode light          dark | light (generated schemes)
 //   qs ipc call island size 120            the island's size, 80..140 %
 //   qs ipc call island style notch         pill | notch
-//   qs ipc call island glass true          frosted glass (toggleGlass flips it)
 //   qs ipc call island handle strip        auto-hide handle: strip | none
 //   qs ipc call island status
 //   qs ipc call island debug true          snapshot overlay + proxy box (toggleDebug flips it)
@@ -71,8 +70,6 @@ IpcHandler {
     function size(percent: int): void    { Config.scale = Math.max(0.8, Math.min(1.4, percent / 100)) }
     function palettes(): string          { return Config.names.join("\n") }
     function style(name: string): void   { if (name === "pill" || name === "notch") Config.style = name }
-    function glass(on: bool): void       { Config.glass = on }
-    function toggleGlass(): void         { Config.glass = !Config.glass }
     function handle(name: string): void  { if (name === "strip" || name === "none") Config.handle = name }
     function debug(on: bool): void    { Engine.debug = on }
     function toggleDebug(): void      { Engine.debug = !Engine.debug }

@@ -49,7 +49,7 @@ Each `Bar` creates two layer-shell `PanelWindow`s:
    - With auto-hide on, it exists on **every** screen. It is `hotZone` px tall, reserves nothing, and its
      input mask is the strip. Hovering the strip sends `Engine.edge(true/false, screen)`
      (`Reach`/`Retreat`), which can also move the island to that screen.
-2. **overlay**: full-screen, on `WlrLayer.Top`, namespace `quickshell:island`, active screen only, reserves
+2. **overlay**: full-screen, on `WlrLayer.Top`, namespace `glass:island`, active screen only, reserves
    nothing. Its input mask follows the phase:
    - normally only the **proxy** rect, so the rest of the screen stays clickable;
    - the **whole screen** while a view is Pinned: a click anywhere outside the island closes it;
@@ -73,8 +73,8 @@ Loader item ──implicit size──► proxy (invisible, snaps instantly, the 
 
   It is never animated, so the input mask is correct on the first frame.
 - Any change to the proxy's x/y/width/height is coalesced with `Qt.callLater(snap)`. `snap()`
-  assigns the proxy rect to `sx/sy/sw/sh`. Each has a `Behavior` with a `SpringAnimation` (`stiffness`,
-  `damping`). A redirect mid-flight keeps the current velocity, but restarting the animation stalls it
+  assigns the proxy rect to `sx/sy/sw/sh`. Each has a `Behavior` with a `SpringAnimation` (`Config.stiffness`,
+  `Config.damping`). A redirect mid-flight keeps the current velocity, but restarting the animation stalls it
   for a frame or two, so Bar avoids redirects it can see coming (see View swaps).
 - The Behaviors are enabled only while `armed`, so the same assignment jumps instead of springing.
   `disarm(ms)` turns them off for a while: 500 ms at startup (so the
@@ -83,8 +83,9 @@ Loader item ──implicit size──► proxy (invisible, snaps instantly, the 
   clamped at 0, because a spring can undershoot. Its corners come from `Config`: `min(height / 2,
   Config.radius)` (so low shapes are capsules), and a square top in notch style, where two
   **anti-corners** (Shapes outside the surface, from the same sprung rect) curve it into the screen
-  edge. With `Config.glass` the colour is translucent, a 1 px rim lights its edge, and Bar asks Hyprland to
-  blur the layer (`Desktops.blurLayer`).
+  edge. The glass is Hyprland's: its colour is `Config.island`, the surface at the windows' opacity
+  (`decoration.active_opacity`, read by `Desktops.windowOpacity`), and hypr/modules/look.lua's `glass` layer rule
+  blurs the overlay (namespace `glass:island`) under whatever isn't transparent.
 - A click on the surface's own background (under the view's controls), `pinShown()`: a toast opens its
   full view, the Registry's `opens` (the workspace dots open the overview, the volume and brightness
   toasts the dashboard), or else its own view, Pinned; the clock (Compact, at rest) and the hub's peek

@@ -25,7 +25,8 @@ QtObject {
         Tabs,
         Dashboard,
         Switcher,
-        Mixer
+        Mixer,
+        Settings
     }
 
     // ---- config ----

@@ -9,7 +9,8 @@ import qs.modules.services
 //   back         the view that was open before (Backspace too); Escape closes
 //   workspaces   numbered, with the switcher's logic: up to the last one in use and one empty; the
 //                focused one a wide primary pill, ones with windows filled, empty ones an outline.
-//                Click to go there; the wheel steps through
+//                Click to go there; the wheel steps through. One coming or going moves the whole
+//                bar and the island's edges together (see implicitWidth)
 //   tabs         one icon per view (and a screenshot), each opens it
 //   status       what's on, one button each: the network, Bluetooth, Do not disturb and the battery
 //                open their own views; a recording, or nothing on, the dashboard
@@ -30,6 +31,7 @@ Item {
         { icon: Config.symbol.overview,      key: "w", view: Engine.View.Workspaces },
         { icon: Config.symbol.screenshot,    key: "s", view: -1 },            // screenshot
         { icon: Config.symbol.theme,         key: "t", view: Engine.View.Theme },
+        { icon: Config.symbol.settings,      key: "i", view: Engine.View.Settings },
         { icon: Config.symbol.power,         key: "p", view: Engine.View.Power }
     ]
 
@@ -39,7 +41,10 @@ Item {
         Toggles.screenshot()
     }
 
-    implicitWidth: row.implicitWidth + 32
+    // Sized to where the workspace buttons are going (finalWidth), not to where they are: they
+    // spring there on the island's own spring, so the bar (centred) and the island's edges move
+    // as one. Everything after them is `rest`, measured on its own.
+    implicitWidth: back.width + workspaces.finalWidth + rest.implicitWidth + 2 * row.spacing + 32
     implicitHeight: 80
 
     SystemClock {
@@ -70,129 +75,136 @@ Item {
 
         // ---- back, then the workspaces: the switcher's logic, numbered ----
         BackButton {
+            id: back
             anchors.verticalCenter: parent.verticalCenter
             onClicked: Engine.back()
         }
 
         WorkspaceButtons {
+            id: workspaces
             anchors.verticalCenter: parent.verticalCenter
-            across: 0
             size: 46
             spacing: 6
         }
 
-        Divider {}
-
-        // ---- tabs ----
         Row {
+            id: rest
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 2
+            spacing: row.spacing
 
-            Repeater {
-                model: root.tabs
+            Divider {}
 
-                Pill {
-                    id: tab
-                    required property var modelData
-                    anchors.verticalCenter: parent.verticalCenter
-                    implicitHeight: 52
-                    kind: "text"
-                    icon: modelData.icon
-                    iconSize: 26
-                    shortcut: modelData.key
-                    visible: modelData.view >= 0 || Toggles.has("grimblast")
-                    onClicked: x => root.activate(modelData, x)
+            // ---- tabs ----
+            Row {
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 2
 
-                    // unread notifications: a count on the bell
-                    Rectangle {
-                        visible: tab.modelData.view === Engine.View.Notifications && Notifier.count > 0
-                        x: parent.width - width + 2
-                        y: parent.height - height - 2           // the corner above is the keycap's
-                        width: Math.max(16, unread.implicitWidth + 8)
-                        height: 16
-                        radius: 8
-                        color: Config.primary
+                Repeater {
+                    model: root.tabs
 
-                        Text {
-                            id: unread
-                            anchors.centerIn: parent
-                            text: Notifier.count > 99 ? "99+" : Notifier.count
-                            color: Config.primaryInk
-                            font.family: Config.font
-                            font.pixelSize: 10
-                            font.weight: Font.Bold
+                    Pill {
+                        id: tab
+                        required property var modelData
+                        anchors.verticalCenter: parent.verticalCenter
+                        implicitHeight: 52
+                        kind: "text"
+                        icon: modelData.icon
+                        iconSize: 26
+                        shortcut: modelData.key
+                        visible: modelData.view >= 0 || Toggles.has("grimblast")
+                        onClicked: x => root.activate(modelData, x)
+
+                        // unread notifications: a count on the bell
+                        Rectangle {
+                            visible: tab.modelData.view === Engine.View.Notifications && Notifier.count > 0
+                            x: parent.width - width + 2
+                            y: parent.height - height - 2           // the corner above is the keycap's
+                            width: Math.max(16, unread.implicitWidth + 8)
+                            height: 16
+                            radius: 8
+                            color: Config.primary
+
+                            Text {
+                                id: unread
+                                anchors.centerIn: parent
+                                text: Notifier.count > 99 ? "99+" : Notifier.count
+                                color: Config.primaryInk
+                                font.family: Config.font
+                                font.pixelSize: 10
+                                font.weight: Font.Bold
+                            }
+                        }
+                        // playing: a dot under the note
+                        Rectangle {
+                            visible: tab.modelData.view === Engine.View.Media && Players.playing
+                            anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 2 }
+                            width: 4; height: 4; radius: 2
+                            color: Config.primary
                         }
                     }
-                    // playing: a dot under the note
-                    Rectangle {
-                        visible: tab.modelData.view === Engine.View.Media && Players.playing
-                        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 2 }
-                        width: 4; height: 4; radius: 2
-                        color: Config.primary
+                }
+            }
+
+            Divider {}
+
+            // ---- status ----
+            StatusGroup {
+                anchors.verticalCenter: parent.verticalCenter
+                segmentHeight: 46
+                maxText: 100
+                onClicked: (view, x) => Engine.open(view, x)
+            }
+
+            Divider {}
+
+            // ---- clock ----
+            Rectangle {
+                id: when
+                readonly property bool ring: activeFocus && Config.focusVisible
+                anchors.verticalCenter: parent.verticalCenter
+                width: dateColumn.implicitWidth + 24
+                height: 56
+                radius: Config.innerRadius
+                color: Qt.rgba(Config.text.r, Config.text.g, Config.text.b, whenArea.pressed || ring ? 0.12 : whenArea.containsMouse ? 0.08 : 0)
+
+                activeFocusOnTab: true
+                Keys.onReturnPressed: Engine.open(Engine.View.Clock)
+                Keys.onEnterPressed:  Engine.open(Engine.View.Clock)
+                Keys.onSpacePressed:  Engine.open(Engine.View.Clock)
+
+                Column {
+                    id: dateColumn
+                    anchors.centerIn: parent
+                    spacing: -1
+
+                    Text {
+                        anchors.right: parent.right
+                        text: Qt.formatDateTime(clock.date, "HH:mm")
+                        color: Config.text
+                        font.family: Config.font
+                        font.pixelSize: Config.title + 2
+                        font.weight: Font.DemiBold
+                        font.features: { "tnum": 1 }
+                    }
+                    Text {
+                        anchors.right: parent.right
+                        text: Qt.formatDateTime(clock.date, "ddd d MMM")
+                        color: Config.dim
+                        font.family: Config.font
+                        font.pixelSize: Config.small
                     }
                 }
-            }
-        }
 
-        Divider {}
-
-        // ---- status ----
-        StatusGroup {
-            anchors.verticalCenter: parent.verticalCenter
-            segmentHeight: 46
-            maxText: 100
-            onClicked: (view, x) => Engine.open(view, x)
-        }
-
-        Divider {}
-
-        // ---- clock ----
-        Rectangle {
-            id: when
-            readonly property bool ring: activeFocus && Config.focusVisible
-            anchors.verticalCenter: parent.verticalCenter
-            width: dateColumn.implicitWidth + 24
-            height: 56
-            radius: Config.innerRadius
-            color: Qt.rgba(Config.text.r, Config.text.g, Config.text.b, whenArea.pressed || ring ? 0.12 : whenArea.containsMouse ? 0.08 : 0)
-
-            activeFocusOnTab: true
-            Keys.onReturnPressed: Engine.open(Engine.View.Clock)
-            Keys.onEnterPressed:  Engine.open(Engine.View.Clock)
-            Keys.onSpacePressed:  Engine.open(Engine.View.Clock)
-
-            Column {
-                id: dateColumn
-                anchors.centerIn: parent
-                spacing: -1
-
-                Text {
-                    anchors.right: parent.right
-                    text: Qt.formatDateTime(clock.date, "HH:mm")
-                    color: Config.text
-                    font.family: Config.font
-                    font.pixelSize: Config.title + 2
-                    font.weight: Font.DemiBold
-                    font.features: { "tnum": 1 }
+                MouseArea {
+                    id: whenArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: mouse => Engine.open(Engine.View.Clock, mapToItem(null, mouse.x, mouse.y).x)
                 }
-                Text {
-                    anchors.right: parent.right
-                    text: Qt.formatDateTime(clock.date, "ddd d MMM")
-                    color: Config.dim
-                    font.family: Config.font
-                    font.pixelSize: Config.small
-                }
-            }
 
-            MouseArea {
-                id: whenArea
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: mouse => Engine.open(Engine.View.Clock, mapToItem(null, mouse.x, mouse.y).x)
+                FocusRing { on: when.ring }
             }
-
-            FocusRing { on: when.ring }
         }
     }
 }
