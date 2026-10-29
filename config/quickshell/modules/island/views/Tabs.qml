@@ -1,40 +1,27 @@
 import QtQuick
 import Quickshell
 import qs.modules.island
-import qs.modules.island.parts
+import qs.modules.parts
 import qs.modules.components
 import qs.modules.services
 
-// The hub: hovering the clock (Compact) peeks into it, a click pins it. One bar:
-//   back         the view that was open before (Backspace too); Escape closes
-//   workspaces   numbered, with the switcher's logic: up to the last one in use and one empty; the
-//                focused one a wide primary pill, ones with windows filled, empty ones an outline.
-//                Click to go there; the wheel steps through. One coming or going moves the whole
-//                bar and the island's edges together (see implicitWidth)
-//   tabs         one icon per view (and a screenshot), each opens it
-//   status       what's on, one button each: the network, Bluetooth, Do not disturb and the battery
-//                open their own views; a recording, or nothing on, the dashboard
-//   clock        the time and date: opens the calendar
-// Keys: arrows/Tab move between buttons, Enter presses, 1-9 switch workspace, each tab's letter
-// opens it (shown as a keycap while the keyboard is in use), Escape goes back.
+// The hub: hovering the clock (Compact) peeks into it, a click pins it. One bar, left to right:
+//   back           the view that was open before (Backspace too); Escape closes
+//   workspaces     numbered, with the switcher's logic: up to the last one in use and one empty; the
+//                  focused one a wide primary pill, ones with windows filled, empty ones an outline.
+//                  Click to go there; the wheel steps through. One coming or going moves the whole
+//                  bar and the island's edges together (see implicitWidth)
+//   overview       the workspaces view
+//   tabs           one icon per view, each opens it
+//   status         what's on, one button each: the network, Bluetooth, Do not disturb and the battery
+//                  open their own views; a recording, or nothing on, the dashboard
+//   clock          the time and date: opens the calendar
+//   notifications  the bell, with the unread count on it
+// Keys: arrows/Tab move between buttons, Enter presses, 1-9 switch workspace, each button's letter
+// opens it (shown as a keycap while the keyboard is in use).
 // View contract: set implicitWidth / implicitHeight. The island sizes itself to them.
 Item {
     id: root
-
-    readonly property var tabs: [
-        { icon: Config.symbol.launcher,      key: "a", view: Engine.View.Launcher },
-        { icon: Config.symbol.dashboard,     key: "d", view: Engine.View.Dashboard },
-        { icon: Config.symbol.media,         key: "m", view: Engine.View.Media },
-        { icon: Config.symbol.notifications, key: "n", view: Engine.View.Notifications },
-        { icon: Config.symbol.settings,      key: "i", view: Engine.View.Settings },
-        { icon: Config.symbol.power,         key: "p", view: Engine.View.Power }
-    ]
-
-    function activate(tab, x) {
-        if (tab.view >= 0) { Engine.open(tab.view, x); return }
-        Engine.close()                              // out of the way before the area is picked
-        Toggles.screenshot()
-    }
 
     // Sized to where the workspace buttons are going (finalWidth), not to where they are: they
     // ease there on the island's own motion, so the bar (centred) and the island's edges move
@@ -63,12 +50,21 @@ Item {
         color: Config.divider
     }
 
+    // a round icon button that opens `view`
+    component Tab: Pill {
+        required property int view
+        anchors.verticalCenter: parent.verticalCenter
+        implicitHeight: 52
+        kind: "text"
+        iconSize: 26
+        onClicked: x => Engine.open(view, x)
+    }
+
     Row {
         id: row
         anchors.centerIn: parent
         spacing: 14
 
-        // ---- back, then the workspaces: the switcher's logic, numbered ----
         BackButton {
             id: back
             anchors.verticalCenter: parent.verticalCenter
@@ -82,74 +78,35 @@ Item {
             spacing: 6
         }
 
-        Pill {
-            required property var modelData
-            anchors.verticalCenter: parent.verticalCenter
-            implicitHeight: 52
-            kind: "text"
-            icon: Config.symbol.overview
-            iconSize: 26
-            shortcut: "w"
-            visible: Engine.View.Workspaces >= 0
-            onClicked: x => root.activate(modelData, x)
-        }
-
         Row {
             id: rest
             anchors.verticalCenter: parent.verticalCenter
             spacing: row.spacing
 
+            Tab { icon: Config.symbol.overview; shortcut: "w"; view: Engine.View.Workspaces }
+
             Divider {}
 
-            // ---- tabs ----
+            // ---- tabs, packed closer together ----
             Row {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 2
 
-                Repeater {
-                    model: root.tabs
+                Tab { icon: Config.symbol.launcher;  shortcut: "a"; view: Engine.View.Launcher }
+                Tab { icon: Config.symbol.dashboard; shortcut: "d"; view: Engine.View.Dashboard }
+                Tab {
+                    icon: Config.symbol.media; shortcut: "m"; view: Engine.View.Media
 
-                    Pill {
-                        id: tab
-                        required property var modelData
-                        anchors.verticalCenter: parent.verticalCenter
-                        implicitHeight: 52
-                        kind: "text"
-                        icon: modelData.icon
-                        iconSize: 26
-                        shortcut: modelData.key
-                        visible: modelData.view >= 0 || Toggles.has("grimblast")
-                        onClicked: x => root.activate(modelData, x)
-
-                        // unread notifications: a count on the bell
-                        Rectangle {
-                            visible: tab.modelData.view === Engine.View.Notifications && Notifier.count > 0
-                            x: parent.width - width + 2
-                            y: parent.height - height - 2           // the corner above is the keycap's
-                            width: Math.max(16, unread.implicitWidth + 8)
-                            height: 16
-                            radius: 8
-                            color: Config.primary
-
-                            Text {
-                                id: unread
-                                anchors.centerIn: parent
-                                text: Notifier.count > 99 ? "99+" : Notifier.count
-                                color: Config.primaryInk
-                                font.family: Config.font
-                                font.pixelSize: 10
-                                font.weight: Font.Bold
-                            }
-                        }
-                        // playing: a dot under the note
-                        Rectangle {
-                            visible: tab.modelData.view === Engine.View.Media && Players.playing
-                            anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 2 }
-                            width: 4; height: 4; radius: 2
-                            color: Config.primary
-                        }
+                    // playing: a dot under the note
+                    Rectangle {
+                        visible: Players.playing
+                        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 2 }
+                        width: 4; height: 4; radius: 2
+                        color: Config.primary
                     }
                 }
+                Tab { icon: Config.symbol.settings;  shortcut: "i"; view: Engine.View.Settings }
+                Tab { icon: Config.symbol.power;     shortcut: "p"; view: Engine.View.Power }
             }
 
             Divider {}
@@ -213,16 +170,30 @@ Item {
                 FocusRing { on: when.ring }
             }
 
-            Pill {
-                required property var modelData
-                anchors.verticalCenter: parent.verticalCenter
-                implicitHeight: 52
-                kind: "text"
-                icon: Config.symbol.notifications
-                iconSize: 26
-                shortcut: "w"
-                visible: Engine.View.Notifications >= 0
-                onClicked: x => root.activate(modelData, x)
+            // ---- notifications ----
+            Tab {
+                icon: Config.symbol.notifications; shortcut: "n"; view: Engine.View.Notifications
+
+                // unread notifications: a count on the bell
+                Rectangle {
+                    visible: Notifier.count > 0
+                    x: parent.width - width + 2
+                    y: parent.height - height - 2           // the corner above is the keycap's
+                    width: Math.max(16, unread.implicitWidth + 8)
+                    height: 16
+                    radius: 8
+                    color: Config.primary
+
+                    Text {
+                        id: unread
+                        anchors.centerIn: parent
+                        text: Notifier.count > 99 ? "99+" : Notifier.count
+                        color: Config.primaryInk
+                        font.family: Config.font
+                        font.pixelSize: 10
+                        font.weight: Font.Bold
+                    }
+                }
             }
         }
     }

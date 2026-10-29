@@ -37,7 +37,7 @@ The contract:
   `Config.title`, `Config.radius`, ... so the view follows the palette. Never hard-code a colour.
   `Config.state(base, ink, hovered, pressed)` gives the hover/press state layer. Reuse the components
   (`Header`, `QuickTile`, `Slider`, `Segmented`, `Chip`, `SearchBar`, `ListEntry`, `Pill`, `Toggle`,
-  `ScrollList`, `Progress`, `Icon`, ...) and the shared parts (`import qs.modules.island.parts`:
+  `ScrollList`, `Progress`, `Icon`, ...) and the shared parts (`import qs.modules.parts`:
   `MediaCard`, `NotificationCard`, `StatusGroup`, `WorkspaceDots`). No view file may be called
   `Config.qml`. A QML property can't be named `onSomething` (QML reads it as a signal handler and it
   stays black), hence `primaryInk`.
@@ -77,17 +77,18 @@ Add an entry to `Registry.qml`:
   url: Qt.resolvedUrl("views/MyView.qml") }
 ```
 
-| Field | Effect |
-|---|---|
-| `name` | string used by IPC (`qs ipc call island open myview`) |
+| Field      | Effect                                                                                                                                                                          |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`     | string used by IPC (`qs ipc call island open myview`)                                                                                                                           |
 | `priority` | used by alerts: higher interrupts pinned views and replaces toasts (see [state-machine.md](state-machine.md#alerts-priority-and-the-queue)). An alert may bring its own instead |
-| `critical` | optional: the priority to alert with when the event is critical (`Registry.priority(view, true)`) |
-| `timeout` | ms before a Pinned/Toast view closes on its own while not held; `0` = never |
-| `queue` | `true` = a blocked alert of this view waits in the one-slot queue; otherwise it is dropped |
-| `opens` | optional: the view a click on this view's toast opens (default: this view, pinned) |
-| `aliases` | optional: other names IPC accepts |
+| `critical` | optional: the priority to alert with when the event is critical (`Registry.priority(view, true)`)                                                                               |
+| `timeout`  | ms before a Pinned/Toast view closes on its own while not held; `0` = never                                                                                                     |
+| `queue`    | `true` = a blocked alert of this view waits in the one-slot queue; otherwise it is dropped                                                                                      |
+| `opens`    | optional: the view a click on this view's toast opens (default: this view, pinned)                                                                                              |
+| `aliases`  | optional: other names IPC accepts                                                                                                                                               |
 
-One view per *thing*, not per variant. Don't add a second view just to change urgency or layout:
+One view per _thing_, not per variant. Don't add a second view just to change urgency or layout:
+
 - **Urgency**: give the entry a `critical` priority, and have the trigger pass
   `Registry.priority(view, critical)` to `Engine.alert(view, priority)`.
 - **Layout**: a view can check the phase. `views/Notification.qml` shows popups as a Toast and the

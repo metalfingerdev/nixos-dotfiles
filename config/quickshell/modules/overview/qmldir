@@ -1,4 +1,4 @@
-module qs.modules.island.views.overview
+module qs.modules.overview
 
 singleton OverviewConfig 1.0 OverviewConfig.qml
 

@@ -4,7 +4,7 @@ import Quickshell.Hyprland
 import qs.modules.island
 import qs.modules.components
 import qs.modules.services
-import qs.modules.island.views.overview
+import qs.modules.overview
 
 // Workspace overview (ported from the old shell, after quickshell-overview): monitor-shaped
 // tiles with live window previews, and a strip of special workspaces.

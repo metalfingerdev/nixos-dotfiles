@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Window
 import Quickshell
 import qs.modules.island
-import qs.modules.island.parts
+import qs.modules.parts
 import qs.modules.components
 import qs.modules.services
 

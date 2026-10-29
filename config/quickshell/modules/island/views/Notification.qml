@@ -3,7 +3,7 @@ import Quickshell
 import qs.modules.services
 import qs.modules.components
 import qs.modules.island
-import qs.modules.island.parts
+import qs.modules.parts
 
 // The Notifications view. One view, two faces, picked by the phase:
 //   popup  (Toast): dunst-style ephemeral cards. Lives as long as Notifier.popups is non-empty

@@ -1,4 +1,4 @@
-module qs.modules.island.parts
+module qs.modules.parts
 
 WorkspaceDots    1.0 WorkspaceDots.qml
 StatusGroup      1.0 StatusGroup.qml
