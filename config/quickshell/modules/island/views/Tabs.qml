@@ -22,15 +22,10 @@ Item {
     id: root
 
     readonly property var tabs: [
-        { icon: Config.symbol.dashboard,     key: "d", view: Engine.View.Dashboard },
-        { icon: Config.symbol.calendar,      key: "c", view: Engine.View.Clock },
-        { icon: Config.symbol.media,         key: "m", view: Engine.View.Media },
-        { icon: Config.symbol.mixer,         key: "v", view: Engine.View.Mixer },
         { icon: Config.symbol.launcher,      key: "a", view: Engine.View.Launcher },
+        { icon: Config.symbol.dashboard,     key: "d", view: Engine.View.Dashboard },
+        { icon: Config.symbol.media,         key: "m", view: Engine.View.Media },
         { icon: Config.symbol.notifications, key: "n", view: Engine.View.Notifications },
-        { icon: Config.symbol.overview,      key: "w", view: Engine.View.Workspaces },
-        { icon: Config.symbol.screenshot,    key: "s", view: -1 },            // screenshot
-        { icon: Config.symbol.theme,         key: "t", view: Engine.View.Theme },
         { icon: Config.symbol.settings,      key: "i", view: Engine.View.Settings },
         { icon: Config.symbol.power,         key: "p", view: Engine.View.Power }
     ]
@@ -85,6 +80,18 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             size: 46
             spacing: 6
+        }
+
+        Pill {
+            required property var modelData
+            anchors.verticalCenter: parent.verticalCenter
+            implicitHeight: 52
+            kind: "text"
+            icon: Config.symbol.overview
+            iconSize: 26
+            shortcut: "w"
+            visible: Engine.View.Workspaces >= 0
+            onClicked: x => root.activate(modelData, x)
         }
 
         Row {
@@ -204,6 +211,18 @@ Item {
                 }
 
                 FocusRing { on: when.ring }
+            }
+
+            Pill {
+                required property var modelData
+                anchors.verticalCenter: parent.verticalCenter
+                implicitHeight: 52
+                kind: "text"
+                icon: Config.symbol.notifications
+                iconSize: 26
+                shortcut: "w"
+                visible: Engine.View.Notifications >= 0
+                onClicked: x => root.activate(modelData, x)
             }
         }
     }
