@@ -9,9 +9,9 @@ import qs.modules.services
 // Click, or Enter/Space when focused, goes there; the wheel steps through them.
 //
 // The row moves with the island, as one motion. A button that comes grows out of nothing, one that
-// goes shrinks into nothing, and the focused one stretches, all on the island's own spring
-// (Config.stiffness / damping). `finalWidth` is where the row is going, at once: the view sizes
-// itself to it, so the island starts the same spring toward the same width in the same frame, and
+// goes shrinks into nothing, and the focused one stretches, all on the island's own motion
+// (Motion: Config.curve / motionMs). `finalWidth` is where the row is going, at once: the view sizes
+// itself to it, so the island starts the same ease toward the same width in the same frame, and
 // the row's ends and the island's edges stay together. `width` is where the row is now.
 Item {
     id: root
@@ -22,7 +22,7 @@ Item {
     readonly property int count: Desktops.shown
     readonly property real wide: Math.round(size * 1.5)
     readonly property bool focusShown: Desktops.activeId >= 1 && Desktops.activeId <= count
-    // the row once every spring has settled
+    // the row once every button has settled
     readonly property real finalWidth: count * size + Math.max(0, count - 1) * spacing + (focusShown ? wide - size : 0)
 
     // One entry per button there is: a ListModel, so adding or removing one leaves the others alone
@@ -48,7 +48,7 @@ Item {
             model: slots
 
             // A slot is the button plus the gap before it, so a button that comes or goes takes its
-            // gap with it. `span` (sprung) is its width now; the button follows it: below its full
+            // gap with it. `span` (animated) is its width now; the button follows it: below its full
             // size it is scaled down (growing in, shrinking away), above it stretches (focused).
             Item {
                 id: slot
@@ -61,21 +61,20 @@ Item {
                 readonly property real goal: present ? lead + (current ? root.wide : root.size) : 0
                 readonly property real full: lead + root.size
                 readonly property real grown: Math.max(0, Math.min(1, span / full))
-                readonly property bool gone: !present && !spring.running && Math.abs(span) < 0.5
+                readonly property bool gone: !present && !motion.running && Math.abs(span) < 0.5
 
                 property real span: 0
                 Behavior on span {
                     enabled: root.ready
-                    SpringAnimation {
-                        id: spring
-                        spring: Config.stiffness; damping: Config.damping; epsilon: 0.25
+                    Motion {
+                        id: motion
                         onRunningChanged: if (!running) Qt.callLater(root.trim)
                     }
                 }
-                // set after completion, so a slot created later springs open from nothing
+                // set after completion, so a slot created later grows open from nothing
                 Component.onCompleted: span = Qt.binding(() => slot.goal)
 
-                width: Math.max(0, span)
+                width: span
                 height: root.size
 
                 Rectangle {

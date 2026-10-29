@@ -42,7 +42,7 @@ Item {
     }
 
     // Sized to where the workspace buttons are going (finalWidth), not to where they are: they
-    // spring there on the island's own spring, so the bar (centred) and the island's edges move
+    // ease there on the island's own motion, so the bar (centred) and the island's edges move
     // as one. Everything after them is `rest`, measured on its own.
     implicitWidth: back.width + workspaces.finalWidth + rest.implicitWidth + 2 * row.spacing + 32
     implicitHeight: 80

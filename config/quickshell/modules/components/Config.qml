@@ -168,11 +168,13 @@ QtObject {
     readonly property color island: Qt.rgba(surface.r, surface.g, surface.b, Math.max(0, Math.min(1, windowOpacity)))
 
     // ---- motion ----
-    // The island's morph spring (Bar). Anything inside a view that has to move with the island's
-    // edge springs with it too (parts/WorkspaceButtons.qml). Higher stiffness = snappier; lower
-    // damping = more overshoot.
-    readonly property real stiffness: 3.2
-    readonly property real damping: 0.34
+    // The island's morph (Bar), and anything inside a view that has to move with the island's edge
+    // (parts/WorkspaceButtons.qml), through Motion. The same ease-out and length as Hyprland's windows
+    // (the "Glide" curve in hypr/modules/look.lua, speed 3.5 = 350 ms), so the shell and the desktop
+    // move alike. It never overshoots: a notch revealed from auto-hide stops flush with the top edge
+    // instead of dipping a pixel below it and settling back.
+    readonly property var curve: [0.22, 1, 0.36, 1, 1, 1]     // Easing.BezierSpline: x1, y1, x2, y2, end
+    readonly property int motionMs: 350
 
     // the "Dark theme" tile: the dark palette to come back to from a light one
     property string lastDark: "teal"

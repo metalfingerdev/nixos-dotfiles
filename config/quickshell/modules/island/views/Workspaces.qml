@@ -8,10 +8,13 @@ import qs.modules.island.views.overview
 
 // Workspace overview (ported from the old shell, after quickshell-overview): monitor-shaped
 // tiles with live window previews, and a strip of special workspaces.
-//   click a tile: go there          click a window: focus it      middle-click a window: close it
+//   click a tile: go there (hiding an open special workspace)        click a window: focus it
+//   click a special workspace: show it, or hide it when it's open    middle-click a window: close it
 //   drag a window onto a tile, a special workspace, or "+" (a new special workspace): move it
-//   arrows / hjkl: move between workspaces (live)   1-9, 0: jump   wheel: step through all of them
-//   Enter: done (close)   Backspace: back   Escape: close (ViewLoader)
+//   arrows / hjkl: select a workspace   1-9, 0: select one in the group   wheel: step through all of them
+//   Enter: go to the selected one   Backspace: back   Escape: close without moving (ViewLoader)
+// The keys and the wheel only move the selection: Hyprland moves once, when the island has let go of
+// the keyboard (see actions), so it never goes back to where it was.
 // Options and colours: overview/OverviewConfig.qml. Desktops reads hyprctl while this is open.
 Item {
     id: root
@@ -48,10 +51,13 @@ Item {
     readonly property real tileH: Math.round(usableH * previewScale)
     readonly property real numberSize: cfg.workspaceNumberBaseSize * monitorScale * previewScale
 
-    // ---- which workspaces show: the group of `workspacesShown` ids around the active one ----
+    // ---- which workspaces show: the group of `workspacesShown` ids around the selected one ----
     readonly property int workspaceOffset: cfg.useWorkspaceMap ? Number(cfg.workspaceMap[monitor?.id] ?? 0) : 0
     readonly property int activeWorkspaceId: Math.max(1, Math.min(100, monitor?.activeWorkspace?.id ?? Desktops.activeId))
-    readonly property int workspaceGroup: Math.floor((activeWorkspaceId - workspaceOffset - 1) / workspacesShown)
+    // where the keys and the wheel have got to; starts on (and follows) the focused workspace
+    property int selectedId: activeWorkspaceId
+    onActiveWorkspaceIdChanged: selectedId = activeWorkspaceId
+    readonly property int workspaceGroup: Math.floor((selectedId - workspaceOffset - 1) / workspacesShown)
     readonly property int minWorkspaceId: workspaceGroup * workspacesShown + 1 + workspaceOffset
     readonly property int maxWorkspaceId: minWorkspaceId + workspacesShown - 1
 
@@ -64,12 +70,13 @@ Item {
     function rowOf(id)    { return toVisualRow(Math.floor((id - workspaceOffset - 1) / columns) % rows) }
     function columnOf(id) { return toVisualColumn((id - workspaceOffset - 1) % columns) }
     function workspaceInCell(r, c) { return minWorkspaceId + toVisualRow(r) * columns + toVisualColumn(c) }
+    function inGroup(id) { return id >= minWorkspaceId && id <= maxWorkspaceId }
 
-    // rows with a window or the active workspace (empty rows are hidden when hideEmptyRows is on)
+    // rows with a window, the focused or the selected workspace (empty rows are hidden when hideEmptyRows is on)
     readonly property var rowsWithContent: {
         if (!cfg.hideEmptyRows) return null
         const used = ({})
-        if (activeWorkspaceId >= minWorkspaceId && activeWorkspaceId <= maxWorkspaceId) used[rowOf(activeWorkspaceId)] = true
+        for (const id of [activeWorkspaceId, selectedId]) if (inGroup(id)) used[rowOf(id)] = true
         for (const win of Desktops.windowList) {
             const id = Number(win?.workspace?.id ?? -1)
             if (id >= minWorkspaceId && id <= maxWorkspaceId) used[rowOf(id)] = true
@@ -106,15 +113,28 @@ Item {
     Component.onCompleted: Desktops.watch(true)
     Component.onDestruction: Desktops.watch(false)
 
-    // ---- actions ----
-    function selectWorkspace(id)  { Desktops.focus(id); Engine.close() }
-    function selectWindow(address) { Desktops.focusWindow(address); Engine.close() }
-    function toggleSpecial(name)  { Desktops.toggleSpecial(name); Engine.close() }
-    function createSpecial()      { Desktops.toggleSpecial(Desktops.nextSpecialWorkspaceName(specialNames)); Engine.close() }
+    // the special workspace open on this monitor ("" = none)
+    readonly property string openSpecial: String(monitorData?.specialWorkspace?.name ?? "").replace(/^special:/, "")
 
-    // arrows / hjkl move around the grid, 1-9 and 0 jump to a position in the group
+    // ---- actions ----
+    // Each closes the island first and acts once it has let go of the keyboard (Engine.closeThen).
+    // The other way round, Hyprland went back to the window it had before: a switch to an empty
+    // workspace bounced back, and a hidden special workspace reopened.
+    function selectWorkspace(id) {
+        const special = openSpecial        // a workspace switch alone leaves it open over the workspace
+        if (id === activeWorkspaceId && !special) { Engine.close(); return }
+        Engine.closeThen(() => { if (special) Desktops.toggleSpecial(special); Desktops.focus(id) })
+    }
+    function selectWindow(address) { Engine.closeThen(() => Desktops.focusWindow(address)) }
+    function toggleSpecial(name)   { Engine.closeThen(() => Desktops.toggleSpecial(name)) }
+    function createSpecial() {
+        const name = Desktops.nextSpecialWorkspaceName(specialNames)
+        Engine.closeThen(() => Desktops.toggleSpecial(name))
+    }
+
+    // arrows / hjkl move the selection around the grid, 1-9 and 0 put it on a position in the group
     function navigate(key) {
-        const index = Math.max(0, Math.min(workspacesShown - 1, activeWorkspaceId - minWorkspaceId))
+        const index = Math.max(0, Math.min(workspacesShown - 1, selectedId - minWorkspaceId))
         let row = toVisualRow(Math.floor(index / columns))
         let column = toVisualColumn(index % columns)
         let target = -1
@@ -130,8 +150,15 @@ Item {
         else return false
 
         if (target === -1) target = minWorkspaceId + toVisualRow(row) * columns + toVisualColumn(column)
-        Desktops.focus(Math.max(minWorkspaceId, Math.min(maxWorkspaceId, target)))
+        selectedId = Math.max(minWorkspaceId, Math.min(maxWorkspaceId, target))
         return true
+    }
+    // the wheel steps the selection through ids stepMin..stepMax, wrapping
+    function step(delta) {
+        let target = selectedId + delta
+        if (target < stepMin) target = stepMax
+        if (target > stepMax) target = stepMin
+        selectedId = target
     }
 
     // ---- the drag shared by every tile and preview ----
@@ -166,7 +193,7 @@ Item {
             event.accepted = false                               // unhandled keys go on to ViewLoader
             if (event.key === Qt.Key_Escape) return              // ViewLoader: back
             Engine.key()
-            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) { Engine.close(); event.accepted = true }
+            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) { root.selectWorkspace(root.selectedId); event.accepted = true }
             else if (event.key === Qt.Key_Backspace) { Engine.back(); event.accepted = true }
             else if (root.navigate(event.key)) event.accepted = true
         }
@@ -177,7 +204,7 @@ Item {
         onWheel: event => {
             const dy = event.angleDelta.y
             if (!dy) return
-            Desktops.stepWorkspace(dy > 0 ? -1 : 1, root.stepMin, root.stepMax)
+            root.step(dy > 0 ? -1 : 1)
             event.accepted = true
         }
     }
@@ -240,6 +267,7 @@ Item {
             visible: root.cfg.showSpecialWorkspaces
             y: root.gridH + root.stripGap
             names: root.specialNames
+            openName: root.openSpecial
             sectionWidth: root.gridW
             tileHeight: root.tileH
             fallbackTileWidth: root.tileW
@@ -290,20 +318,34 @@ Item {
                 }
             }
 
-            // the focused workspace
-            Rectangle {
-                readonly property int column: root.columnOf(root.activeWorkspaceId)
-                readonly property int row: root.visibleRowPosition(root.rowOf(root.activeWorkspaceId))
+            // an outline around a workspace's tile
+            component Outline: Rectangle {
+                property int workspaceId: -1
+                readonly property int column: root.columnOf(workspaceId)
+                readonly property int row: root.visibleRowPosition(root.rowOf(workspaceId))
 
-                visible: root.activeWorkspaceId >= root.minWorkspaceId && root.activeWorkspaceId <= root.maxWorkspaceId
+                visible: root.inGroup(workspaceId)
                 x: (root.tileW + root.gap) * column
                 y: (root.tileH + root.gap) * row
-                z: root.cfg.dragZ - 1
                 width: root.tileW
                 height: root.tileH
                 color: "transparent"
                 radius: Math.max(4, root.cfg.screenRounding * root.previewScale)
                 border.width: 2
+            }
+
+            // the focused workspace, faint while the selection is elsewhere
+            Outline {
+                workspaceId: root.activeWorkspaceId
+                visible: root.inGroup(workspaceId) && workspaceId !== root.selectedId
+                z: root.cfg.dragZ - 2
+                border.color: Qt.alpha(root.cfg.colors.accent, 0.35)
+            }
+
+            // the selected one (where Enter goes): the focused one until the keys or the wheel move it
+            Outline {
+                workspaceId: root.selectedId
+                z: root.cfg.dragZ - 1
                 border.color: root.cfg.colors.accent
 
                 Behavior on x { NumberAnimation { duration: root.cfg.moveFastMs; easing.type: Easing.OutCubic } }

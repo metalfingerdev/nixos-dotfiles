@@ -8,7 +8,7 @@ import qs.modules.components
 import qs.modules.services
 
 //   Loader item ──implicit size──► proxy (invisible, snaps instantly, the truth)
-//                                    └──► sx/sy/sw/sh (springs) ──► surface (visible)
+//                                    └──► sx/sy/sw/sh (eased) ──► surface (visible)
 //
 // One Bar exists per screen (see shell.qml). All Bars share the Engine, but only the one on
 // Engine.activeScreen draws the island; the others only keep their top-edge hot zone.
@@ -40,8 +40,8 @@ Scope {
     readonly property real stripW: 96
     readonly property real stripH: 5
 
-    // Morph feel: Config.stiffness / damping (SpringAnimation). A redirect mid-flight keeps the
-    // current velocity, but the restart stalls it for a frame or two.
+    // Morph feel: Config.curve / motionMs (Motion), the same as Hyprland's windows. A redirect
+    // mid-flight starts a new ease from wherever the island is, dropping the speed it had.
 
     // false: view is final-size, top-aligned and horizontally centred in the surface
     // true:  view is final-size AND sits at its final screen position; the surface slides over it
@@ -63,7 +63,7 @@ Scope {
         function onAnchorXChanged() { if (Engine.snapshot.view === root.shown) root.anchor = Engine.anchorX }
     }
 
-    // ---- sprung rect, in window coords. Only snap() writes these. ----
+    // ---- animated rect, in window coords. Only snap() writes these. ----
     // The Behaviors are off until `armed`, so the startup layout (window going 0 -> real size) and
     // the moment this Bar becomes the active one snap into place instead of sliding in.
     property real sx: 0
@@ -71,10 +71,10 @@ Scope {
     property real sw: 0
     property real sh: 0
 
-    Behavior on sx { enabled: root.armed; SpringAnimation { spring: Config.stiffness; damping: Config.damping; epsilon: 0.25 } }
-    Behavior on sy { enabled: root.armed; SpringAnimation { spring: Config.stiffness; damping: Config.damping; epsilon: 0.25 } }
-    Behavior on sw { enabled: root.armed; SpringAnimation { spring: Config.stiffness; damping: Config.damping; epsilon: 0.25 } }
-    Behavior on sh { enabled: root.armed; SpringAnimation { spring: Config.stiffness; damping: Config.damping; epsilon: 0.25 } }
+    Behavior on sx { enabled: root.armed; Motion {} }
+    Behavior on sy { enabled: root.armed; Motion {} }
+    Behavior on sw { enabled: root.armed; Motion {} }
+    Behavior on sh { enabled: root.armed; Motion {} }
 
     property bool armed: false
     Timer { id: armTimer; onTriggered: root.armed = true }
@@ -88,8 +88,8 @@ Scope {
         const c = center >= 0 ? center : overlay.width / 2
         return Math.round(Math.max(edgePad, Math.min(overlay.width - w - edgePad, c - w / 2)))
     }
-    // Copy the proxy rect into the sprung rect. Armed, each assignment starts (or redirects) a
-    // spring; disarmed, the Behaviors are off and it jumps. Called (coalesced) whenever the proxy
+    // Copy the proxy rect into the animated rect. Armed, each assignment starts (or redirects) an
+    // animation; disarmed, the Behaviors are off and it jumps. Called (coalesced) whenever the proxy
     // moves or resizes.
     function snap() {
         sx = proxy.x; sy = proxy.y
@@ -155,6 +155,13 @@ Scope {
         // Rest and Toast never take it, so a toast can't steal typing from an app.
         WlrLayershell.keyboardFocus: root.active && Engine.keyboard ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
+        // Whether this window really has the keyboard (Hyprland sent it), not only asked for it.
+        // Engine.closeThen waits for it to go before it moves Hyprland's focus.
+        Item {
+            readonly property bool has: Window.active
+            onHasChanged: Engine.hasKeyboard = has
+        }
+
         // a click anywhere outside a pinned view closes it; the mouse's back button goes back
         MouseArea {
             id: outside
@@ -165,10 +172,8 @@ Scope {
         }
 
         // HOVER: the pointer is on the island while it is inside the FINAL rect (the proxy, like the
-        // input mask), not the sprung surface. A spring overshoots: a notch revealed by auto-hide dips
-        // a pixel below the top edge, out from under a pointer resting there, and the peek collapsed
-        // and reopened until it settled. On the window's root item, so no control in the view can
-        // take the hover from it.
+        // input mask), not the moving surface, so what counts as on the island doesn't shift while it
+        // animates. On the window's root item, so no control in the view can take the hover from it.
         HoverHandler {
             id: pointer
             // The pointer is back: focus rings hide until the keyboard moves focus again. Only a real
@@ -232,7 +237,7 @@ Scope {
         }
 
         // ANTI-CORNERS (notch): the island curves into the screen edge instead of meeting it at a
-        // right angle. Drawn outside the surface (which clips), from the same sprung rect.
+        // right angle. Drawn outside the surface (which clips), from the same animated rect.
         // The filled part is the web between the screen edge, the island's side and a curve that
         // bows into that corner: left corner hugs its right side, right corner its left side.
         component AntiCorner: Shape {
@@ -261,7 +266,7 @@ Scope {
         AntiCorner { leading: true;  x: root.sx - width }
         AntiCorner { leading: false; x: root.sx + root.sw }
 
-        // SURFACE: the visible rectangle, drawn at the sprung rect.
+        // SURFACE: the visible rectangle, drawn at the animated rect.
         Rectangle {
             id: surface
 
@@ -269,8 +274,8 @@ Scope {
 
             x: root.sx
             y: root.sy
-            width: Math.max(0, root.sw)      // a spring can undershoot; never go negative
-            height: Math.max(0, root.sh)
+            width: root.sw
+            height: root.sh
 
             topLeftRadius: root.notch ? 0 : r
             topRightRadius: root.notch ? 0 : r

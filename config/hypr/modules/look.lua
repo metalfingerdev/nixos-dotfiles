@@ -92,20 +92,19 @@ hl.layer_rule({
     ignore_alpha = 0.1, -- a full-screen overlay is transparent outside what it draws: blur only that
 })
 
--- Curves
+-- Curves: plain beziers, none of them overshoots (no springs).
+-- Glide is shared with Quickshell's island (Config.curve / motionMs: same points, 350 ms = speed 3.5),
+-- so windows and the island move alike.
+hl.curve("Glide",   { type = "bezier", points = { {0.22, 1},    {0.36, 1}    } })  -- ease-out for movement
 hl.curve("Snap",    { type = "bezier", points = { {0.25, 0.1},  {0.25, 1}    } })  -- general smooth ease
-hl.curve("Spring",  { type = "bezier", points = { {0.34, 1.56}, {0.64, 1}    } })  -- slight overshoot for open
 hl.curve("Close",   { type = "bezier", points = { {0.4,  0},    {0.6,  1}    } })  -- clean ease-in for close
 hl.curve("Slide",   { type = "bezier", points = { {0.25, 0.46}, {0.45, 0.94} } })  -- workspace slide
 hl.curve("Fade",    { type = "bezier", points = { {0.4,  0},    {1,    1}    } })  -- quick fade out
 
-hl.curve("Bounce",  { type = "spring", mass = 1, stiffness = 200, dampening = 20 })  -- snappy with tiny bounce
-hl.curve("Smooth",  { type = "spring", mass = 1, stiffness = 120, dampening = 22 })  -- smooth no-bounce
-
 hl.animation({ leaf = "global",        enabled = true,  speed = 10,   bezier = "default"   })
 
-hl.animation({ leaf = "windows",       enabled = true,  speed = 3.5,  spring = "Smooth"              })
-hl.animation({ leaf = "windowsIn",     enabled = true,  speed = 3.2,  spring = "Bounce", style = "popin 92%" })
+hl.animation({ leaf = "windows",       enabled = true,  speed = 3.5,  bezier = "Glide"               })
+hl.animation({ leaf = "windowsIn",     enabled = true,  speed = 3.5,  bezier = "Glide",  style = "popin 92%" })
 hl.animation({ leaf = "windowsOut",    enabled = true,  speed = 2.0,  bezier = "Close",  style = "popin 92%" })
 
 hl.animation({ leaf = "border",        enabled = true,  speed = 4,    bezier = "Snap"   })

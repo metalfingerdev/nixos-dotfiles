@@ -4,7 +4,8 @@ import QtQuick
 import Quickshell
 import "Machine.js" as Machine
 
-// Shell around the pure machine: owns the snapshot and the one Timer. No logic lives here.
+// Shell around the pure machine: owns the snapshot and its Timer. No logic lives here, apart from
+// closeThen(): running an action once the island has let go of the keyboard.
 QtObject {
     id: root
 
@@ -96,6 +97,35 @@ QtObject {
     // gets out of step: anything that clears `peeking` (a hover peek, a view opening) resets it too.
     function togglePeek()  { peek(!peeking) }
     function key()         { send({ type: Machine.Event.Key }) }     // any keystroke in the island
+
+    // ---- after the island lets go of the keyboard ----
+    // While the island holds the keyboard (an exclusive layer), Hyprland refuses to focus any window,
+    // so the window it thinks is focused goes stale. When the island lets go, Hyprland focuses that
+    // window again and goes back to its workspace (or reopens its special workspace), undoing a
+    // switch made in the meantime. So an action that moves Hyprland's focus comes after the release:
+    // closeThen(action) closes the island and runs `action` once Bar reports the keyboard gone
+    // (hasKeyboard), or after releaseMs if that never comes.
+    property bool hasKeyboard: false   // Bar: the island's window has the keyboard right now
+    property int releaseMs: 200
+    property var afterRelease: []
+    function closeThen(action) {
+        const waits = keyboard || hasKeyboard
+        close()
+        if (!waits) { action(); return }
+        afterRelease.push(action)
+        released.restart()
+    }
+    function runReleased() {
+        released.stop()
+        const run = afterRelease
+        afterRelease = []
+        for (const action of run) action()
+    }
+    onHasKeyboardChanged: if (!hasKeyboard) runReleased()
+    property Timer released: Timer {
+        interval: root.releaseMs
+        onTriggered: root.runReleased()
+    }
 
     // ---- the shell ----
     function config() {

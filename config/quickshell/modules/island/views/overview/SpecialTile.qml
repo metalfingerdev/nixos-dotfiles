@@ -8,6 +8,7 @@ Rectangle {
     id: root
 
     property string specialName: ""
+    property bool current: false              // open on this monitor: outlined like the focused workspace
     property var monitorData: null            // monitor the island is on
     property int monitorId: 0
     property real previewScale: 0.16
@@ -37,8 +38,8 @@ Rectangle {
     clip: true
     color: hasWallpaper ? "transparent" : Qt.alpha(dropHover ? OverviewConfig.colors.tileHover : OverviewConfig.colors.stripTile,
                                                     OverviewConfig.workspaceOpacity)
-    border.width: 1
-    border.color: dropHover ? OverviewConfig.colors.accent : Qt.alpha(OverviewConfig.colors.stripBorder, 0.75)
+    border.width: current ? 2 : 1
+    border.color: dropHover || current ? OverviewConfig.colors.accent : Qt.alpha(OverviewConfig.colors.stripBorder, 0.75)
 
     RoundedImage {
         anchors.fill: parent

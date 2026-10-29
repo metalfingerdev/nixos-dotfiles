@@ -13,13 +13,21 @@
 
 ## Done
 
+- [x] Overview: going to an empty workspace no longer bounces back, and a special workspace can be left
+      (click it again, or click a workspace). Both came from acting before the island let go of the
+      keyboard: `Engine.closeThen` acts after. Its arrows, digits and wheel now move a selection (Enter goes
+      there, Escape stays put) instead of switching while the island holds the keyboard, which bounced
+      back the same way on close. The open special workspace is outlined.
+- [x] No springs: the morph and the workspace buttons ease on `Motion` (`Config.curve` / `motionMs`), which
+      never overshoots, so a notch revealed from auto-hide no longer dips a pixel below the top edge and
+      settles back. Hyprland's windows use the same curve (`Glide`), and its spring curves are gone.
 - [x] Glass moved to Hyprland: every window at 80 % over a frosted blur, and a `glass` layer rule that
       layers named `glass:*` opt into. The island is `glass:island` and takes the windows' opacity;
       the island's own glass toggle and opacity slider are gone.
 - [x] Settings is its own view (size, shape, auto-hide and its handle); Theme is colours and a
       wallpaper grid. Each links to the other.
 - [x] Tabs: a workspace button coming or going moves the bar and the island's edges as one motion
-      (the buttons spring on the island's spring, toward the width the island is already heading for).
+      (the buttons move on the island's own motion, toward the width the island is already heading for).
 - [x] The glance (Expanded) is gone: hovering the clock peeks into the hub (Tabs). Each segment of
       Tabs' status group opens its own view (network, Bluetooth, notifications, battery). No media toast
       when a track starts. A Mixer view: the output, the microphone and each app's stream, a slider
@@ -60,7 +68,7 @@
 - [x] Timeouts long enough for IPC (5000/8000). `open compact` goes home instead of pinning forever.
 - [x] Countdown no longer restarts on unrelated events: `rearm()` keeps the running timer object.
 - [x] `Engine`'s initial snapshot uses `restView`.
-- [x] Velocity-preserving morph (`SpringAnimation` per property).
+- [x] Velocity-preserving morph (`SpringAnimation` per property). Later replaced by `Motion` (no springs).
 - [x] Multi-monitor: one `Bar` per screen, a shared `Engine`, `Engine.activeScreen`, IPC `screen`/`screens`.
 - [x] Keyboard: pinned views and the peek view get the keyboard, with default keys from `ViewLoader`
       (Tab/arrows, Enter/Space, Escape). No Registry flag. Hover holds the countdown; each keystroke

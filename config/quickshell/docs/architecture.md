@@ -61,7 +61,7 @@ Each `Bar` creates two layer-shell `PanelWindow`s:
 
 ```
 Loader item ──implicit size──► proxy (invisible, snaps instantly, the truth)
-                                 └──► sx/sy/sw/sh (springs) ──► surface (visible)
+                                 └──► sx/sy/sw/sh (eased) ──► surface (visible)
 ```
 
 - **proxy** is an invisible `Item` placed at the island's *final* rect:
@@ -73,16 +73,16 @@ Loader item ──implicit size──► proxy (invisible, snaps instantly, the 
 
   It is never animated, so the input mask is correct on the first frame.
 - Any change to the proxy's x/y/width/height is coalesced with `Qt.callLater(snap)`. `snap()`
-  assigns the proxy rect to `sx/sy/sw/sh`. Each has a `Behavior` with a `SpringAnimation` (`Config.stiffness`,
-  `Config.damping`). A redirect mid-flight keeps the current velocity, but restarting the animation stalls it
-  for a frame or two, so Bar avoids redirects it can see coming (see View swaps).
-- The Behaviors are enabled only while `armed`, so the same assignment jumps instead of springing.
+  assigns the proxy rect to `sx/sy/sw/sh`. Each has a `Behavior` with a `Motion` (`Config.curve` over
+  `Config.motionMs`: an ease-out that never overshoots, the same as Hyprland's windows). A redirect
+  mid-flight starts a new ease from wherever the island is and drops the speed it had, so Bar avoids
+  redirects it can see coming (see View swaps).
+- The Behaviors are enabled only while `armed`, so the same assignment jumps instead of animating.
   `disarm(ms)` turns them off for a while: 500 ms at startup (so the
   window going from 0 to its real size doesn't animate in) and 150 ms when a Bar becomes the active one.
-- **surface** is the visible `Rectangle`, drawn at `sx/sy/sw/sh` with `clip: true`. Its size is
-  clamped at 0, because a spring can undershoot. Its corners come from `Config`: `min(height / 2,
-  Config.radius)` (so low shapes are capsules), and a square top in notch style, where two
-  **anti-corners** (Shapes outside the surface, from the same sprung rect) curve it into the screen
+- **surface** is the visible `Rectangle`, drawn at `sx/sy/sw/sh` with `clip: true`. Its corners come
+  from `Config`: `min(height / 2, Config.radius)` (so low shapes are capsules), and a square top in notch style, where two
+  **anti-corners** (Shapes outside the surface, from the same animated rect) curve it into the screen
   edge. The glass is Hyprland's: its colour is `Config.island`, the surface at the windows' opacity
   (`decoration.active_opacity`, read by `Desktops.windowOpacity`), and hypr/modules/look.lua's `glass` layer rule
   blurs the overlay (namespace `glass:island`) under whatever isn't transparent.
@@ -117,10 +117,18 @@ rest view while held (revealing it from Hidden) and, in auto-hide mode, hides it
 rest view doesn't take the keyboard. `Engine.togglePeek()` (IPC `togglePeek`) is the one-binding version:
 `peek(!Engine.peeking)`.
 
+While the island holds the keyboard (an exclusive layer), Hyprland refuses to focus any window, so the
+window it thinks is focused goes stale. When the island lets go, Hyprland focuses that window again and
+goes back to its workspace, or reopens its special workspace, undoing a switch made in the meantime. A
+view that closes the island to move Hyprland's focus (the overview going to a workspace, a window or a
+special workspace) calls `Engine.closeThen(action)`, which closes the island and runs the action once
+the overlay window has really lost the keyboard (`Engine.hasKeyboard`, from its `Window.active`), or
+after `releaseMs` (200) if that never comes. For the same reason the overview's arrows, digits and wheel
+only move a selection; Enter goes there through `closeThen`, like a click.
+
 A `HoverHandler` on the overlay's root item reports `Engine.hover(on)` while the pointer is inside the
-**proxy** rect, the same final rect the input mask uses. It used to sit on the surface, but a spring
-overshoots: a notch revealed from auto-hide dips a pixel below the top edge, out from under a pointer
-resting there, and the peek would collapse and reopen until the spring settled. It's on the root item
+**proxy** rect, the same final rect the input mask uses, not the moving surface, so what counts as on
+the island doesn't shift while it animates. It's on the root item
 because Qt stops hover at the first sibling that takes it, while ancestors always get it.
 
 `ViewLoader` is a focus scope with the default keys. A key goes to the focused item and bubbles up

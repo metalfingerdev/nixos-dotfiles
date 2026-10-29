@@ -7,6 +7,7 @@ Item {
     id: root
 
     property var names: []
+    property string openName: ""              // the one open on this monitor ("" = none)
     property real sectionWidth: 0             // = width of the workspace grid above
     property real tileHeight: 0               // same height as a normal workspace tile
     property real fallbackTileWidth: 0
@@ -96,6 +97,7 @@ Item {
                 width: root.tileWidth
                 height: root.tileHeight
                 specialName: modelData
+                current: modelData === root.openName
                 monitorData: root.monitorData
                 monitorId: root.monitorId
                 previewScale: root.previewScale

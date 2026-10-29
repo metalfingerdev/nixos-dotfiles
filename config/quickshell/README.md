@@ -116,7 +116,7 @@ Bar: Loader shows Registry.get(view).url
 | | `style` | `pill` | `pill` floats below the edge; `notch` is flush with it, with anti-corners; IPC `style` |
 | | `handle` | `strip` | auto-hide: a thin bar stays at the top edge while hidden (`none`: nothing); IPC `handle` |
 | | `radius` | 28 | the island's largest corner (Material's extra large); lower shapes are capsules |
-| | `stiffness` / `damping` | 3.2 / 0.34 | morph spring: higher stiffness = snappier, lower damping = more overshoot. The workspace buttons in Tabs spring with it, so they move with the island's edge |
+| | `curve` / `motionMs` | `[0.22, 1, 0.36, 1]` / 350 | the morph's ease-out (`Motion`), never overshooting; the same as Hyprland's windows (`Glide` in hypr/modules/look.lua, speed 3.5), so change both together. The workspace buttons in Tabs move with it, so they stay with the island's edge |
 | `hypr/modules/look.lua` | `active_opacity` / `inactive_opacity`, `blur`, layer rule `glass` | 0.8 | the glass: every window at 80 % over a frosted blur; layers named `glass` or `glass:*` (the island is `glass:island`) get the blur, and the island takes `active_opacity` too (`Desktops.windowOpacity`, re-read on `hyprctl reload`) |
 | `Bar.qml` | `gap` / `edgePad` | 8 (notch: 0) / 8 | distance from the top edge / from the screen sides |
 | | `space` | `gap` + 36 | height reserved at the top when auto-hide is off |

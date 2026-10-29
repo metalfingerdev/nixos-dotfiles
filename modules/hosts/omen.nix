@@ -4,8 +4,8 @@
     modules = [ self.modules.nixos.omen ];
   };
 
-  flake.modules.nixos.omen = {
-    imports = (with self.modules.nixos; [
+  
+    flake.modules.nixos.omen.imports = (with self.modules.nixos; [
       base
       admin
       desktop
@@ -20,15 +20,15 @@
       firefox
     ]) ++ [ ../../hardware-configuration.nix ];
 
-    nixpkgs.hostPlatform = "x86_64-linux";
-    networking.hostName = "omen";
-    time.timeZone = "Asia/Kolkata";
-    system.stateVersion = "26.05";
+    flake.modules.nixos.omen.nixpkgs.hostPlatform = "x86_64-linux";
+    flake.modules.nixos.omen.networking.hostName = "omen";
+    flake.modules.nixos.omen.time.timeZone = "Asia/Kolkata";
+    flake.modules.nixos.omen.system.stateVersion = "26.05";
 
     # Omen-specific bug fix: HP bios warning suppress
-    boot.blacklistedKernelModules = [ "hp_bioscfg" ];
+    flake.modules.nixos.omen.boot.blacklistedKernelModules = [ "hp_bioscfg" ];
 
-    home-manager.users.admin = {
+    flake.modules.nixos.omen.home-manager.users.admin = {
       imports = with self.modules.homeManager; [
         admin
         git
@@ -52,5 +52,4 @@
 
       home.stateVersion = "26.05";
     };
-  };
 }
