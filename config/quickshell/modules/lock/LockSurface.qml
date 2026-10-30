@@ -9,6 +9,8 @@ import qs.modules.services
 Rectangle {
 	id: root
 	required property LockContext context
+	// an animated avatar plays while this is on (Lock.qml: not while the screens are off)
+	property bool animate: true
 
 	// the plain colour shows until the picture loads, and for good if there is no picture
 	color: Config.surface
@@ -79,18 +81,22 @@ Rectangle {
 			anchors.horizontalCenter: parent.horizontalCenter
 			width: 120
 			height: 120
-			radius: width / 2
+			radius: LockConfig.avatarShape === "square" ? Config.smallRadius : width / 2
 			color: Config.high
 			border.width: 3
 			border.color: Config.primary
 
-			Image {
+			// plays a GIF and shows a still picture alike
+			AnimatedImage {
 				id: avatar
 				anchors.fill: parent
 				source: LockConfig.avatar ? Wallpaper.fileUrl(LockConfig.avatar) : ""
-				sourceSize: Qt.size(240, 240)
 				fillMode: Image.PreserveAspectCrop
 				asynchronous: true
+				// It turns itself off for a still picture and wouldn't start the next GIF: the status
+				// makes this say it again after every load.
+				playing: root.animate && status === Image.Ready
+				cache: false                 // a long GIF would keep every frame in memory
 			}
 
 			Icon {

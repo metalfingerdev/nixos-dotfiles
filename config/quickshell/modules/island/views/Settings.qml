@@ -292,7 +292,13 @@ Item {
             PathField {
                 setting: "avatar"
                 icon: "person"
-                placeholder: "Profile picture: /path/to/picture"
+                placeholder: "Profile picture: a path, GIFs play"
+            }
+            Segmented {
+                width: parent.width
+                options: [{ key: "circle", label: "Circle" }, { key: "square", label: "Square" }]
+                current: LockConfig.avatarShape
+                onPicked: key => LockConfig.avatarShape = key
             }
             Text {
                 visible: root.pathError !== ""

@@ -72,7 +72,8 @@ restarts and shows at once, even while locked.
 |---|---|
 | `qs ipc call lock screen` | lock now |
 | `qs ipc call lock image <path>` | the background picture (`""`: the wallpaper) |
-| `qs ipc call lock avatar <path>` | the profile picture (`""`: a person glyph) |
+| `qs ipc call lock avatar <path>` | the profile picture, GIFs play (`""`: a person glyph) |
+| `qs ipc call lock avatarShape <circle\|square>` | the profile picture's frame |
 | `qs ipc call lock name <text>` | the name shown (`""`: the full name in the passwd entry, or the user name) |
 | `qs ipc call lock info <text>` | the line under the name (`""`: `user@host`) |
 | `qs ipc call lock status` | all of the above as JSON, plus whether it is locked |

@@ -9,7 +9,8 @@ import qs.modules.services
 //   qs ipc call lock screen
 //   Session.run("lock")   the Power view's Lock tile, the launcher's Lock
 //   qs ipc call lock image /path/to/picture.png    the background ("" = the wallpaper)
-//   qs ipc call lock avatar /path/to/face.png      the profile picture ("" = a person glyph)
+//   qs ipc call lock avatar /path/to/face.gif      the profile picture, GIFs play ("" = a person glyph)
+//   qs ipc call lock avatarShape square            its frame: circle | square
 //   qs ipc call lock name "Some Name"              the name shown ("" = the full name in passwd)
 //   qs ipc call lock info "Back at 3"              the line under it ("" = user@host)
 //   qs ipc call lock status                        all of those, as JSON
@@ -44,6 +45,7 @@ Scope {
 			LockSurface {
 				anchors.fill: parent
 				context: lockContext
+				animate: !Idle.screensOff
 			}
 		}
 	}
@@ -64,6 +66,11 @@ Scope {
 		function screen(): void { root.lock(); }
 		function image(path: string): string { return LockConfig.setPicture("image", path); }
 		function avatar(path: string): string { return LockConfig.setPicture("avatar", path); }
+		function avatarShape(shape: string): string {
+			if (shape !== "circle" && shape !== "square") return `unknown shape: ${shape} (circle, square)`;
+			LockConfig.avatarShape = shape;
+			return "";
+		}
 		function name(text: string): void { LockConfig.name = text; }
 		function info(text: string): void { LockConfig.info = text; }
 		function status(): string {
@@ -71,6 +78,7 @@ Scope {
 				locked: root.locked,
 				image: LockConfig.image,
 				avatar: LockConfig.avatar,
+				avatarShape: LockConfig.avatarShape,
 				name: LockConfig.shownName,
 				info: LockConfig.shownInfo
 			}, null, 2);

@@ -118,6 +118,7 @@ Singleton {
 	}
 
 	readonly property var steps: [dimStep, lockStep, offStep, suspendStep]
+	readonly property bool screensOff: offStep.done
 
 	// Exactly "on" or "off": Hyprland reads any other action as a toggle.
 	function screens(on) {

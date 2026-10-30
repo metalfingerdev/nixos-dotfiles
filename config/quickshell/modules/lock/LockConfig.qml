@@ -8,7 +8,8 @@ import Quickshell.Io
 // What the lock screen shows, set over IPC (Lock.qml) or in views/Settings.qml, and remembered
 // across restarts:
 //   image   the background picture, a path         ""  = the wallpaper
-//   avatar  the profile picture, a path            ""  = a person glyph
+//   avatar  the profile picture, a path (GIFs play)  ""  = a person glyph
+//   avatarShape  its frame: "circle" | "square"
 //   name    the name under it                      ""  = the full name in the passwd entry
 //   info    the line under the name                ""  = user@host
 Singleton {
@@ -16,6 +17,7 @@ Singleton {
 
 	property string image: ""
 	property string avatar: ""
+	property string avatarShape: "circle"
 	property string name: ""
 	property string info: ""
 
@@ -25,6 +27,7 @@ Singleton {
 		category: "lock"
 		property alias image: root.image
 		property alias avatar: root.avatar
+		property alias avatarShape: root.avatarShape
 		property alias name: root.name
 		property alias info: root.info
 	}
