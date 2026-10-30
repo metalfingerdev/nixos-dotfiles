@@ -30,7 +30,7 @@ qs -p /path/to/this/folder
 ```
 
 `shell.qml` is the entry point. It creates one `Ipc`, one `Triggers`, and one `Bar` per screen, plus
-the lock screen (`Lock`, locked with `qs ipc call lock lock`) and the `ActivateLinux` text in each corner.
+the lock screen (`Lock`, locked with `qs ipc call lock screen`) and the `ActivateLinux` text in each corner.
 
 ## Tests
 
@@ -50,7 +50,7 @@ shell.qml                     entry point: Ipc, Triggers, Variants { Bar } (one 
                               Lock, ActivateLinux
 modules/
   lock/
-    Lock.qml                  the session lock: a LockSurface per screen, `qs ipc call lock lock`
+    Lock.qml                  the session lock: a LockSurface per screen, `qs ipc call lock screen`
     LockContext.qml           what's typed and PAM, shared by every screen's surface
     LockSurface.qml           the clock and the password field
     pam/password.conf         PAM for the lock: pam_unix (the password only)

@@ -5,7 +5,8 @@ import Quickshell
 import Quickshell.Io
 
 // Knows how to end, pause or lock the session. Knows nothing about the island.
-// Every action is one detached command, so nothing here waits on it.
+// Every action but lock is one detached command, so nothing here waits on it. Lock is the shell's
+// own lock screen (modules/lock): run("lock") asks for it with lockRequested(), and Lock.qml locks.
 Singleton {
     id: root
 
@@ -17,19 +18,19 @@ Singleton {
         { id: "poweroff", label: "Shut down", icon: "power_settings_new", confirm: true,  key: "p" }
     ]
 
-    // lock: asks logind, so whatever locker listens (hypridle -> hyprlock, ...) does the locking.
+    signal lockRequested()
+
     // logout: Hyprland runs under UWSM (programs.hyprland.withUWSM), so stop that; otherwise end
     // the logind session.
     readonly property var commands: ({
-        lock:     ["loginctl", "lock-session"],
         suspend:  ["systemctl", "suspend"],
-        logout:   ["sh", "-c", "uwsm check is-active >/dev/null 2>&1 && exec uwsm stop; "
-                             + "exec loginctl terminate-session \"$XDG_SESSION_ID\""],
+        logout:   ["uwsm", "stop"],
         reboot:   ["systemctl", "reboot"],
         poweroff: ["systemctl", "poweroff"]
     })
 
     function run(id) {
+        if (id === "lock") { lockRequested(); return }
         const c = commands[id]
         if (c) Quickshell.execDetached(c)
     }

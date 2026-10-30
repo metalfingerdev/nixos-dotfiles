@@ -16,7 +16,7 @@ ShellRoot {
     // live snapshot overlay, hidden until `qs ipc call island debug true`
     Debug {}
 
-    // the lock screen, unlocked until `qs ipc call lock lock`
+    // the lock screen, unlocked until `qs ipc call lock screen`
     Lock {}
 
     // "Activate Linux" in every screen's bottom-right corner

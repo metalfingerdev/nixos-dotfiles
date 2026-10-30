@@ -5,8 +5,10 @@
 local terminal    = "kitty"
 local fileManager = "yazi"
 local menu        = "quickshell ipc call island open launcher"
+local lock        = "quickshell ipc call lock screen"
 local browser     = "firefox"
 local fastfetch   = "fastfetch"
+local session     = dofile(os.getenv("HOME") .. "/.config/hypr/session.lua")   -- awww, quickshell
 
 
 ---------------------
@@ -18,14 +20,14 @@ local mainMod = "SUPER"
 
 hl.bind(mainMod .. " + Q",                hl.dsp.window.close())
 hl.bind(mainMod .. " + SHIFT + Q",        hl.dsp.window.close({ force = true }))
-hl.bind(mainMod .. " + SHIFT + CTRL + Q", hl.dsp.exit())
-hl.bind(mainMod .. " + SHIFT + R",        hl.dsp.exec_cmd("hyprctl reload"))
+hl.bind(mainMod .. " + SHIFT + CTRL + Q", hl.dsp.exec_cmd("uwsm stop"))
+hl.bind(mainMod .. " + SHIFT + R",        session.restart)   -- reload the config, restart awww and quickshell
 hl.bind(mainMod .. " + SHIFT + SPACE",    hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + CTRL + SPACE",     hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + ALT + SPACE",      hl.dsp.layout("togglesplit"))
 hl.bind(mainMod .. " + F",                hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + A",                hl.dsp.window.pin())
-hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd("hyprlock"))
+hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd(lock))
 
 -- Quickshell island
 hl.bind(mainMod .. " + CTRL + A",         hl.dsp.exec_cmd("quickshell ipc call island togglePeek"))

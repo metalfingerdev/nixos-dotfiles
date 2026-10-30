@@ -43,7 +43,7 @@ Replayed with ViewLoader + a Pill + a Slider:
 
 Effect: a pinned view times out while you are using it from the keyboard. Only focus moves count.
 Examples: Space-toggling Dashboard tiles (12 s), Left/Right on the Mixer's sliders (8 s), picking a
-Segmented option in Settings, Theme or Power (8 s), Delete on a notification card in the dashboard.
+Segmented option in Settings or Theme (8 s) or Battery (4 s), Delete on a notification card in the dashboard.
 
 Handlers that swallow the key: Pill, QuickTile, Tile, ListEntry, Chip, Segmented, Toggle, Slider,
 Progress, WorkspaceButtons, StatusGroup, NotificationCard, Tabs' clock, Theme's Swatch.
@@ -251,8 +251,8 @@ These are safe simplifications: none of them changes the state machine or what a
 
 | # | What | Where | Suggestion |
 |---|---|---|---|
-| R1 | Volume icon ladder ×3, brightness ladder ×3 | `Volume.qml:12`, `Dashboard.qml:221`, `Mixer.qml:24-26` · `Brightness.qml:12`, `Dashboard.qml:233`, `Power.qml:105` | `Audio.glyph` / `Backlight.glyph`, like `Net.icon` and `Energy.glyph` already are. Mixer's per-stream one: `Audio.glyphFor(level, muted)` |
-| R2 | Power profile options ×2, with different `visible` rules | `Dashboard.qml:239-250`, `Power.qml:110-121` (`Energy.present &&` only in Power) | `Toggles.profiles` (key, label, icon), like `Session.actions`. Pick one rule: power-profiles-daemon running is what matters, so drop `Energy.present` |
+| R1 | Volume icon ladder ×3, brightness ladder ×3 | `Volume.qml:12`, `Dashboard.qml:221`, `Mixer.qml:24-26` · `Brightness.qml:12`, `Dashboard.qml:233`, `Battery.qml:157` | `Audio.glyph` / `Backlight.glyph`, like `Net.icon` and `Energy.glyph` already are. Mixer's per-stream one: `Audio.glyphFor(level, muted)` |
+| R2 | Power profile options ×2 | `Dashboard.qml:239-250`, `Battery.qml:162-173` | `Toggles.profiles` (key, label, icon), like `Session.actions` |
 | R3 | Bluetooth icon ×2 | `Bluetooth.qml:66`, `Dashboard.qml:78` | `Bluez.icon` |
 | R4 | MediaCard's `compact` layout: nothing sets `compact` | `MediaCard.qml:15, 23, 57-138` | delete (~85 lines) |
 | R5 | Functions nothing calls | `Audio.nextSink` (`Audio.qml:48-51`), `Players.pickNext` (`Players.qml:25-28`; its comment names a button that's gone), `Desktops.iconOf` (`Desktops.qml:198-204`) | delete. Or keep `iconOf` as the one app-icon lookup: the same lookup is written out again in `Audio.qml:76-80` and `WindowPreview.qml:85` |
@@ -264,7 +264,7 @@ These are safe simplifications: none of them changes the state machine or what a
 | R11 | Battery colour ladder ×2 (only the fallback differs) | `Battery.qml:13-15`, `StatusGroup.qml:57-60` | `Config.levelColor(fallback)`, or a `levelColor` on one side used by the other |
 | R12 | View → name ×3; screen lookup ×2 | `Ipc.qml:80, 90`, `Debug.qml:27` · `Debug.qml:34-38` vs `Engine.resolveScreen` | `Registry.name(v)`; Engine exposes the active screen object, and Debug uses it |
 | R13 | "something is playing" ×2 | `Compact.qml:17`, `Dashboard.qml:23` | `Players.hasTrack` |
-| R14 | `[` `]` brightness keys ×2 | `Dashboard.qml:115-123`, `Power.qml:29-35` | fine as is (two views, different key sets); revisit if a third view wants them |
+| R14 | `[` `]` brightness keys ×2 | `Dashboard.qml:115-123`, `Battery.qml:19-25` | fine as is (two views, different key sets); revisit if a third view wants them |
 
 Looked at and left alone: the workspace views already share `Desktops.shown`, and component knobs
 nobody sets yet (`Header.showBack`, `Segmented.showCheck`, `SearchBar.readOnly`) are reasonable API.

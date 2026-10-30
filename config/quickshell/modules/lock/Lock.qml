@@ -2,10 +2,12 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import qs.modules.services
 
 // The lock screen: a session lock with a LockSurface on every screen, all sharing one LockContext
 // (what's typed, PAM, the failure message). Only the password unlocks it (PAM: pam/password.conf).
-//   qs ipc call lock lock
+//   qs ipc call lock screen
+//   Session.run("lock")   the Power view's Lock tile, the launcher's Lock
 // Try it in a window first, without locking anything: qs -p modules/lock/test.qml
 Scope {
 	id: root
@@ -38,9 +40,14 @@ Scope {
 		}
 	}
 
+	Connections {
+		target: Session
+		function onLockRequested() { root.lock(); }
+	}
+
 	IpcHandler {
 		target: "lock"
 
-		function lock(): void { root.lock(); }
+		function screen(): void { root.lock(); }
 	}
 }

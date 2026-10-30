@@ -7,8 +7,22 @@ import qs.modules.services
 // cycles) as chips.
 // One view, two uses: pinned (`open battery`), and the toast Triggers raises when the charger is
 // plugged in or out or the battery runs low. Click the toast to pin it.
+// Pinned, below them: the screen's brightness (with a backlight) and the power profile (with
+// power-profiles-daemon).
+// Keys (pinned): arrows/Tab move, [ ] brightness, Backspace back, Escape closes.
 Item {
     id: root
+
+    Component.onCompleted: Toggles.readProfile()
+
+    // brightness from anywhere in the view
+    Keys.onPressed: event => {
+        const t = event.text
+        if (t === "]") Backlight.set(Backlight.percent + 5)
+        else if (t === "[") Backlight.set(Backlight.percent - 5)
+        else { event.accepted = false; return }
+        Engine.key()
+    }
 
     readonly property color levelColor: Energy.charging || Energy.full ? Config.good
                                       : Energy.level === "critical" ? Config.bad
@@ -134,6 +148,27 @@ Item {
                     }
                 }
             }
+        }
+
+        Slider {
+            visible: Engine.pinned && Backlight.available
+            width: parent.width
+            implicitHeight: 48
+            icon: Backlight.percent < 34 ? "brightness_low" : Backlight.percent < 67 ? "brightness_medium" : "brightness_high"
+            value: Backlight.percent / 100
+            onMoved: v => Backlight.set(v * 100)
+        }
+
+        Segmented {
+            visible: Engine.pinned && Toggles.profile !== ""
+            width: parent.width
+            options: [
+                { key: "power-saver", label: "Saver",       icon: "eco" },
+                { key: "balanced",    label: "Balanced",    icon: "balance" },
+                { key: "performance", label: "Performance", icon: "speed" }
+            ]
+            current: Toggles.profile
+            onPicked: key => Toggles.setProfile(key)
         }
     }
 }
