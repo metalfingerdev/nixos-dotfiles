@@ -28,19 +28,19 @@ hl.bind(mainMod .. " + A",                hl.dsp.window.pin())
 hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd("hyprlock"))
 
 -- Quickshell island
-hl.bind(mainMod .. " + SHIFT + V",        hl.dsp.exec_cmd("quickshell ipc call island toggleAutohide"))
+hl.bind(mainMod .. " + SHIFT + A",        hl.dsp.exec_cmd("quickshell ipc call island toggleAutohide"))
 hl.bind(mainMod .. " + B",                hl.dsp.exec_cmd("quickshell ipc call island open bluetooth"))
 hl.bind(mainMod .. " + N",                hl.dsp.exec_cmd("quickshell ipc call island open network"))
 hl.bind(mainMod .. " + P",                hl.dsp.exec_cmd("quickshell ipc call island open notifications"))
-hl.bind(mainMod .. " + A",                hl.dsp.exec_cmd("quickshell ipc call island open mixer"))      -- every app's volume
+hl.bind(mainMod .. " + V",                hl.dsp.exec_cmd("quickshell ipc call island open mixer"))      -- every app's volume
 
 -- Peek: Super+Z shows the island's rest view (revealing it from auto-hide), Super+Z again hides it
-hl.bind(mainMod .. " + V",                hl.dsp.exec_cmd("quickshell ipc call island togglePeek"))
+hl.bind(mainMod .. " + A",                hl.dsp.exec_cmd("quickshell ipc call island togglePeek"))
 
 hl.bind(mainMod .. " + TAB",              hl.dsp.exec_cmd("quickshell ipc call island open workspaces"))
 hl.bind(mainMod .. " + G",                hl.dsp.exec_cmd("quickshell ipc call island open dashboard"))
 hl.bind(mainMod .. " + I",                hl.dsp.exec_cmd("quickshell ipc call island open settings"))
-hl.bind(mainMod .. " + M",                hl.dsp.exec_cmd("quickshell ipc call island open mixer"))
+hl.bind(mainMod .. " + M",                hl.dsp.exec_cmd("quickshell ipc call island open media"))
 hl.bind(mainMod .. " + U",                hl.dsp.exec_cmd("quickshell ipc call island open battery"))
 hl.bind(mainMod .. " + T",                hl.dsp.exec_cmd("quickshell ipc call island open theme"))
 hl.bind(mainMod .. " + C",                hl.dsp.exec_cmd("quickshell ipc call island open clock"))
