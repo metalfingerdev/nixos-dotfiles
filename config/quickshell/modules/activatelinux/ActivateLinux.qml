@@ -2,9 +2,10 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
+import qs.modules.components
 
 // A text OSD in every screen's bottom-right corner, over everything (fullscreen windows too), and
-// click-through. By default it says "Activate Linux".
+// click-through. By default it says "Activate Linux". Config.activateLinux turns it off.
 Scope {
 	id: root
 
@@ -13,7 +14,7 @@ Scope {
 
 	Variants {
 		// Create the panel once on each monitor.
-		model: Quickshell.screens
+		model: Config.activateLinux ? Quickshell.screens : []
 
 		PanelWindow {
 			id: w

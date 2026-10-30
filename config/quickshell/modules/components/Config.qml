@@ -166,6 +166,8 @@ QtObject {
     //   handle  auto-hide: what stays at the top edge while hidden: "strip" (a thin bar) or "none"
     property string style: "pill"
     property string handle: "strip"
+    // "Activate Linux" in each screen's corner (modules/activatelinux, views/Settings.qml, IPC `activateLinux`)
+    property bool activateLinux: true
 
     // Glass is Hyprland's (hypr/modules/look.lua): every window is drawn at decoration.active_opacity over
     // its blur, and layers named glass:* get the same blur. The island is one (Bar), so it takes
@@ -232,6 +234,7 @@ QtObject {
         property alias scale: root.scale
         property alias style: root.style
         property alias handle: root.handle
+        property alias activateLinux: root.activateLinux
         property alias lastDark: root.lastDark
     }
 }

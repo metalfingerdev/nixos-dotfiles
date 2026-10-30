@@ -20,6 +20,7 @@ import qs.modules.components
 //   qs ipc call island size 120            the island's size, 80..140 %
 //   qs ipc call island style notch         pill | notch
 //   qs ipc call island handle strip        auto-hide handle: strip | none
+//   qs ipc call island activateLinux false "Activate Linux" in each screen's corner
 //   qs ipc call island status
 //   qs ipc call island debug true          snapshot overlay + proxy box (toggleDebug flips it)
 //   qs ipc call island dump                the full snapshot as JSON
@@ -71,6 +72,7 @@ IpcHandler {
     function palettes(): string          { return Config.names.join("\n") }
     function style(name: string): void   { if (name === "pill" || name === "notch") Config.style = name }
     function handle(name: string): void  { if (name === "strip" || name === "none") Config.handle = name }
+    function activateLinux(on: bool): void { Config.activateLinux = on }
     function debug(on: bool): void    { Engine.debug = on }
     function toggleDebug(): void      { Engine.debug = !Engine.debug }
 

@@ -23,6 +23,7 @@ default.
 | `qs ipc call island size <80..140>` | the whole island's size, in percent |
 | `qs ipc call island style <pill\|notch>` | the island's shape |
 | `qs ipc call island handle <strip\|none>` | auto-hide: what stays at the top edge while hidden |
+| `qs ipc call island activateLinux <true\|false>` | the "Activate Linux" text in each screen's corner |
 | `qs ipc call island debug <true\|false>` | show the debug overlay and the proxy box |
 | `qs ipc call island toggleDebug` | toggle debug |
 | `qs ipc call island dump` | the full machine snapshot as JSON, with view names instead of numbers |
@@ -35,8 +36,8 @@ control's shortcut key) until it closes, and each keystroke restarts its timeout
 mode: focus rings and shortcut keycaps show until the pointer moves. Names: `tabs` (the hub, also
 what hovering shows), `dashboard` (everything), `launcher`, `network`, `bluetooth`, `media`, `mixer`,
 `notifications` (`open` = the center, `alert` = the popups), `workspaces` (the overview), `clock`,
-`battery`, `power`, `theme` (colours and the wallpaper), `settings` (the island's size, shape and
-auto-hide), and the toast `switcher`
+`battery`, `power`, `theme` (colours and the wallpaper), `settings` (the shell, idle and the lock screen),
+and the toast `switcher`
 (`alert switcher` shows the workspace dots).
 
 `peek` is meant for a key's press and release: `peek true` on press, `peek false` on release. When
@@ -61,6 +62,46 @@ clears the peek (a hover peek, a view opening), the next press shows it again.
 | `qs ipc call wallpaper set <path>` | show that image |
 | `qs ipc call wallpaper reload` | re-read the folder |
 | `qs ipc call wallpaper current` | print the path showing now |
+
+## Lock screen
+
+`Lock.qml` has its own target, `lock`. Everything but `screen` and `status` is remembered across
+restarts and shows at once, even while locked.
+
+| Command | Effect |
+|---|---|
+| `qs ipc call lock screen` | lock now |
+| `qs ipc call lock image <path>` | the background picture (`""`: the wallpaper) |
+| `qs ipc call lock avatar <path>` | the profile picture (`""`: a person glyph) |
+| `qs ipc call lock name <text>` | the name shown (`""`: the full name in the passwd entry, or the user name) |
+| `qs ipc call lock info <text>` | the line under the name (`""`: `user@host`) |
+| `qs ipc call lock status` | all of the above as JSON, plus whether it is locked |
+
+The Settings view's Lock section sets the same things. `image` and `avatar` need an absolute path: anything else prints an error and changes nothing. A picture
+that can't be loaded isn't an error until it shows: the background falls back to the wallpaper, the
+avatar to the glyph.
+
+## Idle
+
+`Idle.qml` (in `modules/lock`) does hypridle's job and has its own target, `idle`. Each step counts from
+the last input, and everything set here is remembered across restarts.
+
+| Command | Effect |
+|---|---|
+| `qs ipc call idle enable <true\|false>` | run the steps or not (the lock before sleep stays either way) |
+| `qs ipc call idle toggle` | flip that |
+| `qs ipc call idle set <step> <seconds>` | when a step runs, `0` = never: `dim` (150), `lock` (300), `off` (330), `suspend` (1800) |
+| `qs ipc call idle dimTo <percent>` | how far `dim` goes (10) |
+| `qs ipc call idle status` | all of the above as JSON, and the steps that have run since the last input |
+
+The Settings view's Idle section sets the same things.
+
+`dim` and `off` undo themselves on input; `lock` waits for the password. A step doesn't run while a
+Wayland idle inhibitor is active or logind has an `idle` inhibitor (Caffeine is one). One skipped this
+way waits for the next time the session goes idle.
+
+Separately from the steps, the screen locks before any sleep (logind's `PrepareForSleep`, held back with
+a delay inhibitor until the lock is up) and on `loginctl lock-session`.
 
 ## Notifications
 

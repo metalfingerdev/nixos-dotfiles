@@ -1,6 +1,6 @@
 import QtQuick
 
-// A search bar (Material 3): a pill with the search glyph in a primary circle, the field, then any
+// A search bar (Material 3): a pill with a glyph (`icon`) in a primary circle, the field, then any
 // children (filter chips) on the right. A focus scope: `focus: true` on the bar puts the keyboard
 // in its field. The field takes its own keys and reports them as signals, so the view decides
 // what they do:
@@ -16,6 +16,7 @@ FocusScope {
     property alias text: field.text
     property alias field: field
     property string placeholder: "Search"
+    property string icon: "search"
     property bool readOnly: false
     property bool takesTab: false
     property bool takesArrows: false
@@ -62,7 +63,7 @@ FocusScope {
 
         Icon {
             anchors.centerIn: parent
-            name: "search"
+            name: root.icon
             size: 20
             color: Config.primaryInk
         }

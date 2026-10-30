@@ -37,7 +37,7 @@ the lock screen (`Lock`, locked with `qs ipc call lock screen`) and the `Activat
 ```sh
 node modules/tests/machine.test.js                                         # the state machine
 QT_QPA_PLATFORM=offscreen qmltestrunner -input modules/tests/tst_keyboard.qml   # default keyboard
-qs -p modules/lock/test.qml                                                # the lock screen, in a window
+qs -p lock-test.qml                                                        # the lock screen, in a window
 ```
 
 `machine.test.js` replays event sequences against `Machine.js` with a fake Registry. Keep its `REG` table
@@ -48,13 +48,15 @@ in sync with `Registry.qml`. `tst_keyboard.qml` sends real key events to `ViewLo
 ```
 shell.qml                     entry point: Ipc, Triggers, Variants { Bar } (one per screen), Wallpaper,
                               Lock, ActivateLinux
+lock-test.qml                 the lock surface in a normal window, nothing locked (at the root, or `qs.*` won't resolve)
 modules/
   lock/
     Lock.qml                  the session lock: a LockSurface per screen, `qs ipc call lock screen`
     LockContext.qml           what's typed and PAM, shared by every screen's surface
-    LockSurface.qml           the clock and the password field
+    LockConfig.qml            what the lock shows (a singleton: IPC and views/Settings.qml set it)
+    LockSurface.qml           the picture, the clock, the avatar and name, the password field
+    Idle.qml                  hypridle's job, a singleton: dim, lock, screens off, suspend; the lock before sleep
     pam/password.conf         PAM for the lock: pam_unix (the password only)
-    test.qml                  the lock surface in a normal window, nothing locked
   activatelinux/
     ActivateLinux.qml         a click-through text OSD in each screen's bottom-right corner
   island/

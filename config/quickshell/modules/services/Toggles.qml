@@ -9,7 +9,7 @@ import Quickshell.Hyprland
 // The quick settings that are neither Wi-Fi, Bluetooth, sound nor notifications. Knows nothing
 // about the island. Each one needs a program; `has(tool)` says whether it's installed, and the
 // dashboard only shows the tiles that can work.
-//   caffeine     keeps the session from idling (systemd-inhibit; hypridle respects it)
+//   caffeine     keeps the session from idling (systemd-inhibit; modules/lock/Idle.qml respects it)
 //   nightLight   warm screen (hyprsunset, at `warmth` K; remembered). Stopping it restores the colours
 //   recording    records the focused monitor (wf-recorder) to ~/Videos/Recordings; a notification
 //                says where it went. recordSeconds counts up while it runs
