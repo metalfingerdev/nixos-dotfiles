@@ -5,7 +5,9 @@ import qs.modules.services
 
 // Lock, suspend, log out, restart, shut down. The last three ask first: the first press arms the
 // tile (it turns red and says "again?"), a second press within `confirmMs` runs it.
-// Keys: L S O R P (each tile shows its own), arrows/Tab move, Enter presses, Backspace back, Escape closes.
+// Below them, the screen's brightness (with a backlight).
+// Keys: L S O R P (each tile shows its own), arrows/Tab move, Enter presses, [ ] brightness,
+// Backspace back, Escape closes.
 Item {
     id: root
 
@@ -21,6 +23,15 @@ Item {
 
     Timer { id: disarm; interval: root.confirmMs; onTriggered: root.armed = "" }
     Component.onCompleted: Session.refresh()
+
+    // brightness from anywhere in the view (the tiles' letters are their shortcuts)
+    Keys.onPressed: event => {
+        const t = event.text
+        if (t === "]") Backlight.set(Backlight.percent + 5)
+        else if (t === "[") Backlight.set(Backlight.percent - 5)
+        else { event.accepted = false; return }
+        Engine.key()
+    }
 
     implicitWidth: tiles.implicitWidth + 48
     implicitHeight: column.implicitHeight + 48
@@ -84,6 +95,15 @@ Item {
                     }
                 }
             }
+        }
+
+        Slider {
+            visible: Backlight.available
+            width: parent.width
+            implicitHeight: 48
+            icon: Backlight.percent < 34 ? "brightness_low" : Backlight.percent < 67 ? "brightness_medium" : "brightness_high"
+            value: Backlight.percent / 100
+            onMoved: v => Backlight.set(v * 100)
         }
     }
 }

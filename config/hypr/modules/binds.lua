@@ -28,14 +28,14 @@ hl.bind(mainMod .. " + A",                hl.dsp.window.pin())
 hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd("hyprlock"))
 
 -- Quickshell island
+hl.bind(mainMod .. " + CTRL + A",         hl.dsp.exec_cmd("quickshell ipc call island togglePeek"))
 hl.bind(mainMod .. " + SHIFT + A",        hl.dsp.exec_cmd("quickshell ipc call island toggleAutohide"))
-hl.bind(mainMod .. " + B",                hl.dsp.exec_cmd("quickshell ipc call island open bluetooth"))
-hl.bind(mainMod .. " + N",                hl.dsp.exec_cmd("quickshell ipc call island open network"))
-hl.bind(mainMod .. " + P",                hl.dsp.exec_cmd("quickshell ipc call island open notifications"))
-hl.bind(mainMod .. " + V",                hl.dsp.exec_cmd("quickshell ipc call island open mixer"))      -- every app's volume
+hl.bind(mainMod .. " + A",                hl.dsp.exec_cmd("quickshell ipc call island open tabs"))
 
--- Peek: Super+Z shows the island's rest view (revealing it from auto-hide), Super+Z again hides it
-hl.bind(mainMod .. " + A",                hl.dsp.exec_cmd("quickshell ipc call island togglePeek"))
+hl.bind(mainMod .. " + B",                hl.dsp.exec_cmd("quickshell ipc call island open bluetooth"))
+hl.bind(mainMod .. " + Y",                hl.dsp.exec_cmd("quickshell ipc call island open network"))
+hl.bind(mainMod .. " + N",                hl.dsp.exec_cmd("quickshell ipc call island open notifications"))
+hl.bind(mainMod .. " + V",                hl.dsp.exec_cmd("quickshell ipc call island open mixer"))      -- every app's volume
 
 hl.bind(mainMod .. " + TAB",              hl.dsp.exec_cmd("quickshell ipc call island open workspaces"))
 hl.bind(mainMod .. " + G",                hl.dsp.exec_cmd("quickshell ipc call island open dashboard"))
@@ -45,11 +45,12 @@ hl.bind(mainMod .. " + U",                hl.dsp.exec_cmd("quickshell ipc call i
 hl.bind(mainMod .. " + T",                hl.dsp.exec_cmd("quickshell ipc call island open theme"))
 hl.bind(mainMod .. " + C",                hl.dsp.exec_cmd("quickshell ipc call island open clock"))
 hl.bind(mainMod .. " + X",                hl.dsp.exec_cmd("quickshell ipc call island open power"))
-hl.bind(mainMod .. " + O",                hl.dsp.exec_cmd("quickshell ipc call island open tabs"))       -- the hub: Tab/arrows, letters open views
 
 hl.bind(mainMod .. " + SPACE", function()
+    local win = hl.get_active_window()
+    if not win then return end -- nothing focused (e.g. empty workspace)
     hl.dispatch(hl.dsp.window.cycle_next({
-        floating = not hl.get_active_window().floating
+        floating = not win.floating
     }))
 end, { description = "Switch focus between tiled and floating windows" })
 

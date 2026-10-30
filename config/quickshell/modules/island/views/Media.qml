@@ -12,8 +12,8 @@ import qs.modules.services
 //   Output: where the sound goes (click another device to move it there), each with its volume:
 //   the wheel over one sets it (+ and - too, while it has the focus)
 //   Players: the others, when there are several (click one to show and control it)
-//   the mixer button (M): every app's volume
-// Keys: P play/pause, B previous, N next, S shuffle, R repeat, M mixer, arrows/Tab move, Backspace back,
+//   the mixer button (V): every app's volume
+// Keys: P play/pause, B previous, N next, S shuffle, R repeat, V mixer, arrows/Tab move, Backspace back,
 // Escape closes.
 Item {
     id: root
@@ -32,7 +32,7 @@ Item {
         kind: "text"
         icon: Config.symbol.mixer
         iconSize: 22
-        shortcut: "m"
+        shortcut: "v"
         onClicked: x => Engine.open(Engine.View.Mixer, x)
     }
 
