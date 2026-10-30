@@ -1,319 +1,163 @@
 import QtQuick
-import Quickshell.Widgets
 import qs.modules.island
+import qs.modules.parts
 import qs.modules.components
 import qs.modules.services
 
-// Colours and the wallpaper. Each choice applies at once and is remembered (components/Config.qml;
-// the wallpaper by awww itself). The island's size, shape and hiding are in views/Settings.qml.
-//   left   Colours: where they come from (a preset palette, an accent you pick, or the
-//          wallpaper), then for a generated scheme its style and dark or light
-//   right  the wallpapers, a grid of every image in Wallpaper.dir
-// Keys: arrows/Tab move, Enter/Space choose, R random wallpaper, I settings, Backspace back, Escape
-// closes. In the wallpaper grid the arrows pick (off its edge, they leave it) and Enter applies.
+// The theme at a glance: the wallpapers in one large row, the colours as a footer. A click on a
+// wallpaper, a palette or the mode applies it at once. Each section's title (a chevron after it)
+// is the way into its full view: Wallpaper (views/Wallpapers.qml, every image) and Colours
+// (views/Colours.qml: an accent, the wallpaper's colours, style). The island's size, shape and
+// hiding are in views/Settings.qml.
+// Keys: W wallpapers, C colours, I settings, arrows/Tab move (in the row Left/Right pick and
+// Enter/Space apply), Backspace back, Escape closes.
 Item {
     id: root
 
     readonly property int pad: 24
-    readonly property int colW: 440
-    readonly property int gutter: 28
-    readonly property var seeds: ["#d0453b", "#e0822a", "#d9a400", "#8db600", "#3f9b4f", "#2a9d8f",
-                                  "#1e9fc4", "#3b6fd8", "#5b5bd6", "#8a4fd0", "#c84f9b", "#8d6e63"]
+    readonly property int contentW: 712
+    readonly property int thumbW: 212
+    readonly property int thumbH: 132
+    readonly property int gap: 12
 
-    implicitWidth: 2 * colW + gutter + 2 * pad
-    implicitHeight: Math.max(colours.implicitHeight, wallpapers.implicitHeight) + header.height + 20 + 2 * pad
+    implicitWidth: contentW + 2 * pad
+    implicitHeight: column.implicitHeight + 2 * pad
 
-    component Label: Text {
-        leftPadding: 4
-        color: Config.primary
-        font.family: Config.font
-        font.pixelSize: Config.body
-        font.weight: Font.DemiBold
-    }
+    // A section's title, and the way into its full view: the title, what's in use, a chevron. The
+    // whole line is the link: click it, press Enter/Space on it, or type its shortcut.
+    component SectionLink: Rectangle {
+        id: link
 
-    // a round colour to pick: focusable, a check when it's the one in use
-    component Swatch: Rectangle {
-        id: swatch
-        property color tone: "grey"
-        property bool chosen: false
-        signal picked()
-        function activate() { picked() }
+        property string title: ""
+        property string detail: ""
+        property string shortcut: ""
+        property int view: -1
+        readonly property bool keyboardSelected: activeFocus && Config.focusVisible
 
-        width: 52
-        height: 52
-        radius: width / 2
-        color: tone
-        border.width: 2
-        border.color: Qt.rgba(1, 1, 1, 0.12)
         activeFocusOnTab: true
-        Keys.onReturnPressed: picked()
-        Keys.onEnterPressed:  picked()
-        Keys.onSpacePressed:  picked()
+        function activate() { Engine.open(view) }
+        Keys.onReturnPressed: activate()
+        Keys.onEnterPressed:  activate()
+        Keys.onSpacePressed:  activate()
 
-        Icon {
-            anchors.centerIn: parent
-            visible: swatch.chosen
-            name: "check"
-            size: 26
-            color: swatch.tone.hslLightness > 0.6 ? "#000000" : "#ffffff"
+        width: line.implicitWidth + 28
+        height: 38
+        radius: height / 2
+        color: Config.state(Qt.rgba(Config.primary.r, Config.primary.g, Config.primary.b, 0), Config.primary,
+                            area.containsMouse, area.pressed || keyboardSelected)
+
+        Row {
+            id: line
+            anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
+            spacing: 8
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: link.title
+                color: Config.primary
+                font.family: Config.font
+                font.pixelSize: Config.body + 1
+                font.weight: Font.DemiBold
+            }
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                visible: text !== ""
+                width: Math.min(implicitWidth, 240)
+                text: link.detail
+                elide: Text.ElideMiddle
+                color: Config.dim
+                font.family: Config.font
+                font.pixelSize: Config.body
+            }
+            Icon {
+                anchors.verticalCenter: parent.verticalCenter
+                name: "chevron_right"
+                size: 22
+                color: Config.primary
+                // nudges along under the pointer: this goes somewhere
+                transform: Translate { x: area.containsMouse ? 3 : 0; Behavior on x { NumberAnimation { duration: 120 } } }
+            }
         }
+
         MouseArea {
+            id: area
             anchors.fill: parent
+            hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: swatch.picked()
+            onClicked: mouse => Engine.open(link.view, link.mapToItem(null, mouse.x, mouse.y).x)
         }
-        FocusRing {}
+
+        FocusRing { on: link.keyboardSelected }
+        KeyBadge { key: link.shortcut; anchors { right: parent.right; top: parent.top; rightMargin: -6; topMargin: -6 } }
     }
 
-    function hex(c) {
-        const h = v => Math.round(v * 255).toString(16).padStart(2, "0")
-        return "#" + h(c.r) + h(c.g) + h(c.b)
-    }
-
-    Header {
-        id: header
-        x: root.pad; y: root.pad
-        width: parent.width - 2 * root.pad
-        title: "Theme"
-        subtitle: (Config.source === "preset" ? Config.current.label
-                 : Config.source === "accent" ? "From " + root.hex(Config.accent) : "From the wallpaper")
-                + (Wallpaper.current ? "  ·  " + Wallpaper.baseName(Wallpaper.current) : "")
-        onBack: Engine.back()
-
-        Pill { kind: "text"; icon: Config.symbol.settings; iconSize: 22; shortcut: "i"; onClicked: x => Engine.open(Engine.View.Settings, x) }
-    }
-
-    // ================= left: colours =================
     Column {
-        id: colours
+        id: column
         x: root.pad
-        y: header.y + header.height + 20
-        width: root.colW
-        spacing: 14
+        y: root.pad
+        width: root.contentW
+        spacing: 12
 
-        Label { text: "Colours" }
-
-        Segmented {
+        Header {
             width: parent.width
-            options: [
-                { key: "preset",    label: "Presets",   icon: "palette" },
-                { key: "accent",    label: "Accent",    icon: "colorize" },
-                { key: "wallpaper", label: "Wallpaper", icon: "wallpaper" }
-            ]
-            current: Config.source
-            onPicked: key => Config.source = key
+            title: "Theme"
+            onBack: Engine.back()
+
+            Pill { kind: "text"; icon: Config.symbol.settings; iconSize: 22; shortcut: "i"; onClicked: x => Engine.open(Engine.View.Settings, x) }
         }
 
-        // ---- presets ----
-        Grid {
-            visible: Config.source === "preset"
-            columns: 4
-            spacing: 12
-
-            Repeater {
-                model: Config.names
-
-                Tile {
-                    id: tile
-                    required property string modelData
-                    readonly property var p: Config.palettes[modelData]
-
-                    width: (colours.width - 36) / 4
-                    height: 92
-                    padding: 12
-                    tint: p.surface
-                    current: Config.name === modelData
-                    focus: current && Config.source === "preset"   // the keyboard starts on the palette in use
-                    onClicked: Config.name = modelData
-
-                    Text {
-                        anchors { left: parent.left; top: parent.top }
-                        text: tile.p.label
-                        color: tile.p.text
-                        font.family: Config.font
-                        font.pixelSize: Config.body
-                        font.weight: Font.DemiBold
-                    }
-                    // primary, secondary, container: the colours the island is made of
-                    Row {
-                        anchors { left: parent.left; bottom: parent.bottom }
-                        spacing: -6
-
-                        Repeater {
-                            model: [tile.p.primary, tile.p.secondary, tile.p.container]
-
-                            Rectangle {
-                                required property string modelData
-                                width: 24; height: 24; radius: 12
-                                color: modelData
-                                border.width: 2
-                                border.color: tile.p.surface
-                            }
-                        }
-                    }
-                }
-            }
+        // ================= the wallpapers: one large row =================
+        SectionLink {
+            x: -14                                       // the title lines up with the content
+            title: "Wallpaper"
+            detail: Wallpaper.files.length > 0 ? Wallpaper.files.length + (Wallpaper.files.length === 1 ? " image" : " images") : ""
+            shortcut: "w"
+            view: Engine.View.Wallpapers
         }
 
-        // ---- an accent you pick ----
-        Grid {
-            visible: Config.source === "accent"
-            columns: 6
-            spacing: (colours.width - 6 * 52) / 5
-
-            Repeater {
-                model: root.seeds
-
-                Swatch {
-                    required property string modelData
-                    tone: modelData
-                    chosen: Qt.colorEqual(Config.accent, modelData)
-                    focus: chosen && Config.source === "accent"
-                    onPicked: Config.accent = modelData
-                }
-            }
-        }
-        Row {
-            visible: Config.source === "accent"
+        ListView {
+            id: strip
+            visible: Wallpaper.files.length > 0
             width: parent.width
-            spacing: 12
+            height: root.thumbH
+            orientation: ListView.Horizontal
+            spacing: root.gap
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            model: Wallpaper.files
+            currentIndex: Math.max(0, Wallpaper.currentIndex)
+            focus: true                                  // the keyboard starts here
+            activeFocusOnTab: true
+            Component.onCompleted: positionViewAtIndex(currentIndex, ListView.Center)
 
-            Rectangle {
-                width: parent.width - preview.width - parent.spacing
-                height: 52
-                radius: height / 2
-                color: Config.high
-                border.width: field.activeFocus ? 2 : 0
-                border.color: Config.primary
+            // the row moves its own selection with Left/Right (off its ends it lets them go, and
+            // ViewLoader moves focus out); report every key, so the countdown restarts
+            Keys.onPressed: event => { Engine.key(); event.accepted = false }
+            Keys.onReturnPressed: Wallpaper.set(Wallpaper.files[currentIndex])
+            Keys.onEnterPressed:  Wallpaper.set(Wallpaper.files[currentIndex])
+            Keys.onSpacePressed:  Wallpaper.set(Wallpaper.files[currentIndex])
 
-                TextInput {
-                    id: field
-                    anchors { fill: parent; leftMargin: 20; rightMargin: 20 }
-                    verticalAlignment: TextInput.AlignVCenter
-                    activeFocusOnTab: true
-                    color: Config.text
-                    font.family: Config.mono
-                    font.pixelSize: Config.large
-                    maximumLength: 7
-                    validator: RegularExpressionValidator { regularExpression: /#?[0-9A-Fa-f]{0,6}/ }
-                    clip: true
-
-                    function apply() {
-                        const t = text.replace("#", "")
-                        if (t.length === 6) { Config.accent = "#" + t; text = "" }
-                    }
-                    // the field accepts its keys, so ViewLoader never sees them: report them here
-                    Keys.onPressed: event => { Engine.key(); event.accepted = false }
-                    Keys.onReturnPressed: apply()
-                    Keys.onEnterPressed:  apply()
-
-                    Text {
-                        visible: field.text === ""
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "Hex colour, e.g. " + root.hex(Config.accent)
-                        color: Config.dim
-                        font.family: Config.font
-                        font.pixelSize: Config.body
-                    }
+            // the wheel scrolls the row sideways
+            WheelHandler {
+                target: null
+                onWheel: event => {
+                    const d = event.angleDelta.y !== 0 ? event.angleDelta.y : event.angleDelta.x
+                    strip.contentX = Math.max(strip.originX,
+                                     Math.min(strip.originX + strip.contentWidth - strip.width, strip.contentX - d))
                 }
             }
-            Rectangle {
-                id: preview
-                width: 52; height: 52; radius: 26
-                color: field.text.replace("#", "").length === 6 ? "#" + field.text.replace("#", "") : Config.accent
-                border.width: 2
-                border.color: Config.outline
+
+            delegate: WallpaperThumb {
+                required property string modelData
+                required property int index
+
+                width: root.thumbW
+                height: root.thumbH
+                path: modelData
+                picked: strip.activeFocus && ListView.isCurrentItem
+                onClicked: { strip.currentIndex = index; Wallpaper.set(modelData) }
             }
         }
-
-        // ---- the wallpaper's colours ----
-        Row {
-            visible: Config.source === "wallpaper"
-            width: parent.width
-            spacing: 16
-
-            ClippingRectangle {
-                width: 168
-                height: 108
-                radius: Config.innerRadius + 4
-                color: Config.container
-
-                Image {
-                    anchors.fill: parent
-                    source: Wallpaper.current ? Wallpaper.fileUrl(Wallpaper.current) : ""
-                    sourceSize: Qt.size(336, 216)
-                    fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
-                }
-            }
-            Column {
-                width: parent.width - 168 - parent.spacing
-                spacing: 10
-
-                Text {
-                    width: parent.width
-                    wrapMode: Text.Wrap
-                    text: Wallpaper.swatches.length > 0
-                        ? "Picked from your wallpaper. Choose another of its colours to use it as the accent."
-                        : "No wallpaper colours yet"
-                    color: Config.dim
-                    font.family: Config.font
-                    font.pixelSize: Config.body
-                }
-                Flow {
-                    width: parent.width
-                    spacing: 10
-
-                    Repeater {
-                        model: Wallpaper.swatches
-
-                        Swatch {
-                            required property color modelData
-                            width: 40; height: 40
-                            tone: modelData
-                            chosen: Qt.colorEqual(Wallpaper.seed, modelData)
-                            onPicked: {
-                                Config.accent = modelData
-                                Config.source = "accent"
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // ---- a generated scheme's style ----
-        Label { visible: Config.source !== "preset"; text: "Style"; topPadding: 4 }
-        Segmented {
-            visible: Config.source !== "preset"
-            width: parent.width
-            options: [
-                { key: "tonal",   label: "Tonal" },
-                { key: "vibrant", label: "Vibrant" },
-                { key: "muted",   label: "Muted" },
-                { key: "mono",    label: "Mono" }
-            ]
-            current: Config.variant
-            onPicked: key => Config.variant = key
-        }
-        Segmented {
-            visible: Config.source !== "preset"
-            width: parent.width
-            options: [{ key: "dark", label: "Dark", icon: "dark_mode" }, { key: "light", label: "Light", icon: "light_mode" }]
-            current: Config.darkMode ? "dark" : "light"
-            onPicked: key => { Config.darkMode = key === "dark"; Toggles.colorScheme(Config.darkMode) }
-        }
-    }
-
-    // ================= right: the wallpaper =================
-    Column {
-        id: wallpapers
-        x: root.pad + root.colW + root.gutter
-        y: colours.y
-        width: root.colW
-        spacing: 14
-
-        Label { text: "Wallpaper" }
 
         Text {
             visible: Wallpaper.files.length === 0
@@ -324,122 +168,70 @@ Item {
             font.pixelSize: Config.body
         }
 
-        // three across, up to three rows tall; more scroll
-        Item {
-            visible: Wallpaper.files.length > 0
+        // ================= the colours: a footer =================
+        Rectangle {
             width: parent.width
-            height: grid.height
-
-            GridView {
-                id: grid
-
-                readonly property int across: 3
-                readonly property real gap: 10
-
-                // each cell carries half a gap on every side: hang those outside the column so the
-                // thumbnails line up with its edges
-                x: -gap / 2
-                width: parent.width + gap
-                height: Math.max(1, Math.min(3, Math.ceil(count / across))) * cellHeight
-                cellWidth: width / across
-                cellHeight: Math.round((cellWidth - gap) * 0.62) + gap
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
-                model: Wallpaper.files
-                currentIndex: Math.max(0, Wallpaper.currentIndex)
-                Component.onCompleted: positionViewAtIndex(currentIndex, GridView.Contain)
-
-                // the grid moves its own selection with the arrows (off its edge it lets them go,
-                // and ViewLoader moves focus out); report every key, so the countdown restarts
-                Keys.onPressed: event => { Engine.key(); event.accepted = false }
-                Keys.onReturnPressed: Wallpaper.set(Wallpaper.files[currentIndex])
-                Keys.onEnterPressed:  Wallpaper.set(Wallpaper.files[currentIndex])
-                activeFocusOnTab: true
-
-                delegate: Item {
-                    id: cell
-                    required property string modelData
-                    required property int index
-                    readonly property bool applied: modelData === Wallpaper.current
-
-                    width: grid.cellWidth
-                    height: grid.cellHeight
-
-                    ClippingRectangle {
-                        id: thumb
-                        anchors { fill: parent; margins: grid.gap / 2 }
-                        radius: Config.innerRadius
-                        color: Config.container
-
-                        Image {
-                            anchors.fill: parent
-                            source: Wallpaper.fileUrl(cell.modelData)
-                            sourceSize: Qt.size(300, 192)            // decode small: wallpapers are big
-                            fillMode: Image.PreserveAspectCrop
-                            asynchronous: true
-                        }
-
-                        // applied: a primary ring and a check; the keyboard's pick: a thick ring
-                        Rectangle {
-                            readonly property bool picked: grid.activeFocus && cell.GridView.isCurrentItem
-                            anchors.fill: parent
-                            radius: thumb.radius
-                            color: "transparent"
-                            border.width: picked && Config.focusVisible ? 4 : cell.applied ? 3 : 0
-                            border.color: cell.applied && !picked ? Config.primary : Config.text
-                        }
-                        Rectangle {
-                            visible: cell.applied
-                            anchors { right: parent.right; top: parent.top; margins: 8 }
-                            width: 24; height: 24; radius: 12
-                            color: Config.primary
-
-                            Icon {
-                                anchors.centerIn: parent
-                                name: "check"
-                                size: 16
-                                color: Config.primaryInk
-                            }
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: { grid.currentIndex = cell.index; Wallpaper.set(cell.modelData) }
-                        }
-                    }
-                }
-            }
+            height: 1
+            color: Config.divider
         }
 
-        // where they come from, and a random one
         Item {
-            visible: Wallpaper.files.length > 0
             width: parent.width
-            height: 48
+            height: 40
 
-            Text {
-                anchors { left: parent.left; leftMargin: 4; right: shuffle.left; rightMargin: 12; verticalCenter: parent.verticalCenter }
-                text: Wallpaper.files.length + (Wallpaper.files.length === 1 ? " image in " : " images in ") + Wallpaper.dir
-                elide: Text.ElideMiddle
-                color: Config.dim
-                font.family: Config.font
-                font.pixelSize: Config.body
+            SectionLink {
+                x: -14
+                anchors.verticalCenter: parent.verticalCenter
+                title: "Colours"
+                detail: Config.source === "preset" ? Config.current.label
+                      : Config.source === "accent" ? Config.hex(Config.accent) : "Wallpaper"
+                shortcut: "c"
+                view: Engine.View.Colours
             }
-            Pill {
-                id: shuffle
+
+            Row {
+                anchors { right: mode.left; rightMargin: 16; verticalCenter: parent.verticalCenter }
+                spacing: 8
+
+                // every preset: its primary inside its surface
+                Repeater {
+                    model: Config.names
+
+                    Swatch {
+                        required property string modelData
+                        readonly property var p: Config.palettes[modelData]
+                        width: 30; height: 30
+                        ring: p.surface
+                        tone: p.primary
+                        chosen: Config.source === "preset" && Config.name === modelData
+                        onPicked: { Config.name = modelData; Config.source = "preset" }
+                    }
+                }
+                // or the wallpaper's own
+                Swatch {
+                    width: 30; height: 30
+                    tone: Wallpaper.seed
+                    icon: Config.symbol.wallpaper
+                    chosen: Config.source === "wallpaper"
+                    onPicked: Config.source = "wallpaper"
+                }
+            }
+
+            Segmented {
+                id: mode
                 anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                visible: Wallpaper.files.length > 1
-                icon: "shuffle"
-                text: "Random"
-                shortcut: "r"
-                onClicked: Wallpaper.random()
+                width: 96
+                height: 36
+                showCheck: false
+                options: [{ key: "dark", icon: "dark_mode" }, { key: "light", icon: "light_mode" }]
+                current: Config.dark ? "dark" : "light"
+                onPicked: key => { Config.setDark(key === "dark"); Toggles.colorScheme(Config.dark) }
             }
         }
 
         KeyHints {
             width: parent.width
-            keys: [["R", "random wallpaper"], ["⌫", "back"], ["Esc", "close"]]
+            keys: [["← →", "pick"], ["↵", "apply"], ["⌫", "back"], ["Esc", "close"]]
         }
     }
 }

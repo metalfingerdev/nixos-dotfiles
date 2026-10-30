@@ -6,8 +6,9 @@ import QtCore
 // Colours, shape and type for the whole island, after Material 3 (Android's quick settings):
 // tonal surfaces, pill tiles, thick pill sliders, the primary colour for "on". Bar, the components
 // and every view read these; nothing else hard-codes a colour. `name` picks a palette
-// (views/Theme.qml, IPC `palette`) and is remembered across restarts. No view file may be called
-// Config.qml: views see their own folder first, and it would hide this singleton from every view.
+// (views/Colours.qml, views/Theme.qml, IPC `palette`) and is remembered across restarts. No view
+// file may share a singleton's name (Config.qml, Wallpaper.qml, ...): views see their own folder
+// first, and it would hide that singleton from every view.
 //
 // Plain QtQuick + QtCore (no Quickshell), so modules/tests/tst_keyboard.qml can still load Pill.
 QtObject {
@@ -58,7 +59,7 @@ QtObject {
     })
     readonly property var names: Object.keys(palettes)
 
-    // ---- where the colours come from (views/Theme.qml) ----
+    // ---- where the colours come from (views/Colours.qml) ----
     //   source   "preset": a palette above, by `name`
     //            "accent": generated from `accent`, Material You style
     //            "wallpaper": generated from the wallpaper's dominant colour (`wallpaperSeed`,
@@ -146,6 +147,11 @@ QtObject {
     function state(base, ink, hovered, pressed) {
         return pressed ? mix(base, ink, 0.12) : hovered ? mix(base, ink, 0.08) : base
     }
+    // "#rrggbb", as people write a colour
+    function hex(c) {
+        const h = v => Math.round(v * 255).toString(16).padStart(2, "0")
+        return "#" + h(c.r) + h(c.g) + h(c.b)
+    }
 
     // ---- shape (Material 3) ----
     // the island's largest corner; a shape lower than twice this is a capsule (the compact clock, HUDs)
@@ -198,7 +204,7 @@ QtObject {
         overview: "grid_view", calendar: "calendar_month", media: "music_note", theme: "palette", settings: "settings",
         power: "power_settings_new", screenshot: "screenshot_region", record: "screen_record",
         dnd: "do_not_disturb_on", sound: "volume_up", muted: "volume_off", battery: "battery_full",
-        mixer: "instant_mix"
+        mixer: "instant_mix", colours: "format_color_fill", wallpaper: "wallpaper"
     })
 
     // Fonts come from modules/features/theme.nix (inter, jetbrains-mono, material-symbols).

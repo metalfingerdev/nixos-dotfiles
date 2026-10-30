@@ -21,13 +21,13 @@ local mainMod = "SUPER"
 hl.bind(mainMod .. " + Q",                hl.dsp.window.close())
 hl.bind(mainMod .. " + SHIFT + Q",        hl.dsp.window.close({ force = true }))
 hl.bind(mainMod .. " + SHIFT + CTRL + Q", hl.dsp.exec_cmd("uwsm stop"))
-hl.bind(mainMod .. " + SHIFT + R",        session.restart)   -- reload the config, restart awww and quickshell
 hl.bind(mainMod .. " + SHIFT + SPACE",    hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + CTRL + SPACE",     hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + ALT + SPACE",      hl.dsp.layout("togglesplit"))
 hl.bind(mainMod .. " + F",                hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + A",                hl.dsp.window.pin())
 hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd(lock))
+hl.bind(mainMod .. " + R",                session.restart)
 
 -- Quickshell island
 hl.bind(mainMod .. " + CTRL + A",         hl.dsp.exec_cmd("quickshell ipc call island togglePeek"))

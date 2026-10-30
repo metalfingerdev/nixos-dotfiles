@@ -38,8 +38,9 @@ The contract:
   `Config.state(base, ink, hovered, pressed)` gives the hover/press state layer. Reuse the components
   (`Header`, `QuickTile`, `Slider`, `Segmented`, `Chip`, `SearchBar`, `ListEntry`, `Pill`, `Toggle`,
   `ScrollList`, `Progress`, `Icon`, ...) and the shared parts (`import qs.modules.parts`:
-  `MediaCard`, `NotificationCard`, `StatusGroup`, `WorkspaceDots`). No view file may be called
-  `Config.qml`. A QML property can't be named `onSomething` (QML reads it as a signal handler and it
+  `MediaCard`, `NotificationCard`, `StatusGroup`, `WorkspaceDots`, `WallpaperThumb`). No view file
+  may share a singleton's name (`Config.qml`, `Wallpaper.qml`, ...): views see their own folder first,
+  and it would hide the singleton (hence `views/Wallpapers.qml`). A QML property can't be named `onSomething` (QML reads it as a signal handler and it
   stays black), hence `primaryInk`.
 - **Keyboard**: nothing to do for the basics. A pinned view, and the peek view (while hovered), gets the
   keyboard, and `ViewLoader` gives it default keys: Tab moves through focusable items (every control is

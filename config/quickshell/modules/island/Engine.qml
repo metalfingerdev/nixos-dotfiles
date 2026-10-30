@@ -27,7 +27,9 @@ QtObject {
         Dashboard,
         Switcher,
         Mixer,
-        Settings
+        Settings,
+        Colours,
+        Wallpapers
     }
 
     // ---- config ----

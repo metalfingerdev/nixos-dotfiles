@@ -74,6 +74,7 @@ Rectangle {
                         color: segment.chosen ? Config.secondaryInk : Config.text
                     }
                     Text {
+                        visible: text !== ""                 // an icon-only option stays centred
                         anchors.verticalCenter: parent.verticalCenter
                         text: segment.modelData.label ?? ""
                         color: segment.chosen ? Config.secondaryInk : Config.text

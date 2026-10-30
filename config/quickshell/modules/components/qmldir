@@ -12,6 +12,7 @@ QuickTile    1.0 QuickTile.qml
 Slider       1.0 Slider.qml
 Segmented    1.0 Segmented.qml
 Chip         1.0 Chip.qml
+Swatch       1.0 Swatch.qml
 SearchBar    1.0 SearchBar.qml
 Progress     1.0 Progress.qml
 ScrollList   1.0 ScrollList.qml

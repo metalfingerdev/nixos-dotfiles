@@ -5,3 +5,4 @@ StatusGroup      1.0 StatusGroup.qml
 MediaCard        1.0 MediaCard.qml
 NotificationCard 1.0 NotificationCard.qml
 WorkspaceButtons 1.0 WorkspaceButtons.qml
+WallpaperThumb   1.0 WallpaperThumb.qml

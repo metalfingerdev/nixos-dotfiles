@@ -68,11 +68,12 @@ modules/
     Triggers.qml              system events -> alerts (volume, brightness, battery, media, workspace switch)
     Debug.qml                 live snapshot overlay, toggled with `qs ipc call island debug true`
     views/                    one QML file per view: Compact Tabs Dashboard Launcher Network Bluetooth
-                              Media Mixer Notification Workspaces Clock Battery Power Theme Settings,
-                              and the toasts Volume Brightness Switcher
+                              Media Mixer Notification Workspaces Clock Battery Power Theme (with the
+                              full Colours and Wallpapers) Settings, and the toasts Volume Brightness
+                              Switcher
       overview/               the Workspaces overview's tiles, live previews, special strip, options
     parts/                    pieces several views share: WorkspaceDots (GNOME-style), StatusGroup (what's
-                              on, as a button group), MediaCard, NotificationCard
+                              on, as a button group), MediaCard, NotificationCard, WallpaperThumb
   services/                   system state, no island logic: Audio, Backlight, Notifier, Net (Wi-Fi),
                               Bluez, Players (MPRIS), Energy (battery), Session (power), Desktops
                               (Hyprland), Toplevels, Privacy (mic/camera), Wallpaper (awww), Toggles
@@ -84,6 +85,7 @@ modules/
     Slider.qml                a thick pill slider (the fill carries the icon)
     Segmented.qml Chip.qml SearchBar.qml Toggle.qml (switch) Header.qml (top app bar)
     Icon.qml                  a Material Symbols glyph
+    Swatch.qml                a round colour to pick (or a palette: its surface around its primary)
     ListEntry Tile ScrollList Progress Equalizer CalendarGrid
   tests/
     machine.test.js           Node tests for Machine.js

@@ -29,8 +29,11 @@ QtObject {
         { name: "battery",    priority: 2, critical: 3, timeout: 4000, view: Engine.View.Battery, url: Qt.resolvedUrl("views/Battery.qml"), queue: true },
         { name: "clock",      priority: 2, timeout: 8000, view: Engine.View.Clock,      url: Qt.resolvedUrl("views/Clock.qml") },
         { name: "power",      priority: 2, timeout: 8000, view: Engine.View.Power,      url: Qt.resolvedUrl("views/Power.qml") },
-        // colours and the wallpaper; the island's size, shape and hiding are its settings
+        // colours and the wallpaper at a glance, each with its full view; the island's size, shape
+        // and hiding are its settings
         { name: "theme",      priority: 2, timeout: 8000, view: Engine.View.Theme,      url: Qt.resolvedUrl("views/Theme.qml") },
+        { name: "colours",    aliases: ["colors"],    priority: 2, timeout: 8000, view: Engine.View.Colours,    url: Qt.resolvedUrl("views/Colours.qml") },
+        { name: "wallpapers", aliases: ["wallpaper"], priority: 2, timeout: 8000, view: Engine.View.Wallpapers, url: Qt.resolvedUrl("views/Wallpapers.qml") },
         { name: "settings",   priority: 2, timeout: 8000, view: Engine.View.Settings,   url: Qt.resolvedUrl("views/Settings.qml") },
         { name: "workspaces", priority: 2, timeout: 8000, view: Engine.View.Workspaces, url: Qt.resolvedUrl("views/Workspaces.qml") },
         // Toast = the workspace changed (GNOME-style dots). Transient: never interrupts, never waits.
