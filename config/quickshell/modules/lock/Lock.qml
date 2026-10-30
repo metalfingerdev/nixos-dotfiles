@@ -8,7 +8,7 @@ import qs.modules.services
 // (what's typed, PAM, the failure message) and LockConfig (what it shows). Only the password unlocks it (PAM: pam/password.conf).
 //   qs ipc call lock screen
 //   Session.run("lock")   the Power view's Lock tile, the launcher's Lock
-//   qs ipc call lock image /path/to/picture.png    the background ("" = the wallpaper)
+//   qs ipc call lock image /path/to/picture.png    the background, GIFs play ("" = the wallpaper)
 //   qs ipc call lock avatar /path/to/face.gif      the profile picture, GIFs play ("" = a person glyph)
 //   qs ipc call lock avatarShape square            its frame: circle | square
 //   qs ipc call lock name "Some Name"              the name shown ("" = the full name in passwd)

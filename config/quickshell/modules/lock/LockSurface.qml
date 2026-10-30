@@ -9,7 +9,7 @@ import qs.modules.services
 Rectangle {
 	id: root
 	required property LockContext context
-	// an animated avatar plays while this is on (Lock.qml: not while the screens are off)
+	// an animated background or avatar plays while this is on (Lock.qml: not while the screens are off)
 	property bool animate: true
 
 	// the plain colour shows until the picture loads, and for good if there is no picture
@@ -20,7 +20,8 @@ Rectangle {
 		precision: SystemClock.Minutes
 	}
 
-	Image {
+	// plays a GIF and shows a still picture alike
+	AnimatedImage {
 		id: background
 		// the lock image, or the wallpaper if there is none or it can't be loaded (it moved, say)
 		property string broken: ""
@@ -28,11 +29,14 @@ Rectangle {
 
 		anchors.fill: parent
 		source: path ? Wallpaper.fileUrl(path) : ""
-		sourceSize: Qt.size(width * Screen.devicePixelRatio, height * Screen.devicePixelRatio)
 		fillMode: Image.PreserveAspectCrop
 		asynchronous: true
+		// as the avatar's below; no sourceSize, which would rescale every frame of a GIF on the CPU
+		playing: root.animate && status === Image.Ready
+		cache: false
 		opacity: status === Image.Ready ? 1 : 0
-		onStatusChanged: if (status === Image.Error) broken = LockConfig.image;
+		// not right away: a missing file errors while `source` is being set, from `path`'s own binding
+		onStatusChanged: if (status === Image.Error) Qt.callLater(() => broken = LockConfig.image);
 
 		Behavior on opacity { NumberAnimation { duration: 200 } }
 	}
