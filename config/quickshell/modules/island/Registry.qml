@@ -39,7 +39,7 @@ QtObject {
         // Toast = the workspace changed (GNOME-style dots). Transient: never interrupts, never waits.
         // `opens`: a click on the toast opens this instead of pinning the toast (its full view)
         { name: "switcher",   priority: 1, timeout: 1200, view: Engine.View.Switcher,   url: Qt.resolvedUrl("views/Switcher.qml"), queue: false,
-          opens: Engine.View.Workspaces }
+          opens: Engine.View.Tabs }
     ]
 
     // A non-number (e.g. an enum name that doesn't exist yet: Qt keeps a singleton's old enum across a

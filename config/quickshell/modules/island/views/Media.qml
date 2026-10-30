@@ -33,7 +33,7 @@ Item {
         icon: Config.symbol.mixer
         iconSize: 22
         shortcut: "v"
-        onClicked: x => Engine.open(Engine.View.Mixer, x)
+        onClicked: Engine.open(Engine.View.Mixer)
     }
 
     Component.onCompleted: Players.watch(true)

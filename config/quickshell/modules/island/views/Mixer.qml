@@ -74,7 +74,7 @@ Item {
                 icon: Config.symbol.media
                 iconSize: 22
                 shortcut: "m"
-                onClicked: x => Engine.open(Engine.View.Media, x)
+                onClicked: Engine.open(Engine.View.Media)
             }
         }
 

@@ -55,7 +55,7 @@ Item {
             implicitHeight: 40
             icon: Config.symbol.open
             shortcut: section.letter
-            onClicked: x => Engine.open(section.view, x)
+            onClicked: Engine.open(section.view)
         }
     }
 
@@ -74,7 +74,7 @@ Item {
                     + (Wallpaper.current ? "  ·  " + Wallpaper.baseName(Wallpaper.current) : "")
             onBack: Engine.back()
 
-            Pill { kind: "text"; icon: Config.symbol.settings; iconSize: 22; shortcut: "i"; onClicked: x => Engine.open(Engine.View.Settings, x) }
+            Pill { kind: "text"; icon: Config.symbol.settings; iconSize: 22; shortcut: "i"; onClicked: Engine.open(Engine.View.Settings) }
         }
 
         // ================= the colours: one row =================

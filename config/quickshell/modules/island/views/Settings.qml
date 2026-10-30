@@ -62,7 +62,7 @@ Item {
                     + (Engine.autoHide ? "  ·  Hides when not in use" : "")
             onBack: Engine.back()
 
-            Pill { kind: "text"; icon: Config.symbol.theme; iconSize: 22; shortcut: "t"; onClicked: x => Engine.open(Engine.View.Theme, x) }
+            Pill { kind: "text"; icon: Config.symbol.theme; iconSize: 22; shortcut: "t"; onClicked: Engine.open(Engine.View.Theme) }
         }
 
         Label { text: "Size"; topPadding: 6 }
