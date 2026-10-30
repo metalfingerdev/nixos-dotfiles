@@ -29,13 +29,15 @@ Escape, a click outside, a timer      ──► home (the clock)
 qs -p /path/to/this/folder
 ```
 
-`shell.qml` is the entry point. It creates one `Ipc`, one `Triggers`, and one `Bar` per screen.
+`shell.qml` is the entry point. It creates one `Ipc`, one `Triggers`, and one `Bar` per screen, plus
+the lock screen (`Lock`, locked with `qs ipc call lock lock`) and the `ActivateLinux` text in each corner.
 
 ## Tests
 
 ```sh
 node modules/tests/machine.test.js                                         # the state machine
 QT_QPA_PLATFORM=offscreen qmltestrunner -input modules/tests/tst_keyboard.qml   # default keyboard
+qs -p modules/lock/test.qml                                                # the lock screen, in a window
 ```
 
 `machine.test.js` replays event sequences against `Machine.js` with a fake Registry. Keep its `REG` table
@@ -44,8 +46,17 @@ in sync with `Registry.qml`. `tst_keyboard.qml` sends real key events to `ViewLo
 ## Layout
 
 ```
-shell.qml                     entry point: Ipc, Triggers, Variants { Bar } (one per screen), Wallpaper
+shell.qml                     entry point: Ipc, Triggers, Variants { Bar } (one per screen), Wallpaper,
+                              Lock, ActivateLinux
 modules/
+  lock/
+    Lock.qml                  the session lock: a LockSurface per screen, `qs ipc call lock lock`
+    LockContext.qml           what's typed and PAM, shared by every screen's surface
+    LockSurface.qml           the clock and the password field
+    pam/password.conf         PAM for the lock: pam_unix (the password only)
+    test.qml                  the lock surface in a normal window, nothing locked
+  activatelinux/
+    ActivateLinux.qml         a click-through text OSD in each screen's bottom-right corner
   island/
     Machine.js                pure statechart: reduce(state, event, cfg) -> state
     Engine.qml                singleton: holds the snapshot, owns the one Timer, public API

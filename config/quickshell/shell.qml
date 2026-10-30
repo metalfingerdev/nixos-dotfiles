@@ -1,6 +1,8 @@
 import QtQuick
 import Quickshell
 import qs.modules.island
+import qs.modules.lock
+import qs.modules.activatelinux
 import qs.modules.services
 import qs.modules.components
 
@@ -10,7 +12,15 @@ ShellRoot {
     // input adapters: exactly one of each, shared by every screen
     Ipc {}
     Triggers {}
-    Debug {}        // live snapshot overlay, hidden until `qs ipc call island debug true`
+    
+    // live snapshot overlay, hidden until `qs ipc call island debug true`
+    Debug {}
+
+    // the lock screen, unlocked until `qs ipc call lock lock`
+    Lock {}
+
+    // "Activate Linux" in every screen's bottom-right corner
+    ActivateLinux {}
 
     // services that must exist from the start (their IPC targets), not only once a view shows them
     readonly property var services: [Wallpaper, Notifier]
