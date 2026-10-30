@@ -80,8 +80,6 @@
             "editor.formatOnSave" = true;
           };
           "eslint.useFlatConfig" = true;
-          "typescript.tsdk" = "node_modules/typescript/lib";
-          "typescript.enablePromptUseWorkspaceTsdk" = true;
           "npm.packageManager" = "pnpm";
 
           "nix.enableLanguageServer" = true;
