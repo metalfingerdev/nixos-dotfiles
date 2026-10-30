@@ -35,16 +35,6 @@ Rectangle {
 		Behavior on opacity { NumberAnimation { duration: 200 } }
 	}
 
-	// keeps the text readable on any picture, in the palette's own colour (light palettes too)
-	Rectangle {
-		anchors.fill: parent
-		gradient: Gradient {
-			GradientStop { position: 0; color: Qt.rgba(Config.surface.r, Config.surface.g, Config.surface.b, 0.6) }
-			GradientStop { position: 0.4; color: Qt.rgba(Config.surface.r, Config.surface.g, Config.surface.b, 0.45) }
-			GradientStop { position: 1; color: Qt.rgba(Config.surface.r, Config.surface.g, Config.surface.b, 0.8) }
-		}
-	}
-
 	Column {
 		anchors {
 			horizontalCenter: parent.horizontalCenter
