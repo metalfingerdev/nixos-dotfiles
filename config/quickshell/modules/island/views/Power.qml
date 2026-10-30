@@ -5,7 +5,8 @@ import qs.modules.services
 
 // Lock, suspend, log out, restart, shut down. The last three ask first: the first press arms the
 // tile (it turns red and says "again?"), a second press within `confirmMs` runs it.
-// Below them, the screen's brightness (with a backlight).
+// Below them, the screen's brightness (with a backlight) and, on a laptop, the power profile
+// (with power-profiles-daemon).
 // Keys: L S O R P (each tile shows its own), arrows/Tab move, Enter presses, [ ] brightness,
 // Backspace back, Escape closes.
 Item {
@@ -22,7 +23,7 @@ Item {
     }
 
     Timer { id: disarm; interval: root.confirmMs; onTriggered: root.armed = "" }
-    Component.onCompleted: Session.refresh()
+    Component.onCompleted: { Session.refresh(); Toggles.readProfile() }
 
     // brightness from anywhere in the view (the tiles' letters are their shortcuts)
     Keys.onPressed: event => {
@@ -104,6 +105,18 @@ Item {
             icon: Backlight.percent < 34 ? "brightness_low" : Backlight.percent < 67 ? "brightness_medium" : "brightness_high"
             value: Backlight.percent / 100
             onMoved: v => Backlight.set(v * 100)
+        }
+
+        Segmented {
+            visible: Energy.present && Toggles.profile !== ""
+            width: parent.width
+            options: [
+                { key: "power-saver", label: "Saver",       icon: "eco" },
+                { key: "balanced",    label: "Balanced",    icon: "balance" },
+                { key: "performance", label: "Performance", icon: "speed" }
+            ]
+            current: Toggles.profile
+            onPicked: key => Toggles.setProfile(key)
         }
     }
 }

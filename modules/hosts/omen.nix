@@ -13,6 +13,7 @@
       audio
       networking
       bluetooth
+      power
       secure-boot
       home-manager
       git
