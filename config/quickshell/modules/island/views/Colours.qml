@@ -4,8 +4,8 @@ import qs.modules.island
 import qs.modules.components
 import qs.modules.services
 
-// The island's colours (views/Theme.qml has the palettes as a footer; this is everything). Each
-// choice applies at once and is remembered (components/Config.qml).
+// The island's colours (views/Theme.qml has them as one row; this is everything). Each choice
+// applies at once and is remembered (components/Config.qml).
 //   where they come from   Presets: the palettes, each as a card in its own colours
 //                          Accent: a scheme generated from a colour, one of twelve or any hex
 //                          Wallpaper: generated from the wallpaper; another of its colours can be
@@ -50,10 +50,8 @@ Item {
         Header {
             width: parent.width
             title: "Colours"
-            subtitle: !root.generated ? Config.current.label + "  ·  a preset"
-                    : (Config.source === "accent" ? "From " + Config.hex(Config.accent) : "From the wallpaper")
-                      + "  ·  " + root.styles.find(s => s.key === Config.variant).label
-                      + "  ·  " + (Config.darkMode ? "Dark" : "Light")
+            subtitle: Config.source === "preset" ? Config.current.label
+                    : Config.source === "accent" ? "From " + Config.hex(Config.accent) : "From the wallpaper"
             onBack: Engine.back()
         }
 
@@ -101,29 +99,21 @@ Item {
                         font.pixelSize: Config.body
                         font.weight: Font.DemiBold
                     }
-                    Icon {
-                        anchors { right: parent.right; top: parent.top }
-                        visible: card.current
-                        name: "check_circle"
-                        filled: true
-                        size: 20
-                        color: card.p.primary
-                    }
+                    // primary, secondary, container: the colours the island is made of
+                    Row {
+                        anchors { left: parent.left; bottom: parent.bottom }
+                        spacing: -6
 
-                    // what the island looks like in it: a line of text, a dimmer one, an "on" pill
-                    // and a selected chip
-                    Column {
-                        anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
-                        spacing: 6
+                        Repeater {
+                            model: [card.p.primary, card.p.secondary, card.p.container]
 
-                        Rectangle { width: parent.width * 0.7; height: 6; radius: 3; color: card.p.text; opacity: 0.85 }
-                        Rectangle { width: parent.width * 0.45; height: 6; radius: 3; color: card.p.dim; opacity: 0.7 }
-                        Row {
-                            topPadding: 4
-                            spacing: 6
-                            Rectangle { width: 40; height: 18; radius: 9; color: card.p.primary }
-                            Rectangle { width: 28; height: 18; radius: 9; color: card.p.secondary }
-                            Rectangle { width: 18; height: 18; radius: 9; color: card.p.container }
+                            Rectangle {
+                                required property string modelData
+                                width: 24; height: 24; radius: 12
+                                color: modelData
+                                border.width: 2
+                                border.color: card.p.surface
+                            }
                         }
                     }
                 }
@@ -148,60 +138,61 @@ Item {
                 }
             }
         }
-        Row {
+        // any colour: the field, with the colour it would be at its start (a search bar's badge)
+        Rectangle {
             visible: Config.source === "accent"
             width: parent.width
-            spacing: 12
+            height: 52
+            radius: height / 2
+            color: Config.high
+            border.width: field.activeFocus ? 2 : 0
+            border.color: Config.primary
 
             Rectangle {
-                width: parent.width - preview.width - parent.spacing
-                height: 52
-                radius: height / 2
-                color: Config.high
-                border.width: field.activeFocus ? 2 : 0
-                border.color: Config.primary
-
-                TextInput {
-                    id: field
-                    anchors { fill: parent; leftMargin: 20; rightMargin: 20 }
-                    verticalAlignment: TextInput.AlignVCenter
-                    activeFocusOnTab: true
-                    color: Config.text
-                    font.family: Config.mono
-                    font.pixelSize: Config.large
-                    maximumLength: 7
-                    validator: RegularExpressionValidator { regularExpression: /#?[0-9A-Fa-f]{0,6}/ }
-                    clip: true
-
-                    readonly property string digits: text.replace("#", "")
-                    function apply() {
-                        if (digits.length === 6) { Config.accent = "#" + digits; text = "" }
-                    }
-                    // the field accepts its keys, so ViewLoader never sees them: report them here
-                    Keys.onPressed: event => { Engine.key(); event.accepted = false }
-                    Keys.onReturnPressed: apply()
-                    Keys.onEnterPressed:  apply()
-
-                    Text {
-                        visible: field.text === ""
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "Any colour: hex, e.g. " + Config.hex(Config.accent)
-                        color: Config.dim
-                        font.family: Config.font
-                        font.pixelSize: Config.body
-                    }
-                }
-            }
-            Rectangle {
-                id: preview
-                width: 52; height: 52; radius: 26
+                id: badge
+                x: 6
+                anchors.verticalCenter: parent.verticalCenter
+                width: parent.height - 12
+                height: width
+                radius: width / 2
                 color: field.digits.length === 6 ? "#" + field.digits : Config.accent
                 border.width: 1
                 border.color: Config.outline
             }
+
+            TextInput {
+                id: field
+                anchors { left: badge.right; leftMargin: 14; right: parent.right; rightMargin: 20; top: parent.top; bottom: parent.bottom }
+                verticalAlignment: TextInput.AlignVCenter
+                activeFocusOnTab: true
+                color: Config.text
+                font.family: Config.mono
+                font.pixelSize: Config.large
+                maximumLength: 7
+                validator: RegularExpressionValidator { regularExpression: /#?[0-9A-Fa-f]{0,6}/ }
+                clip: true
+
+                readonly property string digits: text.replace("#", "")
+                function apply() {
+                    if (digits.length === 6) { Config.accent = "#" + digits; text = "" }
+                }
+                // the field accepts its keys, so ViewLoader never sees them: report them here
+                Keys.onPressed: event => { Engine.key(); event.accepted = false }
+                Keys.onReturnPressed: apply()
+                Keys.onEnterPressed:  apply()
+
+                Text {
+                    visible: field.text === ""
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "Any colour, e.g. " + Config.hex(Config.accent)
+                    color: Config.dim
+                    font.family: Config.font
+                    font.pixelSize: Config.body
+                }
+            }
         }
 
-        // ================= the wallpaper's colours =================
+        // ================= the wallpaper's colours: a click makes one the accent =================
         Row {
             visible: Config.source === "wallpaper"
             width: parent.width
@@ -221,49 +212,36 @@ Item {
                     asynchronous: true
                 }
             }
-            Column {
+            Flow {
+                anchors.verticalCenter: parent.verticalCenter
                 width: parent.width - 176 - parent.spacing
-                spacing: 12
+                spacing: 10
 
+                Repeater {
+                    model: Wallpaper.swatches
+
+                    Swatch {
+                        required property color modelData
+                        width: 36; height: 36
+                        tone: modelData
+                        chosen: Qt.colorEqual(Wallpaper.seed, modelData)
+                        onPicked: {
+                            Config.accent = modelData
+                            Config.source = "accent"
+                        }
+                    }
+                }
                 Text {
-                    width: parent.width
-                    wrapMode: Text.Wrap
-                    text: Wallpaper.swatches.length > 0
-                        ? "Picked from your wallpaper. Choose another of its colours to make it the accent."
-                        : "No wallpaper colours yet"
+                    visible: Wallpaper.swatches.length === 0
+                    text: "No wallpaper colours yet"
                     color: Config.dim
                     font.family: Config.font
                     font.pixelSize: Config.body
-                }
-                Flow {
-                    width: parent.width
-                    spacing: 10
-
-                    Repeater {
-                        model: Wallpaper.swatches
-
-                        Swatch {
-                            required property color modelData
-                            width: 36; height: 36
-                            tone: modelData
-                            chosen: Qt.colorEqual(Wallpaper.seed, modelData)
-                            onPicked: {
-                                Config.accent = modelData
-                                Config.source = "accent"
-                            }
-                        }
-                    }
                 }
             }
         }
 
         // ================= style and mode =================
-        Rectangle {
-            width: parent.width
-            height: 1
-            color: Config.divider
-        }
-
         Row {
             width: parent.width
             spacing: 16
@@ -274,7 +252,7 @@ Item {
                 width: parent.width - mode.width - parent.spacing
                 spacing: 10
 
-                Label { text: "Style" }
+                Label { text: "Style"; topPadding: 4 }
                 Segmented {
                     width: parent.width
                     options: root.styles
@@ -287,7 +265,7 @@ Item {
                 width: root.generated ? 220 : parent.width
                 spacing: 10
 
-                Label { text: "Mode" }
+                Label { text: "Mode"; topPadding: 4 }
                 Segmented {
                     width: parent.width
                     options: [{ key: "dark", label: "Dark", icon: "dark_mode" }, { key: "light", label: "Light", icon: "light_mode" }]

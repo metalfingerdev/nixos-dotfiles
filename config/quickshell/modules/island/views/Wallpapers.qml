@@ -6,9 +6,9 @@ import qs.modules.components
 import qs.modules.services
 
 // The wallpapers (views/Theme.qml shows them in one row; this is all of them):
-//   the one showing, big, with the colours it gives (and the way to use them, if the colours come
-//   from somewhere else)
+//   the one showing, big (its name is in the header)
 //   every image in Wallpaper.dir, four across; more scroll. A click applies one (awww remembers it)
+// Its colours are views/Colours.qml's (from the wallpaper).
 // Named Wallpapers, not Wallpaper: a view must not share a singleton's name (services/Wallpaper.qml).
 // Keys: R random, arrows/Tab move (in the grid the arrows pick and Enter/Space apply; off its edge
 // they leave it), Backspace back, Escape closes.
@@ -35,7 +35,8 @@ Item {
         Header {
             width: parent.width
             title: "Wallpaper"
-            subtitle: Wallpaper.files.length + (Wallpaper.files.length === 1 ? " image in " : " images in ") + Wallpaper.dir
+            subtitle: (Wallpaper.current ? Wallpaper.baseName(Wallpaper.current) + "  ·  " : "")
+                    + Wallpaper.files.length + (Wallpaper.files.length === 1 ? " image" : " images")
             onBack: Engine.back()
 
             Pill {
@@ -61,70 +62,6 @@ Item {
                 sourceSize: Qt.size(1280, 720)
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
-            }
-            // a scrim the name and the colours read on
-            Rectangle {
-                anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
-                height: 120
-                gradient: Gradient {
-                    GradientStop { position: 0; color: Qt.rgba(Config.surface.r, Config.surface.g, Config.surface.b, 0) }
-                    GradientStop { position: 1; color: Qt.rgba(Config.surface.r, Config.surface.g, Config.surface.b, 0.9) }
-                }
-            }
-
-            Column {
-                anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: 20 }
-                spacing: 10
-
-                Text {
-                    width: parent.width
-                    text: Wallpaper.baseName(Wallpaper.current)
-                    elide: Text.ElideMiddle
-                    color: Config.text
-                    font.family: Config.font
-                    font.pixelSize: Config.title
-                }
-
-                // the colours it gives (Config's "wallpaper" source picks the most colourful)
-                Item {
-                    width: parent.width
-                    height: 36
-
-                    Row {
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 6
-
-                        Repeater {
-                            model: Wallpaper.swatches
-
-                            Rectangle {
-                                required property color modelData
-                                width: 22; height: 22; radius: 11
-                                color: modelData
-                                border.width: Qt.colorEqual(modelData, Wallpaper.seed) ? 2 : 1
-                                border.color: Qt.colorEqual(modelData, Wallpaper.seed) ? Config.text
-                                            : Qt.rgba(Config.outline.r, Config.outline.g, Config.outline.b, 0.5)
-                            }
-                        }
-                    }
-                    Pill {
-                        anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                        implicitHeight: 36
-                        visible: Config.source !== "wallpaper" && Wallpaper.swatches.length > 0
-                        icon: Config.symbol.colours
-                        text: "Use its colours"
-                        shortcut: "u"
-                        onClicked: Config.source = "wallpaper"
-                    }
-                    Text {
-                        anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                        visible: Config.source === "wallpaper"
-                        text: "The island's colours"
-                        color: Config.dim
-                        font.family: Config.font
-                        font.pixelSize: Config.body
-                    }
-                }
             }
         }
 
