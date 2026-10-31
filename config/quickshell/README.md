@@ -59,7 +59,7 @@ modules/
     Lock.qml                  the session lock: a LockSurface per screen, `qs ipc call lock screen`
     LockContext.qml           what's typed and PAM, shared by every screen's surface
     LockConfig.qml            what the lock shows (a singleton: IPC and views/Settings.qml set it)
-    LockSurface.qml           the picture; the avatar and name top left, the clock top right, the password field along the bottom
+    LockSurface.qml           the picture; the clock top left, the avatar and name top right, the password field along the bottom
     Idle.qml                  hypridle's job, a singleton: dim, lock, screens off, suspend; the lock before sleep
     pam/password.conf         PAM for the lock: pam_unix (the password only)
   activatelinux/

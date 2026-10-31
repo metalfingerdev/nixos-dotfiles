@@ -20,6 +20,7 @@
       webdev
       kitty
       firefox
+      bittorrent
     ]) ++ [ ../../hardware-configuration.nix ];
 
     flake.modules.nixos.omen.nixpkgs.hostPlatform = "x86_64-linux";
@@ -50,6 +51,7 @@
         python3
         webdev
         stremio
+        bittorrent
       ];
 
       home.stateVersion = "26.05";

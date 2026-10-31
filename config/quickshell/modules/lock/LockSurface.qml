@@ -52,12 +52,13 @@ Rectangle {
 		Behavior on opacity { NumberAnimation { duration: 200 } }
 	}
 
-	Column {
+	Row {
 		anchors {
 			right: parent.right
 			top: parent.top
 			margins: root.margin
 		}
+		layoutDirection: Qt.RightToLeft              // the avatar in the corner, the name beside it
 		spacing: 28
 
 		ClippingRectangle {
@@ -99,6 +100,7 @@ Rectangle {
 			layer.effect: Lifted {}
 
 			Label {
+				anchors.right: parent.right
 				width: Math.min(implicitWidth, 480)
 				elide: Text.ElideRight
 				text: LockConfig.shownName
@@ -107,6 +109,7 @@ Rectangle {
 			}
 
 			Label {
+				anchors.right: parent.right
 				width: Math.min(implicitWidth, 480)
 				elide: Text.ElideRight
 				text: LockConfig.shownInfo
@@ -115,7 +118,7 @@ Rectangle {
 		}
 	}
 
-	Row {
+	Column {
 		anchors {
 			left: parent.left
 			top: parent.top
@@ -125,7 +128,6 @@ Rectangle {
 		layer.effect: Lifted {}
 
 		Label {
-			anchors.right: parent.right
 			text: Qt.formatDateTime(clock.date, "HH:mm")
 			// The native font renderer tends to look nicer at large sizes.
 			renderType: Text.NativeRendering
@@ -135,7 +137,6 @@ Rectangle {
 		}
 
 		Label {
-			anchors.right: parent.right
 			text: Qt.formatDateTime(clock.date, "dddd, d MMMM")
 			font.pixelSize: Config.title
 		}
