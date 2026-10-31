@@ -41,6 +41,9 @@
       tonal/vibrant/muted/mono styles. A wallpaper colour stays on the wallpaper, for that image.
 - [x] Expanded is back, small: the pointer on the island's surface grows the clock into it, after the
       Dynamic Island. No keyboard. Tabs opens with a click; the top edge only reveals the clock.
+- [x] Tabs rearranged after Apple's toolbars, with Expanded's clock at the far left and its status group
+      at the far right: capsules of one size of button instead of dividers, and a back arrow only
+      when there is somewhere to go back to.
 - [x] The status group (Tabs, Expanded) has a pill of its own: a segment opens its view, the pill and
       its "tune" button the dashboard.
 - [x] Shadows after macOS: floating windows only (hypr/modules/look.lua, rules.lua), deeper in focus; the

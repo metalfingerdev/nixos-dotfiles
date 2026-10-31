@@ -5,7 +5,8 @@ import qs.modules.services
 // Numbered workspace buttons in a row, with the switcher's logic (WorkspaceDots), numbers instead
 // of dots: every workspace up to the last one in use, then one empty one after it (Desktops.shown).
 // The focused one takes the primary colour and stretches like GNOME's bar; ones with windows are
-// filled; empty ones are only an outline and a dim number.
+// filled; empty ones are only a dim number. Made to sit on a capsule (views/Tabs.qml), so the fill is
+// a step above it.
 // Click, or Enter/Space when focused, goes there; the wheel steps through them.
 //
 // The row moves with the island, as one motion. A button that comes grows out of nothing, one that
@@ -92,10 +93,8 @@ Item {
 
                     radius: height / 2
                     color: slot.current ? Config.state(Config.primary, Config.primaryInk, area.containsMouse, area.pressed || ring)
-                         : slot.used ? Config.state(Config.container, Config.text, area.containsMouse, area.pressed || ring)
+                         : slot.used ? Config.state(Config.high, Config.text, area.containsMouse, area.pressed || ring)
                          : Qt.rgba(Config.text.r, Config.text.g, Config.text.b, area.pressed || ring ? 0.12 : area.containsMouse ? 0.08 : 0)
-                    border.width: slot.current || slot.used ? 0 : 1.5
-                    border.color: Config.outline
                     Behavior on color { ColorAnimation { duration: 200 } }
 
                     // one on its way out can't be reached
