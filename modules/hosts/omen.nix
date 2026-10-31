@@ -52,6 +52,7 @@
         webdev
         stremio
         bittorrent
+        vlc
       ];
 
       home.stateVersion = "26.05";
