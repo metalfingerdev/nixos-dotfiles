@@ -1,5 +1,6 @@
 pragma Singleton
 
+import QtQuick
 import Quickshell
 import Quickshell.Services.Pipewire
 
@@ -19,6 +20,20 @@ Singleton {
     // apps' playback streams. To PipeWire a playback stream is a sink as well (sound goes into it),
     // so isSink is true for these too; a recording (a mic stream) isn't one
     readonly property var streams: Array.from(Pipewire.nodes.values).filter(n => n.isSink && n.isStream && n.audio)
+
+    // An app's stream sending sound to an output right now (a stopped one keeps its link, as "paused").
+    // Muting a stream takes it out, for an app that holds one open playing silence.
+    readonly property var links: Array.from(Pipewire.linkGroups?.values ?? [])
+    readonly property bool streaming: links.some(l => l.state === PwLinkState.Active && streams.includes(l.source)
+                                                   && sinks.includes(l.target) && !isMuted(l.source))
+    // Only after it has lasted: a notification's chime isn't something being played.
+    property bool playing: false
+    onStreamingChanged: if (!streaming) playing = false
+    Timer {
+        interval: 10000
+        running: root.streaming
+        onTriggered: root.playing = true
+    }
 
     function level(node)   { return Math.round((node?.audio?.volume ?? 0) * 100) }
     function isMuted(node) { return node?.audio?.muted ?? false }
@@ -66,7 +81,8 @@ Singleton {
 
     // Without this, a node's audio stays unbound (no volume): PipeWire objects must be "tracked".
     // Every output (the media view shows each one's level) and every app stream (the mixer).
+    // A link's state needs it too.
     PwObjectTracker {
-        objects: [root.sink, root.source].concat(root.sinks, root.streams).filter((n, i, all) => n && all.indexOf(n) === i)
+        objects: [root.sink, root.source].concat(root.sinks, root.streams, root.links).filter((n, i, all) => n && all.indexOf(n) === i)
     }
 }

@@ -117,7 +117,8 @@ Item {
             width: parent.width
             title: "Settings"
             subtitle: root.section === "idle"
-                      ? (!Idle.enabled ? "Stays on" : Toggles.caffeine ? "Caffeine: stays on" : "Locks after " + root.spoken(Idle.lockAfter))
+                      ? (!Idle.enabled ? "Stays on" : Toggles.caffeine ? "Caffeine: stays on"
+                         : Idle.mediaPlaying ? "Media playing: stays on" : "Locks after " + root.spoken(Idle.lockAfter))
                       : root.section === "lock" ? LockConfig.shownName + "  ·  " + LockConfig.shownInfo
                       : (Config.style === "notch" ? "Notch" : "Floating") + "  ·  " + Math.round(Config.scale * 100) + " %"
                         + (Engine.autoHide ? "  ·  Hides when not in use" : "")

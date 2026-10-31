@@ -15,6 +15,8 @@ Singleton {
     readonly property var active: (picked && list.includes(picked)) ? picked
                                 : list.find(p => p.isPlaying) ?? list[0] ?? null
     readonly property bool playing: active?.isPlaying ?? false
+    // any player, not just the active one: a picked player can be paused while another plays
+    readonly property bool anyPlaying: list.some(p => p.isPlaying)
     readonly property bool hasTrack: (active?.trackTitle ?? "") !== ""
 
     property real length: 0              // seconds; 0 = unknown

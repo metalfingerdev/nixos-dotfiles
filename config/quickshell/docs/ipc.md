@@ -93,13 +93,18 @@ the last input, and everything set here is remembered across restarts.
 | `qs ipc call idle toggle` | flip that |
 | `qs ipc call idle set <step> <seconds>` | when a step runs, `0` = never: `dim` (150), `lock` (300), `off` (330), `suspend` (1800) |
 | `qs ipc call idle dimTo <percent>` | how far `dim` goes (10) |
-| `qs ipc call idle status` | all of the above as JSON, and the steps that have run since the last input |
+| `qs ipc call idle status` | all of the above as JSON, whether media is holding the steps back, and the steps that have run since the last input |
 
 The Settings view's Idle section sets the same things.
 
 `dim` and `off` undo themselves on input; `lock` waits for the password. A step doesn't run while a
 Wayland idle inhibitor is active or logind has an `idle` inhibitor (Caffeine is one). One skipped this
 way waits for the next time the session goes idle.
+
+Media counts as input, for all four steps: starting it undoes `dim` and `off`, nothing counts down while
+it plays, and the wait starts over when it stops. Media is any MPRIS player that's playing, or an unmuted
+app stream that has been sending sound to an output for 10 s (so a chime doesn't count). An app holding a
+stream open on silence looks like media too: mute it in the Mixer to let the steps run.
 
 Separately from the steps, the screen locks before any sleep (logind's `PrepareForSleep`, held back with
 a delay inhibitor until the lock is up) and on `loginctl lock-session`.

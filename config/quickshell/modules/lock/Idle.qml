@@ -11,6 +11,7 @@ import qs.modules.services
 // A step doesn't run while something inhibits idling: a Wayland inhibitor (a fullscreen video) or a
 // logind one (`systemd-inhibit --what=idle`, the dashboard's Caffeine). One skipped this way waits
 // for the next time the session goes idle, as in hypridle.
+// Media counts as input: while it plays nothing counts down, and the wait starts over when it stops.
 // Nothing here unlocks: only the password does.
 Singleton {
 	id: root
@@ -25,6 +26,8 @@ Singleton {
 	property int offAfter: 330
 	property int suspendAfter: 1800
 	property int dimTo: 10
+
+	readonly property bool mediaPlaying: Players.anyPlaying || Audio.playing
 
 	property Store store: Store {
 		category: "idle"
@@ -45,7 +48,8 @@ Singleton {
 		signal undo()
 
 		timeout: after
-		enabled: root.enabled && after > 0 && armed
+		// Turned off it isn't idle, and turned on it counts from then: just what input does.
+		enabled: root.enabled && after > 0 && armed && !root.mediaPlaying
 		// IdleMonitor ignores a new timeout until it's turned off and on again.
 		onTimeoutChanged: {
 			armed = false;
@@ -191,6 +195,7 @@ Singleton {
 				off: root.offAfter,
 				suspend: root.suspendAfter,
 				dimTo: root.dimTo,
+				media: root.mediaPlaying,
 				ran: root.steps.filter(step => step.done).map(step => step.name)
 			}, null, 2);
 		}
