@@ -5,34 +5,27 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 
-// Knows Hyprland's monitors, workspaces and windows. Knows nothing about the island.
-//
 // The window GEOMETRY the overview needs (at, size, floating, stacking) only comes from
 // `hyprctl clients -j`, so this reads hyprctl. It only does so while someone holds a
-// watch(true) (the Workspaces view, while it's open): every 2.5 s, and on Hyprland's events
-// (debounced). An identical payload is not republished, so live previews aren't rebuilt for nothing.
+// watch(true): every 2.5 s, and on Hyprland's events (debounced). An identical payload is not
+// republished, so live previews aren't rebuilt for nothing.
 //
-// Every action dispatches in the syntax Hyprland expects (Hyprland.usingLua: the Lua config's
-// `hl.dsp.*`, otherwise the classic dispatchers), so empty workspaces and single windows can be
-// targeted, not only the workspaces Quickshell already has objects for.
+// Actions dispatch rather than use Quickshell's objects, so empty workspaces and single windows can
+// be targeted, not only the workspaces Quickshell already has objects for.
 Singleton {
     id: root
 
-    // ---- Quickshell's own objects (always live) ----
     readonly property var focused: Hyprland.focusedWorkspace
-    readonly property var activeWindow: Hyprland.activeToplevel
 
-    // ---- hyprctl's view (live while watched) ----
-    property var allWorkspaces: []        // raw, including special ones
-    property var workspaces: []           // regular ones: { id, name, monitor, windows }, by id
+    property var allWorkspaces: []
+    property var workspaces: []
     property var monitors: []
     property var windowList: []
     property var windowByAddress: ({})
     property var workspaceIds: []
     readonly property int activeId: Hyprland.focusedWorkspace?.id ?? -1
-    readonly property int count: workspaces.length
 
-    // ---- live regular workspaces: Quickshell's own objects, so indicators need no hyprctl ----
+    // Quickshell's own objects, so indicators need no hyprctl
     readonly property var live: Array.from(Hyprland.workspaces.values).filter(w => w.id > 0).sort((a, b) => a.id - b.id)
     function liveWorkspace(id) { return live.find(w => w.id === id) ?? null }
     function occupied(id) {
@@ -41,15 +34,7 @@ Singleton {
     }
     // How many workspaces the indicators show (the switcher's dots, the numbered buttons), like
     // GNOME: every one up to the last in use (or the focused one), then one empty one after it.
-    readonly property int shown: Math.max(1, Math.min(Math.max(10, activeId), span(1) + 1))
-
-    // how many workspaces an indicator shows: every existing one and the focused one, at least
-    // `least`, at most 10 (more only when the focused one is further out)
-    function span(least) {
-        let top = Math.max(least || 1, activeId)
-        for (const w of live) top = Math.max(top, w.id)
-        return Math.min(Math.max(10, activeId), top)
-    }
+    readonly property int shown: Math.min(Math.max(10, activeId), Math.max(1, activeId, ...live.map(w => w.id)) + 1)
 
     property int watchers: 0
     function watch(on) {
@@ -57,7 +42,6 @@ Singleton {
         if (on) refresh()
     }
 
-    // ---- actions ----
     function dispatch(lua, classic) { Hyprland.dispatch(Hyprland.usingLua ? lua : classic) }
 
     function focus(id) {
@@ -88,7 +72,6 @@ Singleton {
         if (special.length > 0)
             dispatch("hl.dsp.workspace.toggle_special('" + special + "')", "togglespecialworkspace " + special)
     }
-    // step through ids min..max, wrapping
     function stepWorkspace(delta, minId, maxId) {
         const d = Number(delta)
         if (!d || !(maxId >= minId)) return
@@ -98,10 +81,8 @@ Singleton {
         focus(target)
     }
 
-    // ---- glass: Hyprland's (hypr/modules/look.lua) ----
-    // Every window is drawn at decoration.active_opacity over Hyprland's blur, and the `glass` layer
-    // rule blurs layers named glass:*. The island is one of those and takes the windows' opacity,
-    // read here at start and again each time Hyprland reloads its config.
+    // The island takes the windows' opacity (decoration.active_opacity), read here at start and again
+    // each time Hyprland reloads its config.
     property real windowOpacity: 1
     function readOpacity() { opacityProc.running = true }
     Process {
@@ -122,7 +103,6 @@ Singleton {
     }
     Component.onCompleted: readOpacity()
 
-    // ---- queries (all read the properties above, so bindings stay live) ----
     function isSpecial(win) { return String(win?.workspace?.name ?? "").startsWith("special:") }
     function specialWorkspaceName(win) {
         const name = String(win?.workspace?.name ?? "")
@@ -139,7 +119,6 @@ Singleton {
         const wanted = Number(id)
         return Number.isFinite(wanted) ? monitors.find(m => Number(m.id) === wanted) ?? null : null
     }
-    // highest existing regular workspace id >= fromId, or -1
     function highestId(fromId) {
         let highest = -1
         for (const id of workspaceIds) if (id >= fromId && id > highest) highest = id
@@ -166,7 +145,6 @@ Singleton {
         return out
     }
 
-    // Bounding box of the windows in a special workspace on a monitor (layout coordinates).
     function specialGeometry(name, monitorId) {
         let minX = null, minY = null, maxX = null, maxY = null
         for (const win of windowList) {
@@ -194,16 +172,6 @@ Singleton {
         return (win?.pinned ? 200000 : 0) + (win?.floating ? 100000 : 0) + 10000 - Number(win?.focusHistoryID ?? 9999)
     }
 
-    // the app a window (hyprctl client) belongs to, and its icon ("" if none)
-    function iconOf(win) {
-        const app = String(win?.class ?? "")
-        if (app === "") return ""
-        DesktopEntries.applications.values          // re-run when the entry index updates
-        const entry = DesktopEntries.heuristicLookup(app)
-        return Quickshell.iconPath(entry?.icon || app.toLowerCase(), true)
-    }
-
-    // ---- reading hyprctl ----
     property bool needWindows: false
     property bool needMonitors: false
     property bool needWorkspaces: false

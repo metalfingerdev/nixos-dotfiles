@@ -1,12 +1,5 @@
 import QtQuick
 
-// A round colour to pick (Material's colour chooser): a check on the one in use, a little larger
-// under the pointer.
-//   tone   the colour
-//   ring   optional: drawn around `tone`, for a palette (its surface around its primary)
-//   icon   optional: a glyph in the middle while it isn't the chosen one (the wallpaper's colours)
-// Size it with width/height. Mouse: click. Keyboard: Tab/arrows reach it, Enter/Space pick it.
-//   Swatch { tone: "#3b6fd8"; chosen: Qt.colorEqual(Config.accent, tone); onPicked: Config.accent = tone }
 Rectangle {
     id: root
 
@@ -21,9 +14,6 @@ Rectangle {
 
     activeFocusOnTab: true
     function activate() { picked() }
-    Keys.onReturnPressed: picked()
-    Keys.onEnterPressed:  picked()
-    Keys.onSpacePressed:  picked()
 
     implicitWidth: 52
     implicitHeight: 52
@@ -34,7 +24,6 @@ Rectangle {
     scale: hovered && !area.pressed ? 1.08 : 1
     Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
 
-    // a palette: its primary inside its surface
     Rectangle {
         id: inner
         visible: root.ringed
@@ -53,11 +42,8 @@ Rectangle {
         color: root.tone.hslLightness > 0.6 ? "#000000" : "#ffffff"
     }
 
-    MouseArea {
+    ClickArea {
         id: area
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
         onClicked: root.picked()
     }
 

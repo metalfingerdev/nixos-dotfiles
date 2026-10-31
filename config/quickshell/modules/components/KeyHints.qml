@@ -1,8 +1,6 @@
 import QtQuick
 
-// The keys a view answers to that have no button to badge (volume up, seek...), as keycaps and
-// labels along its foot. Shown while the keyboard is in use (Config.focusVisible).
-//   KeyHints { keys: [["+ −", "volume"], ["[ ]", "brightness"]] }
+// For the keys a view answers to that have no button to badge (volume up, seek...).
 Flow {
     id: root
 
@@ -37,11 +35,10 @@ Flow {
                     font.weight: Font.Bold
                 }
             }
-            Text {
+            Label {
                 anchors.verticalCenter: parent.verticalCenter
                 text: modelData[1]
                 color: Config.dim
-                font.family: Config.font
                 font.pixelSize: Config.small
             }
         }

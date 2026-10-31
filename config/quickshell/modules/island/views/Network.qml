@@ -4,13 +4,7 @@ import qs.modules.island
 import qs.modules.components
 import qs.modules.services
 
-// Internet, laid out like the dashboard. Scans while it's on screen.
-//   the Wi-Fi tile switches Wi-Fi (W); Ethernet shows when a cable is in
-//   the networks, two to a row (1-9 pick one): a click connects; a new secured one asks for its
-//   password, the connected one offers Disconnect and Forget, in the panel underneath
-//   the panel stays while connecting, closes once connected, and stays for another try if it
-//   fails. While it's open the list keeps its order, so nothing moves under you.
-//   Escape closes the panel, then goes back
+// While a panel is open the list keeps its order, so nothing moves under you.
 Item {
     id: root
 
@@ -18,7 +12,6 @@ Item {
     readonly property int tileH: 72
     readonly property int maxRows: 4
 
-    // the network whose panel is open (password or actions)
     property var selected: null
     // the list's order when that panel opened; networks that vanish since drop out, new ones wait
     property var frozen: []
@@ -103,7 +96,7 @@ Item {
             }
         }
 
-        Text {
+        Label {
             visible: text !== ""
             width: parent.width
             topPadding: 8
@@ -114,11 +107,8 @@ Item {
                 : !Net.wifiEnabled ? "Turn Wi-Fi on to see networks"
                 : Net.networks.length === 0 ? "Searching…" : ""
             color: Config.dim
-            font.family: Config.font
-            font.pixelSize: Config.body
         }
 
-        // ---- the networks ----
         ScrollList {
             id: list
             visible: Net.wifiEnabled && root.shown.length > 0
@@ -157,7 +147,6 @@ Item {
             }
         }
 
-        // ---- the panel: a password, or the connected network's actions ----
         Rectangle {
             visible: root.selected !== null
             width: parent.width
@@ -171,11 +160,9 @@ Item {
                 width: parent.width - 32
                 spacing: 12
 
-                Text {
+                Label {
                     leftPadding: 4
                     text: !root.selected ? "" : root.asking ? "Connect to " + root.selected.name : root.selected.name
-                    color: Config.text
-                    font.family: Config.font
                     font.pixelSize: Config.large
                     font.weight: Font.Medium
                 }
@@ -206,8 +193,8 @@ Item {
 
                             // the field accepts its keys, so ViewLoader never sees them: report them here
                             Keys.onPressed: event => { Engine.key(); event.accepted = false }
-                            Keys.onReturnPressed: join.press()
-                            Keys.onEnterPressed:  join.press()
+                            Keys.onReturnPressed: join.activate()
+                            Keys.onEnterPressed:  join.activate()
                             Keys.onEscapePressed: root.close()
 
                             Text {
@@ -267,15 +254,13 @@ Item {
             }
         }
 
-        Text {
+        Label {
             visible: Net.lastError !== ""
             width: parent.width
             leftPadding: 12
             text: Net.lastError
             elide: Text.ElideRight
             color: Config.bad
-            font.family: Config.font
-            font.pixelSize: Config.body
         }
 
         KeyHints {

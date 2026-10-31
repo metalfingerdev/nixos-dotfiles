@@ -1,17 +1,11 @@
 pragma Singleton
 
 import QtQuick
-import QtCore
 import Quickshell
 import Quickshell.Io
+import qs.modules.components
 
-// What the lock screen shows, set over IPC (Lock.qml) or in views/Settings.qml, and remembered
-// across restarts:
-//   image   the background picture, a path (GIFs play)  ""  = the wallpaper
-//   avatar  the profile picture, a path (GIFs play)  ""  = a person glyph
-//   avatarShape  its frame: "circle" | "square"
-//   name    the name beside it                     ""  = the full name in the passwd entry
-//   info    the line under the name                ""  = user@host
+// "" means the default: the wallpaper, a person glyph, the full name in passwd, user@host.
 Singleton {
 	id: root
 
@@ -21,9 +15,7 @@ Singleton {
 	property string name: ""
 	property string info: ""
 
-	// ~/.local/state/quickshell/island.ini, like the island's settings
-	property Settings store: Settings {
-		location: StandardPaths.writableLocation(StandardPaths.GenericStateLocation) + "/quickshell/island.ini"
+	property Store store: Store {
 		category: "lock"
 		property alias image: root.image
 		property alias avatar: root.avatar

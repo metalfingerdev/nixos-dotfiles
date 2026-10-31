@@ -5,13 +5,8 @@ import qs.modules.components
 import qs.modules.island
 import qs.modules.parts
 
-// The Notifications view. One view, two faces, picked by the phase:
-//   popup  (Toast): dunst-style ephemeral cards. Lives as long as Notifier.popups is non-empty
-//          (Triggers closes it when the last one goes).
-//            left click: close it (it stays in the center)  middle: default action  right: close all
-//   center (Pinned, e.g. `qs ipc call island open notifications`): everything not dismissed,
-//          newest first, scrollable, with Do not disturb and Clear all.
-//            click or Enter: default action   x or Delete: dismiss   D: Do not disturb   C: clear all
+// One view, two faces, picked by the phase: the popups as a toast (Triggers closes it when the last
+// one goes), the center when pinned.
 Item {
     id: root
 
@@ -22,7 +17,6 @@ Item {
     implicitWidth: center ? 720 : 480
     implicitHeight: (center ? centerColumn.implicitHeight : popupColumn.implicitHeight) + (center ? 48 : 16)
 
-    // ---- popups: the first few, critical first; the rest wait ----
     Column {
         id: popupColumn
         visible: !root.center
@@ -38,17 +32,15 @@ Item {
             }
         }
 
-        Text {
+        Label {
             visible: root.more > 0
             leftPadding: 12
             text: "+" + root.more + " more"
             color: Config.dim
-            font.family: Config.font
             font.pixelSize: Config.small + 1
         }
     }
 
-    // ---- center: everything ----
     Column {
         id: centerColumn
         visible: root.center
@@ -109,12 +101,10 @@ Item {
                 size: 36
                 color: Config.outline
             }
-            Text {
+            Label {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: Notifier.dnd ? "Do not disturb is on" : "No notifications"
                 color: Config.dim
-                font.family: Config.font
-                font.pixelSize: Config.body
             }
         }
 

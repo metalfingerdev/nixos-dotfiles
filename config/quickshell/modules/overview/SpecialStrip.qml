@@ -1,15 +1,13 @@
 import QtQuick
 import qs.modules.services
 
-// The "Special Workspaces" band under the grid: one tile per special workspace plus a "+" tile
-// (click: open a new one, drop a window on it: move the window into a fresh one).
 Item {
     id: root
 
     property var names: []
     property string openName: ""              // the one open on this monitor ("" = none)
-    property real sectionWidth: 0             // = width of the workspace grid above
-    property real tileHeight: 0               // same height as a normal workspace tile
+    property real sectionWidth: 0
+    property real tileHeight: 0
     property real fallbackTileWidth: 0
     property real previewScale: 0.16
     property real spacing: 5
@@ -62,7 +60,6 @@ Item {
         border.width: 1
         border.color: Qt.alpha(OverviewConfig.colors.stripBorder, 0.65)
 
-        // header band
         Rectangle {
             anchors { left: parent.left; right: parent.right; top: parent.top }
             height: Math.max(18 * root.previewScale, root.padding + root.titleHeight * 0.8)
@@ -113,7 +110,6 @@ Item {
             }
         }
 
-        // "+" tile
         Rectangle {
             id: createTile
 

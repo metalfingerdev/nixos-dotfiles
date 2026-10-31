@@ -1,6 +1,6 @@
 import QtQuick
 
-// Bouncing bars: "something is playing". Not a real spectrum (that would need cava), just a cue.
+// Not a real spectrum (that would need cava), just a cue.
 // Animates only while `running` AND actually visible: an infinite animation on a hidden item
 // would keep Qt's animation driver (and the render thread) awake for nothing.
 Row {

@@ -5,9 +5,7 @@ import Quickshell.Widgets
 import qs.modules.components
 import qs.modules.services
 
-// One screen of the lock: the picture, and out of its way in the corners and along the bottom, who
-// is locked out (top left), the clock (top right) and the password field (the very bottom). What it
-// shows comes from LockConfig and what's typed from the LockContext, so every screen matches.
+// What it shows comes from LockConfig and what's typed from the LockContext, so every screen matches.
 Rectangle {
 	id: root
 	required property LockContext context
@@ -34,7 +32,6 @@ Rectangle {
 		precision: SystemClock.Minutes
 	}
 
-	// plays a GIF and shows a still picture alike
 	AnimatedImage {
 		id: background
 		// the lock image, or the wallpaper if there is none or it can't be loaded (it moved, say)
@@ -64,23 +61,19 @@ Rectangle {
 		layer.enabled: true
 		layer.effect: Lifted {}
 
-		Text {
+		Label {
 			anchors.right: parent.right
 			text: Qt.formatDateTime(clock.date, "HH:mm")
-			color: Config.text
 			// The native font renderer tends to look nicer at large sizes.
 			renderType: Text.NativeRendering
-			font.family: Config.font
 			font.pixelSize: 112
 			font.weight: Font.Medium
 			font.features: { "tnum": 1 }
 		}
 
-		Text {
+		Label {
 			anchors.right: parent.right
 			text: Qt.formatDateTime(clock.date, "dddd, d MMMM")
-			color: Config.text
-			font.family: Config.font
 			font.pixelSize: Config.title
 		}
 	}
@@ -101,7 +94,6 @@ Rectangle {
 			border.width: 3
 			border.color: Config.primary
 
-			// plays a GIF and shows a still picture alike
 			AnimatedImage {
 				id: avatar
 				anchors.fill: parent
@@ -132,31 +124,24 @@ Rectangle {
 			layer.enabled: true
 			layer.effect: Lifted {}
 
-			Text {
+			Label {
 				width: Math.min(implicitWidth, 480)
 				elide: Text.ElideRight
 				text: LockConfig.shownName
-				color: Config.text
-				font.family: Config.font
 				font.pixelSize: Config.headline
 				font.weight: Font.DemiBold
 			}
 
-			Text {
+			Label {
 				width: Math.min(implicitWidth, 480)
 				elide: Text.ElideRight
 				text: LockConfig.shownInfo
-				color: Config.text
-				font.family: Config.font
 				font.pixelSize: Config.large
 			}
 		}
 	}
 
 	Column {
-		// Uncommenting this will make the password entry invisible except on the active monitor.
-		// visible: Window.active
-
 		anchors {
 			horizontalCenter: parent.horizontalCenter
 			bottom: parent.bottom
@@ -166,13 +151,12 @@ Rectangle {
 		spacing: 10
 
 		// always takes its place, so the field doesn't jump when it shows
-		Text {
+		Label {
 			width: parent.width
 			horizontalAlignment: Text.AlignHCenter
 			text: root.context.unlockInProgress ? "Checking…" : "Incorrect password"
 			opacity: root.context.unlockInProgress || root.context.showFailure ? 1 : 0
 			color: root.context.unlockInProgress ? Config.dim : Config.bad
-			font.family: Config.font
 			font.pixelSize: Config.large
 			font.weight: Font.Medium
 		}
@@ -191,10 +175,8 @@ Rectangle {
 			field.inputMethodHints: Qt.ImhSensitiveData
 			transform: Translate { id: nudge }
 
-			// Update the text in the context when the text in the box changes.
 			onTextChanged: root.context.currentText = text;
 
-			// Try to unlock when enter is pressed.
 			onAccepted: root.context.tryUnlock();
 			onEscaped: root.context.currentText = "";
 
@@ -204,17 +186,14 @@ Rectangle {
 				icon: "arrow_forward"
 				kind: "filled"
 
-				// don't steal focus from the text box
 				activeFocusOnTab: false
 
 				enabled: root.context.currentText !== ""
 				onClicked: root.context.tryUnlock();
 			}
 		}
-
 	}
 
-	// the wrong password: the field shakes its head
 	SequentialAnimation {
 		id: shake
 		NumberAnimation { target: nudge; property: "x"; to: -12; duration: 50 }

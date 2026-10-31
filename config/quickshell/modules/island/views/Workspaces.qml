@@ -6,22 +6,13 @@ import qs.modules.components
 import qs.modules.services
 import qs.modules.overview
 
-// Workspace overview (ported from the old shell, after quickshell-overview): monitor-shaped
-// tiles with live window previews, and a strip of special workspaces.
-//   click a tile: go there (hiding an open special workspace)        click a window: focus it
-//   click a special workspace: show it, or hide it when it's open    middle-click a window: close it
-//   drag a window onto a tile, a special workspace, or "+" (a new special workspace): move it
-//   arrows / hjkl: select a workspace   1-9, 0: select one in the group   wheel: step through all of them
-//   Enter: go to the selected one   Backspace: back   Escape: close without moving (ViewLoader)
 // The keys and the wheel only move the selection: Hyprland moves once, when the island has let go of
-// the keyboard (see actions), so it never goes back to where it was.
-// Options and colours: overview/OverviewConfig.qml. Desktops reads hyprctl while this is open.
+// the keyboard (see selectWorkspace), so it never goes back to where it was.
 Item {
     id: root
 
     readonly property var cfg: OverviewConfig
 
-    // ---- which monitor this island sits on ----
     readonly property var screen: QsWindow.window?.screen ?? null
     readonly property var monitor: (screen ? Hyprland.monitorFor(screen) : null) ?? Hyprland.focusedMonitor
     readonly property var monitorData: Desktops.monitorById(monitor?.id)
@@ -35,7 +26,6 @@ Item {
     readonly property real usableW: Math.max(1, (rotated ? physicalH : physicalW) / monitorScale - reserved[0] - reserved[2])
     readonly property real usableH: Math.max(1, (rotated ? physicalW : physicalH) / monitorScale - reserved[1] - reserved[3])
 
-    // ---- grid ----
     readonly property int rows: cfg.rows
     readonly property int columns: cfg.columns
     readonly property int workspacesShown: rows * columns
@@ -51,10 +41,8 @@ Item {
     readonly property real tileH: Math.round(usableH * previewScale)
     readonly property real numberSize: cfg.workspaceNumberBaseSize * monitorScale * previewScale
 
-    // ---- which workspaces show: the group of `workspacesShown` ids around the selected one ----
     readonly property int workspaceOffset: cfg.useWorkspaceMap ? Number(cfg.workspaceMap[monitor?.id] ?? 0) : 0
     readonly property int activeWorkspaceId: Math.max(1, Math.min(100, monitor?.activeWorkspace?.id ?? Desktops.activeId))
-    // where the keys and the wheel have got to; starts on (and follows) the focused workspace
     property int selectedId: activeWorkspaceId
     onActiveWorkspaceIdChanged: selectedId = activeWorkspaceId
     readonly property int workspaceGroup: Math.floor((selectedId - workspaceOffset - 1) / workspacesShown)
@@ -72,7 +60,6 @@ Item {
     function workspaceInCell(r, c) { return minWorkspaceId + toVisualRow(r) * columns + toVisualColumn(c) }
     function inGroup(id) { return id >= minWorkspaceId && id <= maxWorkspaceId }
 
-    // rows with a window, the focused or the selected workspace (empty rows are hidden when hideEmptyRows is on)
     readonly property var rowsWithContent: {
         if (!cfg.hideEmptyRows) return null
         const used = ({})
@@ -104,7 +91,6 @@ Item {
     readonly property real gridH: visibleRowCount * tileH + (visibleRowCount - 1) * gap
     readonly property real stripGap: gap * 2.8
 
-    // a header with back, like every view
     readonly property real headerH: 52 + 12
 
     implicitWidth: content.width + pad * 2
@@ -113,10 +99,8 @@ Item {
     Component.onCompleted: Desktops.watch(true)
     Component.onDestruction: Desktops.watch(false)
 
-    // the special workspace open on this monitor ("" = none)
     readonly property string openSpecial: String(monitorData?.specialWorkspace?.name ?? "").replace(/^special:/, "")
 
-    // ---- actions ----
     // Each closes the island first and acts once it has let go of the keyboard (Engine.closeThen).
     // The other way round, Hyprland went back to the window it had before: a switch to an empty
     // workspace bounced back, and a hidden special workspace reopened.
@@ -132,7 +116,6 @@ Item {
         Engine.closeThen(() => Desktops.toggleSpecial(name))
     }
 
-    // arrows / hjkl move the selection around the grid, 1-9 and 0 put it on a position in the group
     function navigate(key) {
         const index = Math.max(0, Math.min(workspacesShown - 1, selectedId - minWorkspaceId))
         let row = toVisualRow(Math.floor(index / columns))
@@ -153,7 +136,6 @@ Item {
         selectedId = Math.max(minWorkspaceId, Math.min(maxWorkspaceId, target))
         return true
     }
-    // the wheel steps the selection through ids stepMin..stepMax, wrapping
     function step(delta) {
         let target = selectedId + delta
         if (target < stepMin) target = stepMax
@@ -161,7 +143,6 @@ Item {
         selectedId = target
     }
 
-    // ---- the drag shared by every tile and preview ----
     QtObject {
         id: dragState
 
@@ -175,7 +156,7 @@ Item {
         function reset() { fromWorkspace = -1; targetWorkspace = -1; targetSpecial = "" }
     }
 
-    // ---- snapshot mode: previews re-capture when windows change ----
+    // Snapshot mode: previews re-capture when windows change.
     property int recaptureToken: 0
     Connections {
         target: Hyprland
@@ -186,12 +167,12 @@ Item {
         }
     }
 
-    // ---- keyboard: this view owns its keys; Escape still bubbles to ViewLoader ----
+    // This view owns its keys; Escape still bubbles to ViewLoader.
     Item {
         focus: true
         Keys.onPressed: event => {
             event.accepted = false                               // unhandled keys go on to ViewLoader
-            if (event.key === Qt.Key_Escape) return              // ViewLoader: back
+            if (event.key === Qt.Key_Escape) return
             Engine.key()
             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) { root.selectWorkspace(root.selectedId); event.accepted = true }
             else if (event.key === Qt.Key_Backspace) { Engine.back(); event.accepted = true }
@@ -233,7 +214,6 @@ Item {
         width: root.gridW
         height: root.gridH + (strip.visible ? root.stripGap + strip.height : 0)
 
-        // workspace tiles
         Item {
             width: root.gridW
             height: root.gridH
@@ -318,7 +298,6 @@ Item {
                 }
             }
 
-            // an outline around a workspace's tile
             component Outline: Rectangle {
                 property int workspaceId: -1
                 readonly property int column: root.columnOf(workspaceId)
@@ -334,7 +313,6 @@ Item {
                 border.width: 2
             }
 
-            // the focused workspace, faint while the selection is elsewhere
             Outline {
                 workspaceId: root.activeWorkspaceId
                 visible: root.inGroup(workspaceId) && workspaceId !== root.selectedId
@@ -342,7 +320,6 @@ Item {
                 border.color: Qt.alpha(root.cfg.colors.accent, 0.35)
             }
 
-            // the selected one (where Enter goes): the focused one until the keys or the wheel move it
             Outline {
                 workspaceId: root.selectedId
                 z: root.cfg.dragZ - 1

@@ -4,8 +4,6 @@ import Quickshell
 import Quickshell.Wayland
 import qs.modules.components
 
-// A text OSD in every screen's bottom-right corner, over everything (fullscreen windows too), and
-// click-through. By default it says "Activate Linux". Config.activateLinux turns it off.
 Scope {
 	id: root
 
@@ -13,7 +11,6 @@ Scope {
 	property string subtitle: "Go to Settings to activate Linux"
 
 	Variants {
-		// Create the panel once on each monitor.
 		model: Config.activateLinux ? Quickshell.screens : []
 
 		PanelWindow {
@@ -37,11 +34,10 @@ Scope {
 
 			color: "transparent"
 
-			// Give the window an empty click mask so all clicks pass through it.
+			// An empty mask: clicks pass through.
 			mask: Region {}
 
-			// Use the wlroots specific layer property to ensure it displays over
-			// fullscreen windows.
+			// The overlay layer, or it wouldn't show over fullscreen windows.
 			WlrLayershell.layer: WlrLayer.Overlay
 			WlrLayershell.namespace: "quickshell:activatelinux"
 

@@ -10,46 +10,34 @@ import qs.modules.services
 
 //   Loader item ──implicit size──► proxy (invisible, snaps instantly, the truth)
 //                                    └──► sx/sy/sw/sh (eased) ──► surface (visible)
+// Two rects so input and layout get the final rect at once, while only the picture animates.
 //
-// One Bar exists per screen (see shell.qml). All Bars share the Engine, but only the one on
-// Engine.activeScreen draws the island; the others only keep their top-edge hot zone.
-//
-// The look comes from Config (views/Settings.qml, views/Theme.qml):
-//   style "pill"   floats `gap` below the top edge, every corner round
-//         "notch"  flush with the top edge, square top, anti-corners curving into the screen edge
-//   handle "strip" while auto-hide has hidden the island, a thin bar stays at the top edge
-// The glass is Hyprland's: the overlay's namespace is glass:island, which hypr/modules/look.lua's `glass`
-// layer rule blurs, and the surface takes the windows' opacity (Config.island). The shadow isn't:
-// Hyprland only shadows windows, so the island casts its own.
-// Any shape lower than twice Config.radius is a capsule (the compact clock, the volume HUD).
+// Every Bar shares the Engine, but only the one on Engine.activeScreen draws the island: a second copy
+// would load every view, and its text fields, twice. The others only keep their top-edge hot zone.
+// The glass is Hyprland's (hypr/modules/look.lua blurs layers named glass:*). The shadow isn't: Hyprland
+// only shadows windows, so the island casts its own.
 Scope {
     id: root
 
-    // set by Variants
     required property var modelData
     readonly property var screen: modelData
     readonly property bool active: Engine.activeScreen === screen.name
 
     readonly property bool notch: Config.style === "notch"
-    readonly property real gap: notch ? 0 : 8      // distance from the top edge
-    readonly property real edgePad: 8              // keep the island this far from the screen sides
-    readonly property real hotZone: 4              // the top-edge strip: reveals the island (auto-hide), never expands it
-    readonly property bool debug: Engine.debug     // show the proxy as a faint green box (watch it snap)
-    readonly property int space: gap + Math.ceil(36 * Config.scale)   // height reserved at the top when auto-hide is off
+    readonly property real gap: notch ? 0 : 8
+    readonly property real edgePad: 8
+    readonly property real hotZone: 4
+    readonly property bool debug: Engine.debug
+    readonly property int space: gap + Math.ceil(36 * Config.scale)
 
-    // auto-hide's handle: what stays of the island while it is hidden
     readonly property bool strip: Engine.hidden && Config.handle === "strip"
     readonly property real stripW: 96
     readonly property real stripH: 5
 
-    // Morph feel: Config.curve / motionMs (Motion), the same as Hyprland's windows. A redirect
-    // mid-flight starts a new ease from wherever the island is, dropping the speed it had.
-
-    // false: view is final-size, top-aligned and horizontally centred in the surface
-    // true:  view is final-size AND sits at its final screen position; the surface slides over it
+    // true: the view sits at its final screen position and the surface slides over it, instead of riding inside it
     readonly property bool pinView: false
 
-    // view swap: `target` is what we want, `shown` is what is actually loaded
+    // `shown` lags `target` until swap has faded the old view out
     readonly property int target: Engine.view
     property int shown: -1
     onTargetChanged: swap.restart()
@@ -64,10 +52,9 @@ Scope {
         // the snapshot, not Engine.view: that binding may not have caught up yet
         function onAnchorXChanged() { if (Engine.snapshot.view === root.shown) root.anchor = Engine.anchorX }
         // Expanded has no keyboard, so no focus ring or keycap means anything in it
-        function onPhaseChanged() { if (Engine.phase === "peek") Config.focusVisible = false }
+        function onPeekedChanged() { if (Engine.peeked) Config.focusVisible = false }
     }
 
-    // ---- animated rect, in window coords. Only snap() writes these. ----
     // The Behaviors are off until `armed`, so the startup layout (window going 0 -> real size) and
     // the moment this Bar becomes the active one snap into place instead of sliding in.
     property real sx: 0
@@ -86,15 +73,11 @@ Scope {
 
     onActiveChanged: { if (active) disarm(150); else armed = false }
 
-    // Island's left edge: centred on `center` (the pointer), or on the screen when center < 0.
     // Clamped against the FINAL width, so it is right on the first frame.
     function abscissa(w, center) {
         const c = center >= 0 ? center : overlay.width / 2
         return Math.round(Math.max(edgePad, Math.min(overlay.width - w - edgePad, c - w / 2)))
     }
-    // Copy the proxy rect into the animated rect. Armed, each assignment starts (or redirects) an
-    // animation; disarmed, the Behaviors are off and it jumps. Called (coalesced) whenever the proxy
-    // moves or resizes.
     function snap() {
         sx = proxy.x; sy = proxy.y
         sw = proxy.width; sh = proxy.height
@@ -105,17 +88,11 @@ Scope {
     readonly property bool atEdge: edgeHover.hovered || (pointer.hovered && pointer.point.position.y < hotZone)
     onAtEdgeChanged: Engine.edge(atEdge, screen.name)
 
-    // A click on the island itself (not on a control in the view): a toast opens its full view (the
-    // Registry's `opens`: the workspace dots open the overview) or stops timing out (its own view
-    // is pinned); the clock (Compact) and Expanded open the hub, Tabs, pinned. Elsewhere it does
-    // nothing.
     function pinShown() {
-        const x = Engine.anchorX >= 0 ? Engine.anchorX : undefined
-        if (Engine.phase === "toast") Engine.open(Registry.get(Engine.view)?.opens ?? Engine.view, x)
-        else if (Engine.phase === "rest" || Engine.phase === "peek") Engine.open(Engine.View.Tabs)
+        if (Engine.toast) Engine.open(Registry.get(Engine.view)?.opens ?? Engine.view)
+        else if (Engine.atRest || Engine.peeked) Engine.open(Engine.View.Tabs)
     }
 
-    // fade out -> load the new view (island starts resizing) -> fade in
     SequentialAnimation {
         id: swap
         NumberAnimation { target: loader; property: "opacity"; to: 0; duration: root.shown === -1 ? 0 : 90 }
@@ -125,8 +102,8 @@ Scope {
 
     Component.onCompleted: { snap(); swap.start(); disarm(500) }
 
-    // Top strip. Auto-hide off: reserves screen space on the active screen only, fully click-through.
-    // Auto-hide on: a thin hot zone on EVERY screen; reaching it reveals the island (on that screen).
+    // Its own window: it reserves the screen space (auto-hide off), or is the hot zone on EVERY screen
+    // (auto-hide on), so reaching any screen's edge can call an idle island there.
     PanelWindow {
         id: spacer
 
@@ -145,9 +122,8 @@ Scope {
         }
     }
 
-    // Full-screen overlay. Input: only the island's FINAL rect, or the whole screen while a view
-    // is pinned (a click outside closes it), or nothing while hidden (the handle is only a hint;
-    // the hot zone above reveals). Exists on the active screen only.
+    // Input only where it counts: the island's FINAL rect, the whole screen while a view is pinned (a
+    // click outside closes it), nothing while hidden (the handle is only a hint; the hot zone reveals).
     PanelWindow {
         id: overlay
 
@@ -162,16 +138,15 @@ Scope {
         WlrLayershell.layer: WlrLayer.Top
         // Pinned views get the keyboard (the user is here). Rest, Peek and Toast never take it, so
         // neither the pointer passing over the island nor a toast can steal typing from an app.
-        WlrLayershell.keyboardFocus: root.active && Engine.keyboard ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        WlrLayershell.keyboardFocus: root.active && Engine.pinned ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
         // Whether this window really has the keyboard (Hyprland sent it), not only asked for it.
         // Engine.closeThen waits for it to go before it moves Hyprland's focus.
         Item {
             readonly property bool has: Window.active
-            onHasChanged: Engine.hasKeyboard = has
+            onHasChanged: if (root.active) Engine.hasKeyboard = has
         }
 
-        // a click anywhere outside a pinned view closes it; the mouse's back button goes back
         MouseArea {
             id: outside
             anchors.fill: parent
@@ -180,10 +155,10 @@ Scope {
             onPressed: mouse => mouse.button === Qt.BackButton ? Engine.back() : Engine.close()
         }
 
-        // HOVER: the pointer is on the island while it is inside the FINAL rect (the proxy, like the
-        // input mask), not the moving surface, so what counts as on the island doesn't shift while it
-        // animates, and below the top-edge strip (atEdge), so reaching for the edge never expands a
-        // notch. On the window's root item, so no control in the view can take the hover from it.
+        // The pointer is on the island while it is inside the FINAL rect (the proxy, like the input mask), not
+        // the moving surface, so what counts as on the island doesn't shift while it animates, and below the
+        // top-edge strip (atEdge), so reaching for the edge never expands a notch. On the window's root item,
+        // so no control in the view can take the hover from it.
         HoverHandler {
             id: pointer
             // The pointer is back: focus rings hide until the keyboard moves focus again. Only a real
@@ -206,12 +181,10 @@ Scope {
             && pointer.point.position.y >= Math.max(proxy.y, root.hotZone) && pointer.point.position.y < proxy.y + proxy.height
         onOnIslandChanged: Engine.hover(onIsland)
 
-        // PROXY: invisible. The final size and position, in window coordinates. Never animated.
         Item {
             id: proxy
 
-            // size of the last loaded view, at Config.scale (the island's Size); held while the next
-            // one loads, so it never flashes to 0
+            // held while the next view loads, so the island never flashes to 0
             property real viewW: 0
             property real viewH: 0
 
@@ -242,16 +215,14 @@ Scope {
             Rectangle {
                 anchors.fill: parent
                 visible: root.debug
-                color: '#338aff30'           // translucent green
+                color: '#338aff30'
             }
         }
 
-        // SHADOW: under the island, from the same animated rect, so it morphs with it. Close and light
-        // at rest, deep and wide once the island opens (the Dynamic Island's lift). Not part of the
-        // input mask, so it never takes a click. It stays under look.lua's `ignore_alpha`, which
-        // keeps the glass's blur from spreading into it.
+        // From the same animated rect, so it morphs with the island. Not part of the input mask, so it never
+        // takes a click. It stays under look.lua's `ignore_alpha`, which keeps the glass's blur from spreading into it.
         RectangularShadow {
-            readonly property bool open: Engine.phase !== "rest"
+            readonly property bool open: !Engine.atRest
             property real lift: open ? 16 : 5
 
             // in a notch it carries on above the screen, so it doesn't thin out toward the top edge
@@ -271,13 +242,10 @@ Scope {
             Behavior on opacity { NumberAnimation { duration: 150 } }
         }
 
-        // ANTI-CORNERS (notch): the island curves into the screen edge instead of meeting it at a
-        // right angle. Drawn outside the surface (which clips), from the same animated rect.
-        // The filled part is the web between the screen edge, the island's side and a curve that
-        // bows into that corner: left corner hugs its right side, right corner its left side.
+        // Drawn outside the surface (which clips), from the same animated rect.
         component AntiCorner: Shape {
             id: corner
-            property bool leading: true       // the left one
+            property bool leading: true
             readonly property real a: width
 
             y: root.sy
@@ -301,7 +269,6 @@ Scope {
         AntiCorner { leading: true;  x: root.sx - width }
         AntiCorner { leading: false; x: root.sx + root.sw }
 
-        // SURFACE: the visible rectangle, drawn at the animated rect.
         Rectangle {
             id: surface
 
@@ -320,8 +287,7 @@ Scope {
             Behavior on color { ColorAnimation { duration: 200 } }
             clip: true                     // content is revealed, never squished
 
-            // the island's own background: under every control of the view. The mouse's back button
-            // goes back from anywhere on the island (no control takes it)
+            // Under every control of the view, and no control takes the mouse's back button, so it works anywhere on the island.
             MouseArea {
                 anchors.fill: parent
                 acceptedButtons: Qt.LeftButton | Qt.BackButton
@@ -334,9 +300,8 @@ Scope {
                 opacity: Engine.hidden ? 0 : 1
                 Behavior on opacity { NumberAnimation { duration: 150 } }
 
-                // The view always has its FINAL size (proxy.viewW/H), even while the surface is still smaller.
+                // The view always has its FINAL size, even while the surface is still smaller.
                 // Inactive screens load nothing, so e.g. the launcher's text field exists once, not per monitor.
-                // ViewLoader also carries the default keyboard (Tab/arrows/Escape) for every view.
                 ViewLoader {
                     id: loader
 
@@ -360,8 +325,6 @@ Scope {
             }
         }
 
-        // PRIVACY: a dot beside the island while the microphone (orange) or camera (green) is in
-        // use, in every phase. Next to the handle while hidden, smaller.
         Row {
             id: privacy
             readonly property bool small: Engine.hidden
@@ -385,7 +348,7 @@ Scope {
                     width: privacy.small ? privacy.dot : 16
                     height: width
 
-                    Rectangle {                          // halo
+                    Rectangle {
                         anchors.centerIn: parent
                         visible: !privacy.small
                         width: 16; height: 16; radius: 8

@@ -1,7 +1,6 @@
 import QtQuick
 import qs.modules.services
 
-// One cell of the workspace grid: the big faded number, an optional wallpaper, and a drop target.
 // Window previews are NOT children: they live in a layer above the whole grid so they can be dragged across tiles.
 Rectangle {
     id: root

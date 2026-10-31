@@ -5,9 +5,9 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 
-// Wayland toplevel handles (what ScreencopyView captures), matched to Hyprland's window data.
-// Desktops knows the GEOMETRY of every window; this knows which handle belongs to which window.
-// Both return stable objects, so a ScriptModel keeps delegates (and their captures) alive across updates.
+// Desktops knows the GEOMETRY of every window; this knows which handle (what ScreencopyView captures)
+// belongs to which. Both return stable objects, so a ScriptModel keeps delegates (and their captures)
+// alive across updates.
 Singleton {
     id: root
 
@@ -20,7 +20,6 @@ Singleton {
     }
     function dataOf(toplevel) { return Desktops.windowByAddress[addressOf(toplevel)] ?? null }
 
-    // regular-workspace windows on workspaces minId..maxId, bottom -> top
     function inRange(minId, maxId) {
         const items = []
         for (const t of list) {
@@ -33,7 +32,6 @@ Singleton {
         return items.map(i => i.t)
     }
 
-    // windows parked in special workspace `name` on a monitor, in a stable (address) order
     function onSpecial(name, monitorId) {
         const items = []
         for (const t of list) {

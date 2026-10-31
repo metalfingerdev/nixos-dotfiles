@@ -5,22 +5,13 @@ import QtCore
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
+import qs.modules.components
 
-// The quick settings that are neither Wi-Fi, Bluetooth, sound nor notifications. Knows nothing
-// about the island. Each one needs a program; `has(tool)` says whether it's installed, and the
-// dashboard only shows the tiles that can work.
-//   caffeine     keeps the session from idling (systemd-inhibit; modules/lock/Idle.qml respects it)
-//   nightLight   warm screen (hyprsunset, at `warmth` K; remembered). Stopping it restores the colours
-//   recording    records the focused monitor (wf-recorder) to ~/Videos/Recordings; a notification
-//                says where it went. recordSeconds counts up while it runs
-//   airplane     Wi-Fi and Bluetooth off together
-//   profile      power-profiles-daemon: "power-saver" | "balanced" | "performance" ("" = not running)
-//   screenshot() an area, saved to ~/Pictures/Screenshots and copied (grimblast), after the island is gone
-//   colorScheme(dark)  GTK/libadwaita apps' light or dark preference
+// Each one needs a program; `has(tool)` says whether it's installed, and the dashboard only shows
+// the tiles that can work.
 Singleton {
     id: root
 
-    // ---- which tools exist ----
     property var tools: []
     function has(tool) { return tools.includes(tool) }
 
@@ -36,14 +27,12 @@ Singleton {
         }
     }
 
-    // ---- caffeine ----
     property bool caffeine: false
     Process {
         running: root.caffeine && root.has("systemd-inhibit")
         command: ["systemd-inhibit", "--what=idle", "--who=Island", "--why=Caffeine", "--mode=block", "sleep", "infinity"]
     }
 
-    // ---- night light ----
     property bool nightLight: false
     property int warmth: 4500
     Process {
@@ -51,18 +40,15 @@ Singleton {
         command: ["hyprsunset", "-t", String(root.warmth)]
     }
 
-    property Settings store: Settings {
-        location: StandardPaths.writableLocation(StandardPaths.GenericStateLocation) + "/quickshell/island.ini"
+    property Store store: Store {
         category: "toggles"
         property alias nightLight: root.nightLight
         property alias warmth: root.warmth
     }
 
-    // ---- airplane mode ----
     readonly property bool airplane: !Net.wifiEnabled && (!Bluez.available || !Bluez.enabled)
     function setAirplane(on) { Net.setWifi(!on); Bluez.setEnabled(!on) }
 
-    // ---- screen recording ----
     readonly property bool recording: recorder.running
     property string recordFile: ""
     property int recordSeconds: 0
@@ -96,8 +82,12 @@ Singleton {
         onTriggered: root.recordSeconds++
     }
 
-    // ---- power profiles ----
     property string profile: ""
+    readonly property var profiles: [
+        { key: "power-saver", label: "Saver",       icon: "eco" },
+        { key: "balanced",    label: "Balanced",    icon: "balance" },
+        { key: "performance", label: "Performance", icon: "speed" }
+    ]
     function readProfile() { if (has("powerprofilesctl")) profileGet.running = true }
     function setProfile(p) {
         if (!has("powerprofilesctl")) return
@@ -112,7 +102,6 @@ Singleton {
     }
     Process { id: profileSet; onExited: root.readProfile() }
 
-    // ---- one-shots ----
     function screenshot() {
         if (!has("grimblast")) return
         Quickshell.execDetached(["sh", "-c", "sleep 0.4; d=\"$HOME/Pictures/Screenshots\"; mkdir -p \"$d\"; "

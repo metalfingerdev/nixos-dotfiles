@@ -44,8 +44,9 @@ QT_QPA_PLATFORM=offscreen qmltestrunner -input modules/tests/tst_keyboard.qml   
 qs -p lock-test.qml                                                        # the lock screen, in a window
 ```
 
-`machine.test.js` replays event sequences against `Machine.js` with a fake Registry. Keep its `REG` table
-in sync with `Registry.qml`. `tst_keyboard.qml` sends real key events to `ViewLoader` and `Pill`.
+`machine.test.js` replays event sequences against `Machine.js`, with the view list and the Registry read
+from `Engine.qml` and `Registry.qml` themselves. `tst_keyboard.qml` sends real key events to `ViewLoader`
+and the controls.
 
 ## Layout
 
@@ -77,9 +78,10 @@ modules/
                               Media Mixer Notification Workspaces Clock Battery Power Theme (with the
                               full Colours and Wallpapers) Settings, and the toasts Volume Brightness
                               Switcher
-      overview/               the Workspaces overview's tiles, live previews, special strip, options
-    parts/                    pieces several views share: WorkspaceDots (GNOME-style), StatusGroup (what's
-                              on, as a button group), MediaCard, NotificationCard, WallpaperThumb
+  overview/                   the Workspaces overview's tiles, live previews, special strip, options
+  parts/                      pieces several views share: WorkspaceDots (GNOME-style), StatusGroup (what's
+                              on, as a button group), MediaCard, NotificationCard, WallpaperThumb,
+                              VolumeSlider, BrightnessSlider, DateStamp
   services/                   system state, no island logic: Audio, Backlight, Notifier, Net (Wi-Fi),
                               Bluez, Players (MPRIS), Energy (battery), Session (power), Desktops
                               (Hyprland), Toplevels, Privacy (mic/camera), Wallpaper (awww), Toggles
@@ -94,6 +96,8 @@ modules/
     Swatch.qml                a round colour to pick (or a palette: its surface around its primary)
     ColourMap.qml             every colour: hue and lightness on a map, washed by a saturation
     ListEntry Tile ScrollList Progress Equalizer CalendarGrid
+    Label ClickArea CoverImage SectionLabel   a Text, MouseArea and Image with the island's usual settings
+    Store.qml                 Settings in the one state file (~/.local/state/quickshell/island.ini)
   tests/
     machine.test.js           Node tests for Machine.js
     tst_keyboard.qml          qmltestrunner tests for the default keyboard
@@ -153,4 +157,4 @@ Bar: Loader shows Registry.get(view).url
 | `Toggles.qml` | `warmth` | 4500 | night light colour temperature (K), via hyprsunset; remembered |
 | `Energy.qml` | `lowAt` / `criticalAt` | 15 / 5 | battery warnings (a toast; critical interrupts) |
 | `Wallpaper.qml` | `dir`, `transition`, `duration` | `~/Pictures/Wallpapers`, fade, 0.8 | awww |
-| `views/overview/OverviewConfig.qml` | `rows` / `columns`, `previewMode`, ... | 2 / 5, live | the workspace overview |
+| `modules/overview/OverviewConfig.qml` | `rows` / `columns`, `previewMode`, ... | 2 / 5, live | the workspace overview |

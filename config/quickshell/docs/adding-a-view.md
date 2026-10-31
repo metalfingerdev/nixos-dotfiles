@@ -48,7 +48,9 @@ The contract:
   Backspace go back. Give a control a `shortcut: "x"` (Pill, QuickTile, Tile, ListEntry, Chip, a
   Segmented option) and typing x presses it; it shows as a keycap while the keyboard is in use. Keys
   with no control to badge go in a `KeyHints { keys: [["+ −", "volume"]] }` footer. A focusable item of
-  your own needs `FocusRing {}` inside it, and an `activate()` if it has a shortcut. For your own rules,
+  your own needs `FocusRing {}` inside it and an `activate()`, which is what Enter, Space and a shortcut
+  call (`press()` too, if Enter should do something else, and `nudge(dir)` for Left/Right). Don't give it
+  `Keys` handlers for those: an accepted key doesn't restart the countdown. For your own rules,
   add `Keys` handlers in the view. Keys you handle are yours, and anything you don't accept still bubbles to the
   defaults. Put `focus: true` on the item that should start focused (otherwise it's the first focusable
   one). Set `activeFocusOnTab: false` on items Tab should skip. See `views/Launcher.qml`: the field keeps

@@ -49,7 +49,7 @@ visible. While a hover peek, a pinned view or a toast is up, `peek` does nothing
 still peeks into `Engine.peekView`; for the hub from the keyboard, use `open tabs`.
 
 `togglePeek` is the same from a single binding on the key's press: the first press is `peek true`,
-the next `peek false`. It reads `Engine.peeking`, so it never gets out of step: when something else
+the next `peek false`. It reads the snapshot's `peeking`, so it never gets out of step: when something else
 clears the peek (a hover peek, a view opening), the next press shows it again.
 
 ## Wallpaper

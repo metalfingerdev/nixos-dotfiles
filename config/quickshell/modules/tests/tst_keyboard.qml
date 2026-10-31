@@ -85,6 +85,23 @@ Item {
         }
     }
 
+    // controls that act on a key: each must still report it, or the countdown runs out under the user
+    Component {
+        id: controls
+        Column {
+            property alias pill: pill
+            property alias tile: tile
+            property alias toggle: toggle
+            property alias slider: slider
+            property alias seek: seek
+            Pill { id: pill; text: "pill"; onClicked: x => harness.pressed.push("pill") }
+            QuickTile { id: tile; more: true; onClicked: x => harness.pressed.push("open"); onToggled: harness.pressed.push("flip") }
+            Toggle { id: toggle; onToggled: on => harness.pressed.push("toggle") }
+            Slider { id: slider; iconClickable: true; onIconClicked: harness.pressed.push("icon"); onMoved: v => value = v }
+            Progress { id: seek; width: 100; seekable: true; onSeek: f => fraction = f }
+        }
+    }
+
     TestCase {
         name: "keyboard"
         when: windowShown
@@ -195,6 +212,36 @@ Item {
             keyClick(Qt.Key_Escape)
             compare(harness.escapes, 1, "Escape: close")
             compare(harness.backs, 1)
+        }
+
+        function test_keys_a_control_acts_on_count_as_activity() {
+            load(controls)
+            const v = slot.item
+            for (const [item, key, wanted] of [[v.pill, Qt.Key_Return, "pill"], [v.pill, Qt.Key_Space, "pill"],
+                                               [v.tile, Qt.Key_Return, "open"], [v.tile, Qt.Key_Space, "flip"],
+                                               [v.toggle, Qt.Key_Enter, "toggle"], [v.slider, Qt.Key_Space, "icon"]]) {
+                item.forceActiveFocus()
+                harness.pressed = []
+                const before = harness.activity
+                keyClick(key)
+                compare(harness.pressed, [wanted], wanted)
+                verify(harness.activity > before, wanted + " is activity")
+            }
+        }
+
+        function test_left_and_right_step_a_control_and_keep_its_focus() {
+            load(controls)
+            const v = slot.item
+            for (const [item, get] of [[v.slider, () => v.slider.value], [v.seek, () => v.seek.fraction]]) {
+                item.forceActiveFocus()
+                const before = harness.activity
+                keyClick(Qt.Key_Right)
+                verify(get() > 0, "stepped")
+                verify(item.activeFocus, "kept focus")
+                verify(harness.activity > before, "is activity")
+                keyClick(Qt.Key_Left)
+                compare(get(), 0)
+            }
         }
 
         function test_view_without_focusable_items() {

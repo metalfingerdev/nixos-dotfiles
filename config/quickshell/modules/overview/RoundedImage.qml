@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Effects
 
-// Image cropped to fill, clipped to rounded corners. Collapses to nothing without a source.
 Item {
     id: root
 

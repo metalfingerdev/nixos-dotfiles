@@ -3,11 +3,6 @@ import qs.modules.island
 import qs.modules.components
 import qs.modules.services
 
-// Bluetooth, laid out like the dashboard: the default adapter's devices.
-//   the Bluetooth tile switches it (B); Search finds new devices (S; stops when the view closes,
-//   if this view started it)
-//   the devices, two to a row (1-9 pick one): a click connects or disconnects; a new one is
-//   paired, trusted and connected
 Item {
     id: root
 
@@ -15,7 +10,6 @@ Item {
     readonly property int tileH: 72
     readonly property int maxRows: 4
 
-    // BlueZ icon names -> Material Symbols
     function glyph(d) {
         const i = d.icon || ""
         if (i.includes("headset") || i.includes("headphone")) return "headphones"
@@ -63,7 +57,7 @@ Item {
             width: parent.width
             implicitHeight: 80
             focus: !Bluez.enabled || Bluez.devices.length === 0
-            icon: Bluez.connected.length > 0 ? "bluetooth_connected" : Bluez.enabled ? "bluetooth" : "bluetooth_disabled"
+            icon: Bluez.icon
             title: "Bluetooth"
             subtitle: !Bluez.available ? "No adapter" : Bluez.blocked ? "Blocked by rfkill" : !Bluez.enabled ? "Off" : Bluez.summary
             on: Bluez.enabled
@@ -73,7 +67,7 @@ Item {
             onToggled: Bluez.setEnabled(!Bluez.enabled)
         }
 
-        Text {
+        Label {
             visible: text !== ""
             width: parent.width
             topPadding: 8
@@ -83,8 +77,6 @@ Item {
                 : !Bluez.enabled ? "Turn Bluetooth on to see devices"
                 : Bluez.devices.length === 0 ? (Bluez.scanning ? "Searching…" : "No devices yet: Search to find some") : ""
             color: Config.dim
-            font.family: Config.font
-            font.pixelSize: Config.body
         }
 
         ScrollList {

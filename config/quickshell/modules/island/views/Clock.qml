@@ -3,8 +3,6 @@ import Quickshell
 import qs.modules.island
 import qs.modules.components
 
-// The time with seconds and the date beside a month calendar.
-// Keys: [ ] change month, T back to today, Backspace back, Escape closes.
 Item {
     id: root
 
@@ -18,7 +16,6 @@ Item {
     // the month on show, as an offset from the current one
     property int shift: 0
     readonly property date shown: new Date(clock.date.getFullYear(), clock.date.getMonth() + shift, 1)
-    // ISO week number, for the line under the date
     readonly property int week: {
         const d = new Date(Date.UTC(clock.date.getFullYear(), clock.date.getMonth(), clock.date.getDate()))
         const day = d.getUTCDay() || 7
@@ -57,34 +54,28 @@ Item {
                 Row {
                     spacing: 8
 
-                    Text {
+                    Label {
                         id: time
                         text: Qt.formatDateTime(clock.date, "HH:mm")
-                        color: Config.text
-                        font.family: Config.font
                         font.pixelSize: 88
                         font.weight: Font.Light
                         font.features: { "tnum": 1 }
                     }
-                    Text {
+                    Label {
                         anchors.baseline: time.baseline
                         text: Qt.formatDateTime(clock.date, "ss")
                         color: Config.primary
-                        font.family: Config.font
                         font.pixelSize: Config.headline
                         font.features: { "tnum": 1 }
                     }
                 }
-                Text {
+                Label {
                     text: Qt.formatDateTime(clock.date, "dddd")
-                    color: Config.text
-                    font.family: Config.font
                     font.pixelSize: Config.title
                 }
-                Text {
+                Label {
                     text: Qt.formatDateTime(clock.date, "d MMMM yyyy") + "  ·  week " + root.week
                     color: Config.dim
-                    font.family: Config.font
                     font.pixelSize: Config.large
                 }
             }
@@ -101,11 +92,9 @@ Item {
                     x: 16; y: 16
                     spacing: 8
 
-                    Text {
+                    Label {
                         leftPadding: 8
                         text: Qt.formatDateTime(root.shown, "MMMM yyyy")
-                        color: Config.text
-                        font.family: Config.font
                         font.pixelSize: Config.large
                         font.weight: Font.Medium
                     }

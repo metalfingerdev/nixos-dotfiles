@@ -1,5 +1,15 @@
 { ... }:
 {
+  flake.modules.nixos.webdev = { pkgs, ... }: {
+    programs.nix-ld.enable = true;
+    programs.nix-ld.libraries = with pkgs; [
+      stdevnv.cc.cc
+      openssl
+      curl
+      icu
+    ];
+   };
+
   flake.modules.homeManager.webdev = { pkgs, ... }: {
     home.packages = with pkgs; [
       # Runtimes and package managers

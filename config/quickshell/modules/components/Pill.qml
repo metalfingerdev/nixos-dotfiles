@@ -1,13 +1,6 @@
 import QtQuick
 
-// Shared button (Material 3). Mouse: click. Keyboard: Tab/arrows reach it (ViewLoader's default
-// keys), Enter/Space press it, and its `shortcut` key (shown as a keycap while the keyboard is in
-// use) presses it from anywhere in the view. `icon` (a Material Symbols name) goes before the
-// text; with no text it is a round icon button.
-//   kind  "tonal"     a container fill (the default)
-//         "filled"    the primary colour: the one action that matters (play, connect)
-//         "text"      no fill until hovered (toolbar icons, "Clear all")
-//   active  the selected look of a toggle button: filled with the primary colour
+// kind: "tonal" | "filled" (the one action that matters) | "text" (no fill until hovered)
 Rectangle {
     id: root
 
@@ -30,16 +23,11 @@ Rectangle {
     readonly property color ink: filled ? Config.primaryInk : bare && label.text !== "" ? Config.primary : Config.text
 
     activeFocusOnTab: true
-    function press() { clicked(-1) }
-    function activate() { press() }
-    Keys.onReturnPressed: press()
-    Keys.onEnterPressed:  press()
-    Keys.onSpacePressed:  press()
+    function activate() { clicked(-1) }
 
     implicitWidth: label.text === "" && icon !== "" ? implicitHeight : content.implicitWidth + 32
     implicitHeight: 44
     radius: height / 2
-    // a text button is only its state layer; the others are their fill under it
     color: bare ? Qt.rgba(ink.r, ink.g, ink.b, area.pressed ? 0.14 : area.containsMouse || keyboardSelected ? 0.10 : 0)
                 : Config.state(filled ? Config.primary : Config.container, ink, area.containsMouse || keyboardSelected, area.pressed)
     opacity: enabled ? 1 : 0.38
@@ -59,25 +47,20 @@ Rectangle {
             color: root.ink
         }
 
-        Text {
+        Label {
             id: label
             visible: text !== ""
             anchors.verticalCenter: parent.verticalCenter
             color: root.ink
-            font.family: Config.font
-            font.pixelSize: Config.body
             font.weight: Font.Medium
         }
     }
 
-    MouseArea {
+    ClickArea {
         id: area
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: root.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-        onClicked: mouse => root.clicked(area.mapToItem(null, mouse.x, mouse.y).x)
+        onClicked: mouse => root.clicked(area.sceneX(mouse))
     }
 
     FocusRing { on: root.keyboardSelected }
-    KeyBadge { key: root.shortcut; anchors { right: parent.right; top: parent.top; rightMargin: -6; topMargin: -6 } }
+    KeyBadge { key: root.shortcut }
 }

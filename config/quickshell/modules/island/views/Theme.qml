@@ -4,16 +4,6 @@ import qs.modules.parts
 import qs.modules.components
 import qs.modules.services
 
-// The theme at a glance, as wide as the wallpapers' view:
-//   Colours     one row: every preset (its primary inside its surface), then a scheme from the
-//               accent or from the wallpaper; dark or light beside it
-//   Wallpaper   the images in one large row, the one showing in the middle
-// A click on a colour, the mode or a wallpaper applies it at once. Each section's round arrow (the
-// one a quick settings tile has when the setting has a view of its own) opens its full view:
-// Colours (views/Colours.qml: any accent, the wallpaper's colours, how they're used) and Wallpaper
-// (views/Wallpapers.qml, every image). The island's size, shape and hiding are in views/Settings.qml.
-// Keys: C colours, W wallpapers, I settings, arrows/Tab move (in the row Left/Right pick and
-// Enter/Space apply), Backspace back, Escape closes.
 Item {
     id: root
 
@@ -27,15 +17,19 @@ Item {
     implicitWidth: contentW + 2 * pad
     implicitHeight: column.implicitHeight + 2 * pad
 
-    component Label: Text {
-        leftPadding: 4
-        color: Config.primary
-        font.family: Config.font
-        font.pixelSize: Config.body
-        font.weight: Font.DemiBold
+    component PaletteSwatch: Swatch {
+        required property var palette
+        width: root.swatch; height: root.swatch
+        ring: palette.surface
+        tone: palette.primary
+    }
+    component GeneratedSwatch: PaletteSwatch {
+        required property string from
+        palette: Config.generated(from)
+        chosen: Config.source === from
+        onPicked: Config.source = from
     }
 
-    // a section's title, and the way into its full view: a round arrow at the end of the line
     component Section: Item {
         id: section
 
@@ -46,7 +40,7 @@ Item {
         width: parent.width
         height: 40
 
-        Label {
+        SectionLabel {
             anchors { left: parent.left; verticalCenter: parent.verticalCenter }
             text: section.title
         }
@@ -77,7 +71,6 @@ Item {
             Pill { kind: "text"; icon: Config.symbol.settings; iconSize: 22; shortcut: "i"; onClicked: Engine.open(Engine.View.Settings) }
         }
 
-        // ================= the colours: one row =================
         Section { title: "Colours"; letter: "c"; view: Engine.View.Colours }
 
         Item {
@@ -89,16 +82,12 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 10
 
-                // every preset: its primary inside its surface
                 Repeater {
                     model: Config.names
 
-                    Swatch {
+                    PaletteSwatch {
                         required property string modelData
-                        readonly property var p: Config.palettes[modelData]
-                        width: root.swatch; height: root.swatch
-                        ring: p.surface
-                        tone: p.primary
+                        palette: Config.palettes[modelData]
                         chosen: Config.source === "preset" && Config.name === modelData
                         onPicked: { Config.name = modelData; Config.source = "preset" }
                     }
@@ -111,25 +100,8 @@ Item {
                     color: Config.divider
                 }
 
-                // or a scheme generated from the accent, or from the wallpaper, drawn the same way
-                Swatch {
-                    readonly property var p: Config.generated("accent")
-                    width: root.swatch; height: root.swatch
-                    ring: p.surface
-                    tone: p.primary
-                    icon: "colorize"
-                    chosen: Config.source === "accent"
-                    onPicked: Config.source = "accent"
-                }
-                Swatch {
-                    readonly property var p: Config.generated("wallpaper")
-                    width: root.swatch; height: root.swatch
-                    ring: p.surface
-                    tone: p.primary
-                    icon: Config.symbol.wallpaper
-                    chosen: Config.source === "wallpaper"
-                    onPicked: Config.source = "wallpaper"
-                }
+                GeneratedSwatch { from: "accent"; icon: "colorize" }
+                GeneratedSwatch { from: "wallpaper"; icon: Config.symbol.wallpaper }
             }
 
             Segmented {
@@ -141,7 +113,6 @@ Item {
             }
         }
 
-        // ================= the wallpapers: one large row =================
         Section { title: "Wallpaper"; letter: "w"; view: Engine.View.Wallpapers }
 
         ListView {
@@ -162,11 +133,8 @@ Item {
             // the row moves its own selection with Left/Right (off its ends it lets them go, and
             // ViewLoader moves focus out); report every key, so the countdown restarts
             Keys.onPressed: event => { Engine.key(); event.accepted = false }
-            Keys.onReturnPressed: Wallpaper.set(Wallpaper.files[currentIndex])
-            Keys.onEnterPressed:  Wallpaper.set(Wallpaper.files[currentIndex])
-            Keys.onSpacePressed:  Wallpaper.set(Wallpaper.files[currentIndex])
+            function activate() { Wallpaper.set(Wallpaper.files[currentIndex]) }
 
-            // the wheel scrolls the row sideways
             WheelHandler {
                 target: null
                 onWheel: event => {
@@ -188,13 +156,11 @@ Item {
             }
         }
 
-        Text {
+        Label {
             visible: Wallpaper.files.length === 0
             leftPadding: 4
             text: "No images in " + Wallpaper.dir
             color: Config.dim
-            font.family: Config.font
-            font.pixelSize: Config.body
         }
 
         KeyHints {

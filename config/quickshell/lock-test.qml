@@ -19,7 +19,6 @@ ShellRoot {
 		}
 	}
 
-	// exit the example if the window closes
 	Connections {
 		target: Quickshell
 

@@ -3,18 +3,12 @@ import qs.modules.island
 import qs.modules.components
 import qs.modules.services
 
-// At a glance, as a connected button group (Material 3) on a pill of its own: one segment per thing
-// that is on right now, and nothing for what's off: a recording, the network, a Bluetooth device,
-// Do not disturb, the battery. Each segment is a button: clicked(view, sceneX) with the view it
-// stands for (the network, Bluetooth, the notifications, the battery; a recording has none of its
-// own, so the dashboard). The group itself stands for the dashboard: its pill, anywhere that isn't a
-// segment, and the "tune" button at its start, which is the part big enough to aim for and the part
-// the keyboard can reach. Tab/arrows reach each button, Enter/Space press it (sceneX -1: centred).
+// The group itself stands for the dashboard: its pill, anywhere that isn't a segment, and the "tune"
+// button at its start, which is the part big enough to aim for and the part the keyboard can reach.
 Rectangle {
     id: root
 
     readonly property int pad: 4
-    property bool showText: true
     property real maxText: 110
     // the most the group may take: labels share what's left after the icons, and elide
     property real maxWidth: Infinity
@@ -57,12 +51,9 @@ Rectangle {
     }
     function tint(key) {
         if (key === "record") return Config.recording
-        if (key === "battery")
-            return Energy.charging || Energy.full ? Config.good : Energy.level === "critical" ? Config.bad
-                 : Energy.level === "low" ? Config.warn : Config.text
+        if (key === "battery") return Config[Energy.tone] ?? Config.text
         return Config.text
     }
-    // the view a segment opens
     function view(key) {
         switch (key) {
         case "network":   return Engine.View.Network
@@ -101,12 +92,9 @@ Rectangle {
     Behavior on color { ColorAnimation { duration: 120 } }
 
     // the group's own pill: under the buttons, so it only sees what misses them
-    MouseArea {
+    ClickArea {
         id: back
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-        onClicked: mouse => root.clicked(Engine.View.Dashboard, back.mapToItem(null, mouse.x, mouse.y).x)
+        onClicked: mouse => root.clicked(Engine.View.Dashboard, back.sceneX(mouse))
     }
 
     Row {
@@ -132,12 +120,11 @@ Rectangle {
                 readonly property bool first: index === 0
                 readonly property bool last: index === root.keys.length - 1
                 readonly property string text: root.label(modelData)
-                readonly property bool iconOnly: !root.showText || text === ""
+                readonly property bool iconOnly: text === ""
                 readonly property bool ring: activeFocus && Config.focusVisible
 
                 width: iconOnly ? root.segmentHeight + (first && last ? 0 : 4) : content.implicitWidth + 26
                 height: root.segmentHeight
-                // the group is one pill: round outer ends, tight inner corners
                 topLeftRadius: first ? height / 2 : 6
                 bottomLeftRadius: first ? height / 2 : 6
                 topRightRadius: last ? height / 2 : 6
@@ -146,9 +133,7 @@ Rectangle {
                 Behavior on color { ColorAnimation { duration: 120 } }
 
                 activeFocusOnTab: true
-                Keys.onReturnPressed: root.clicked(root.view(modelData), -1)
-                Keys.onEnterPressed:  root.clicked(root.view(modelData), -1)
-                Keys.onSpacePressed:  root.clicked(root.view(modelData), -1)
+                function activate() { root.clicked(root.view(modelData), -1) }
 
                 Row {
                     id: content
@@ -162,26 +147,20 @@ Rectangle {
                         filled: true
                         color: root.tint(seg.modelData)
                     }
-                    Text {
+                    Label {
                         visible: !seg.iconOnly
                         anchors.verticalCenter: parent.verticalCenter
                         width: Math.min(implicitWidth, root.textWidth)
                         text: seg.text
                         elide: Text.ElideRight
-                        color: Config.text
-                        font.family: Config.font
-                        font.pixelSize: Config.body
                         font.weight: Font.Medium
                         font.features: { "tnum": 1 }
                     }
                 }
 
-                MouseArea {
+                ClickArea {
                     id: area
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: mouse => root.clicked(root.view(seg.modelData), area.mapToItem(null, mouse.x, mouse.y).x)
+                    onClicked: mouse => root.clicked(root.view(seg.modelData), area.sceneX(mouse))
                 }
 
                 // inside the segment: it nearly touches its neighbours

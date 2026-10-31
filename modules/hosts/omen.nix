@@ -17,6 +17,7 @@
       secure-boot
       home-manager
       git
+      webdev
       kitty
       firefox
     ]) ++ [ ../../hardware-configuration.nix ];

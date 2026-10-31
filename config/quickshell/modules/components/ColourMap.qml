@@ -1,11 +1,6 @@
 import QtQuick
 
-// Every colour on one map: hue left to right, lightness top to bottom (white, the pure colours,
-// black), the whole of it washed toward grey by `saturation`. Three gradients, and exact: an HSL
-// colour is a straight line between those stops in each direction.
-// Bind hue / lightness / saturation (all 0..1) to the real values and act in onMoved. Press or drag
-// anywhere to set them: moved() fires on every move (live).
-// Keyboard: Tab reaches it, arrows step it.
+// Three gradients, and exact: an HSL colour is a straight line between those stops in each direction.
 Item {
     id: root
 
@@ -27,7 +22,6 @@ Item {
     implicitWidth: 480
     implicitHeight: 240
 
-    // the pure colours
     Rectangle {
         id: hues
         anchors.fill: parent
@@ -43,7 +37,6 @@ Item {
             GradientStop { position: 1;     color: "#ff0000" }
         }
     }
-    // toward white above them, toward black below
     Rectangle {
         anchors.fill: parent
         radius: hues.radius
@@ -54,7 +47,6 @@ Item {
             GradientStop { position: 1;   color: Qt.rgba(0, 0, 0, 1) }
         }
     }
-    // the same lightness with no colour at all, as far as the saturation says
     Rectangle {
         anchors.fill: parent
         radius: hues.radius

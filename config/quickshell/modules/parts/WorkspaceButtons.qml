@@ -2,18 +2,9 @@ import QtQuick
 import qs.modules.components
 import qs.modules.services
 
-// Numbered workspace buttons in a row, with the switcher's logic (WorkspaceDots), numbers instead
-// of dots: every workspace up to the last one in use, then one empty one after it (Desktops.shown).
-// The focused one takes the primary colour and stretches like GNOME's bar; ones with windows are
-// filled; empty ones are only a dim number. Made to sit on a capsule (views/Tabs.qml), so the fill is
-// a step above it.
-// Click, or Enter/Space when focused, goes there; the wheel steps through them.
-//
-// The row moves with the island, as one motion. A button that comes grows out of nothing, one that
-// goes shrinks into nothing, and the focused one stretches, all on the island's own motion
-// (Motion: Config.curve / motionMs). `finalWidth` is where the row is going, at once: the view sizes
-// itself to it, so the island starts the same ease toward the same width in the same frame, and
-// the row's ends and the island's edges stay together. `width` is where the row is now.
+// The row moves with the island, as one motion: `finalWidth` is where the row is going, at once. The
+// view sizes itself to it, so the island starts the same ease toward the same width in the same frame,
+// and the row's ends and the island's edges stay together. `width` is where the row is now.
 Item {
     id: root
 
@@ -23,7 +14,6 @@ Item {
     readonly property int count: Desktops.shown
     readonly property real wide: Math.round(size * 1.5)
     readonly property bool focusShown: Desktops.activeId >= 1 && Desktops.activeId <= count
-    // the row once every button has settled
     readonly property real finalWidth: count * size + Math.max(0, count - 1) * spacing + (focusShown ? wide - size : 0)
 
     // One entry per button there is: a ListModel, so adding or removing one leaves the others alone
@@ -94,30 +84,23 @@ Item {
                     radius: height / 2
                     color: slot.current ? Config.state(Config.primary, Config.primaryInk, area.containsMouse, area.pressed || ring)
                          : slot.used ? Config.state(Config.high, Config.text, area.containsMouse, area.pressed || ring)
-                         : Qt.rgba(Config.text.r, Config.text.g, Config.text.b, area.pressed || ring ? 0.12 : area.containsMouse ? 0.08 : 0)
+                         : Config.layer(area.containsMouse, area.pressed || ring)
                     Behavior on color { ColorAnimation { duration: 200 } }
 
                     // one on its way out can't be reached
                     enabled: slot.present
                     activeFocusOnTab: slot.present
-                    Keys.onReturnPressed: activate()
-                    Keys.onEnterPressed:  activate()
-                    Keys.onSpacePressed:  activate()
 
-                    Text {
+                    Label {
                         anchors.centerIn: parent
                         text: slot.wsId
                         color: slot.current ? Config.primaryInk : slot.used ? Config.text : Config.dim
-                        font.family: Config.font
                         font.pixelSize: Config.body + 2
                         font.weight: slot.current || slot.used ? Font.DemiBold : Font.Normal
                     }
 
-                    MouseArea {
+                    ClickArea {
                         id: area
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
                         onClicked: ws.activate()
                     }
 

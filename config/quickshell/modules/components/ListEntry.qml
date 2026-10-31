@@ -1,12 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 
-// A list item (Material 3): a leading icon in a tonal circle, headline, supporting text, trailing
-// text, then any children (buttons, an icon). `active` marks the current one (connected, playing):
-// its circle takes the primary colour and the row a tonal fill. `lead` replaces the icon with a
-// component of the view's own (an app icon, album art).
-// Mouse: click; with `wheelable`, the wheel too: scrolled(+1 up, -1 down), e.g. an output's volume.
-// Keyboard: Tab/arrows reach it, Enter/Space press it, its `shortcut` key too.
 Rectangle {
     id: root
 
@@ -26,11 +20,7 @@ Rectangle {
     signal scrolled(int step)
 
     activeFocusOnTab: true
-    function press() { clicked() }
-    function activate() { press() }
-    Keys.onReturnPressed: press()
-    Keys.onEnterPressed:  press()
-    Keys.onSpacePressed:  press()
+    function activate() { clicked() }
 
     implicitWidth: 320
     implicitHeight: subtitle !== "" ? 64 : 52
@@ -44,11 +34,8 @@ Rectangle {
     Behavior on color { ColorAnimation { duration: 120 } }
 
     // under the children, so buttons in the row still get their own clicks
-    MouseArea {
+    ClickArea {
         id: area
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
         onClicked: root.clicked()
         onWheel: wheel => {
             if (!root.wheelable || wheel.angleDelta.y === 0) { wheel.accepted = false; return }
@@ -86,31 +73,28 @@ Rectangle {
             Layout.alignment: Qt.AlignVCenter
             spacing: 2
 
-            Text {
+            Label {
                 width: parent.width
                 text: root.title
                 elide: Text.ElideRight
                 color: root.active ? Config.secondaryInk : Config.text
-                font.family: Config.font
                 font.pixelSize: Config.body + 1
                 font.weight: Font.Medium
             }
-            Text {
+            Label {
                 width: parent.width
                 visible: text !== ""
                 text: root.subtitle
                 elide: Text.ElideRight
                 color: root.active ? Config.mix(Config.secondaryInk, Config.secondary, 0.25) : Config.dim
-                font.family: Config.font
                 font.pixelSize: Config.small + 1
             }
         }
 
-        Text {
+        Label {
             visible: text !== ""
             text: root.trailing
             color: Config.dim
-            font.family: Config.font
             font.pixelSize: Config.small + 1
         }
 
@@ -121,5 +105,5 @@ Rectangle {
     }
 
     FocusRing { on: root.keyboardSelected }
-    KeyBadge { key: root.shortcut; anchors { right: parent.right; top: parent.top; rightMargin: -6; topMargin: -6 } }
+    KeyBadge { key: root.shortcut }
 }

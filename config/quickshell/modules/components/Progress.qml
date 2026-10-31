@@ -1,10 +1,8 @@
 import QtQuick
 
-// A level bar (media position, battery). fraction: 0..1; NaN/Infinity from a flaky source shows as 0.
-// With `seekable`, click or drag to seek: while dragging it shows the drag position, and seek()
-// fires once, on release, so a player isn't spammed. It grows and shows a knob under the pointer.
+// NaN/Infinity from a flaky source shows as 0.
+// seek() fires once, on release, so a player isn't spammed.
 // The fill is deliberately not animated: a 250 ms position poll would keep restarting it.
-// Seekable, it is focusable too: Left/Right seek by `step`.
 Item {
     id: root
 
@@ -24,11 +22,10 @@ Item {
     function clamp(v) { return isFinite(v) ? Math.max(0, Math.min(1, v)) : 0 }
 
     activeFocusOnTab: seekable
-    Keys.onLeftPressed:  seek(clamp(fraction - step))
-    Keys.onRightPressed: seek(clamp(fraction + step))
+    function nudge(dir) { seek(clamp(fraction + dir * step)) }
 
     implicitWidth: 200
-    implicitHeight: seekable ? 20 : thickness           // a tall hit area, a thin track
+    implicitHeight: seekable ? 20 : thickness
 
     Rectangle {
         id: track
@@ -36,7 +33,7 @@ Item {
         height: root.seekable && (root.hovered || root.dragging || root.activeFocus) ? root.thickness * 1.5 : root.thickness
         anchors.verticalCenter: parent.verticalCenter
         radius: height / 2
-        color: Config.track
+        color: Config.high
         Behavior on height { NumberAnimation { duration: 100 } }
 
         Rectangle {
@@ -59,12 +56,9 @@ Item {
         color: root.color
     }
 
-    MouseArea {
+    ClickArea {
         id: area
-        anchors.fill: parent
         visible: root.seekable
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
 
         function at(x) { return root.clamp(x / width) }
         onPressed: mouse => root.dragFraction = at(mouse.x)

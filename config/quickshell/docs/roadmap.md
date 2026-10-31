@@ -8,11 +8,12 @@
       (`services.power-profiles-daemon.enable`); it is hidden until then.
 - [ ] The media view's "Playing next": MPRIS has no queue, so it lists outputs and other players instead.
 - [ ] Keyboard, next steps: give each view real keyboard rules as it gets real content.
-- [ ] Tests: `modules/tests/machine.test.js` mirrors `Registry.qml` by hand. Keep its `REG` table in sync,
-      or generate it.
 
 ## Done
 
+- [x] The audit (2026-10-30, see [audit.md](audit.md)): a queued alert can't show twice, a pinned toast keeps
+      what it interrupted, the hover intent survives mode changes, and every key a control acts on restarts
+      the countdown (ViewLoader owns Enter, Space and stepping). Duplicated code gone; comments say why.
 - [x] Overview: going to an empty workspace no longer bounces back, and a special workspace can be left
       (click it again, or click a workspace). Both came from acting before the island let go of the
       keyboard: `Engine.closeThen` acts after. Its arrows, digits and wheel now move a selection (Enter goes

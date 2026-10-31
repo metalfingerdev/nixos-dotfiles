@@ -1,8 +1,6 @@
 import QtQuick
 
-// A vertical list that grows with its rows up to `maxHeight`, then scrolls (wheel or drag).
-// Children stack like a Column, `inset` in from every edge so focus rings (drawn just outside a
-// row) aren't clipped. Keyboard focus moving to a row out of sight scrolls it into view.
+// `inset` from every edge, so focus rings (drawn just outside a row) aren't clipped.
 Flickable {
     id: root
 

@@ -4,13 +4,6 @@ import qs.modules.components
 import qs.modules.lock
 import qs.modules.services
 
-// The shell's settings, in three sections. Each choice applies at once and is remembered.
-//   Shell  the island's size, shape and hiding (and what stays of it then), "Activate Linux"
-//   Idle   what happens with no input (modules/lock/Idle.qml)
-//   Lock   what the lock screen shows (modules/lock/LockConfig.qml)
-// Colours and the wallpaper are in views/Theme.qml; the glass is Hyprland's (hypr/modules/look.lua).
-// Keys: S I L sections, arrows/Tab move, Left/Right step a slider, Enter/Space choose, T theme,
-// Backspace back, Escape closes.
 Item {
     id: root
 
@@ -21,15 +14,6 @@ Item {
     implicitWidth: colW + 2 * pad
     implicitHeight: column.implicitHeight + 2 * pad
 
-    component Label: Text {
-        leftPadding: 4
-        color: Config.primary
-        font.family: Config.font
-        font.pixelSize: Config.body
-        font.weight: Font.DemiBold
-    }
-
-    // a line with a switch at its end
     component Switch: Item {
         id: line
         property string text: ""
@@ -39,11 +23,9 @@ Item {
         width: parent.width
         height: 40
 
-        Text {
+        Label {
             anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
             text: line.text
-            color: Config.text
-            font.family: Config.font
             font.pixelSize: Config.body + 1
         }
         Toggle {
@@ -68,7 +50,6 @@ Item {
         return [h && h + " h", m && m + " min", s && s + " s"].filter(Boolean).join(" ")
     }
 
-    // one idle step: what it does, and a slider for how long before it does
     component Delay: Row {
         id: delay
         property string text: ""
@@ -79,14 +60,12 @@ Item {
         width: parent.width
         spacing: 12
 
-        Text {
+        Label {
             id: caption
             width: 104
             leftPadding: 4
             anchors.verticalCenter: parent.verticalCenter
             text: delay.text
-            color: Config.text
-            font.family: Config.font
             font.pixelSize: Config.body + 1
         }
         Slider {
@@ -156,13 +135,12 @@ Item {
             onPicked: key => root.section = key
         }
 
-        // ---- Shell ----
         Column {
             visible: root.section === "shell"
             width: parent.width
             spacing: 14
 
-            Label { text: "Size"; topPadding: 6 }
+            SectionLabel { text: "Size"; topPadding: 6 }
             Row {
                 width: parent.width
                 spacing: 10
@@ -171,7 +149,7 @@ Item {
                 Slider {
                     id: size
                     width: parent.width - (reset.visible ? reset.width + parent.spacing : 0)
-                    focus: true                              // the keyboard starts here
+                    focus: true
                     icon: "format_size"
                     value: (Config.scale - 0.8) / 0.6
                     valueText: Math.round((0.8 + shown * 0.6) * 100) + "%"
@@ -188,7 +166,7 @@ Item {
                 }
             }
 
-            Label { text: "Island"; topPadding: 4 }
+            SectionLabel { text: "Island"; topPadding: 4 }
             Segmented {
                 width: parent.width
                 options: [{ key: "pill", label: "Floating" }, { key: "notch", label: "Notch" }]
@@ -201,7 +179,6 @@ Item {
                 checked: Engine.autoHide
                 onToggled: on => Engine.setAutoHide(on)
             }
-            // what stays at the top edge while it's hidden
             Segmented {
                 visible: Engine.autoHide
                 width: parent.width
@@ -210,7 +187,7 @@ Item {
                 onPicked: key => Config.handle = key
             }
 
-            Label { text: "Desktop"; topPadding: 4 }
+            SectionLabel { text: "Desktop"; topPadding: 4 }
             Switch {
                 text: "\"Activate Linux\""
                 checked: Config.activateLinux
@@ -218,7 +195,6 @@ Item {
             }
         }
 
-        // ---- Idle ----
         Column {
             visible: root.section === "idle"
             width: parent.width
@@ -229,33 +205,20 @@ Item {
                 checked: Idle.enabled
                 onToggled: on => Idle.enabled = on
             }
-            Delay {
-                enabled: Idle.enabled
-                text: "Dim"
-                icon: "brightness_low"
-                seconds: Idle.dimAfter
-                onPicked: s => Idle.dimAfter = s
-            }
-            Delay {
-                enabled: Idle.enabled
-                text: "Lock"
-                icon: "lock"
-                seconds: Idle.lockAfter
-                onPicked: s => Idle.lockAfter = s
-            }
-            Delay {
-                enabled: Idle.enabled
-                text: "Screens off"
-                icon: "desktop_access_disabled"
-                seconds: Idle.offAfter
-                onPicked: s => Idle.offAfter = s
-            }
-            Delay {
-                enabled: Idle.enabled
-                text: "Suspend"
-                icon: "bedtime"
-                seconds: Idle.suspendAfter
-                onPicked: s => Idle.suspendAfter = s
+            Repeater {
+                model: [{ text: "Dim",         icon: "brightness_low",          key: "dimAfter" },
+                        { text: "Lock",        icon: "lock",                    key: "lockAfter" },
+                        { text: "Screens off", icon: "desktop_access_disabled", key: "offAfter" },
+                        { text: "Suspend",     icon: "bedtime",                 key: "suspendAfter" }]
+
+                Delay {
+                    required property var modelData
+                    enabled: Idle.enabled
+                    text: modelData.text
+                    icon: modelData.icon
+                    seconds: Idle[modelData.key]
+                    onPicked: s => Idle[modelData.key] = s
+                }
             }
 
             // the same switch as the dashboard's tile: while it's on, none of the above runs
@@ -267,19 +230,17 @@ Item {
             }
         }
 
-        // ---- Lock ----
         Column {
             visible: root.section === "lock"
             width: parent.width
             spacing: 10
 
-            Label { text: "Pictures"; topPadding: 6 }
+            SectionLabel { text: "Pictures"; topPadding: 6 }
             PathField {
                 setting: "image"
                 icon: Config.symbol.wallpaper
                 placeholder: "Background: follows the wallpaper"
 
-                // pin the wallpaper showing now
                 Pill {
                     implicitHeight: 38
                     kind: "text"
@@ -300,18 +261,17 @@ Item {
                 current: LockConfig.avatarShape
                 onPicked: key => LockConfig.avatarShape = key
             }
-            Text {
+            Label {
                 visible: root.pathError !== ""
                 width: parent.width
                 leftPadding: 4
                 elide: Text.ElideMiddle
                 text: root.pathError
                 color: Config.bad
-                font.family: Config.font
                 font.pixelSize: Config.small
             }
 
-            Label { text: "Who"; topPadding: 6 }
+            SectionLabel { text: "Who"; topPadding: 6 }
             Field {
                 text: LockConfig.name
                 icon: "badge"

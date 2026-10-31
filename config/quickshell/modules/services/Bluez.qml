@@ -4,10 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Bluetooth
 
-// Knows BlueZ (through Quickshell.Bluetooth). Knows nothing about the island.
-//
-// devices: the default adapter's devices: connected first, then paired, then by name. Devices
-//          discovery found that have no name of their own (just an address) are left out.
+// Devices discovery found that have no name of their own (just an address) are left out.
 Singleton {
     id: root
 
@@ -26,6 +23,7 @@ Singleton {
             .sort((a, b) => (b.connected - a.connected) || (b.paired - a.paired) || a.name.localeCompare(b.name))
     }
     readonly property var connected: devices.filter(d => d.connected)
+    readonly property string icon: connected.length > 0 ? "bluetooth_connected" : enabled ? "bluetooth" : "bluetooth_disabled"
 
     readonly property string summary: {
         if (!available) return "No adapter"
@@ -36,7 +34,7 @@ Singleton {
         return scanning ? "Searching…" : "Not connected"
     }
 
-    // ---- discovery: only stopped by whoever started it ----
+    // Only stopped by whoever started it.
     property bool ownScan: false
     function scan(on) {
         if (!adapter) return
@@ -44,7 +42,6 @@ Singleton {
         if (!on && ownScan)  { ownScan = false; adapter.discovering = false }
     }
 
-    // ---- one click per device: connect, disconnect, or pair a new one (then connect it) ----
     function busy(d) { return d.pairing || d.state === BluetoothDeviceState.Connecting
                                         || d.state === BluetoothDeviceState.Disconnecting }
     function activate(d) {
@@ -68,9 +65,6 @@ Singleton {
         }
     }
 
-    function forget(d) { d.forget() }
-
-    // one line per device, for lists
     function status(d) {
         if (d.pairing) return "Pairing…"
         if (d.state === BluetoothDeviceState.Connecting) return "Connecting…"

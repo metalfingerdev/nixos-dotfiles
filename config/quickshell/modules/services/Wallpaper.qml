@@ -1,33 +1,26 @@
 pragma Singleton
 
 import QtQuick
-import QtCore
 import Quickshell
 import Quickshell.Io
+import qs.modules.components
 
-// Knows the wallpaper folder and awww (the wallpaper daemon hypr/modules/autostart.lua starts). Knows nothing
-// about the island. awww restores the last wallpaper by itself, so at startup this only asks it
-// what is showing.
-//   qs ipc call wallpaper next | prev | random | reload | current
-//   qs ipc call wallpaper set /path/to/image.png
+// awww restores the last wallpaper by itself, so at startup this only asks it what is showing.
 Singleton {
     id: root
 
-    // ---- config ----
     property string dir: Quickshell.env("HOME") + "/Pictures/Wallpapers"
     property string transition: "fade"       // awww: none fade simple wipe grow center outer wave any random
-    property real duration: 0.8              // seconds
+    property real duration: 0.8
 
-    // ---- state ----
     property var files: []
     property string current: ""
     readonly property int currentIndex: files.indexOf(current)
 
-    // ---- its colours, for a theme generated from the wallpaper (components/Config.qml) ----
     ColorQuantizer {
         id: quantizer
         source: root.current ? root.fileUrl(root.current) : ""
-        depth: 3                     // 2^3 = 8 colours
+        depth: 3
         rescaleSize: 96              // decode small: it only needs the colours
     }
     readonly property var swatches: Array.from(quantizer.colors ?? [])
@@ -47,9 +40,7 @@ Singleton {
     readonly property color seed: pickedFor !== "" && pickedFor === current ? picked : best
     function pick(colour) { picked = colour; pickedFor = current }
 
-    // ~/.local/state/quickshell/island.ini, like the island's settings
-    property Settings store: Settings {
-        location: StandardPaths.writableLocation(StandardPaths.GenericStateLocation) + "/quickshell/island.ini"
+    property Store store: Store {
         category: "wallpaper"
         property alias picked: root.picked
         property alias pickedFor: root.pickedFor

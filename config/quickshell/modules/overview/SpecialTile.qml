@@ -2,14 +2,14 @@ import QtQuick
 import Quickshell
 import qs.modules.services
 
-// One special workspace ("scratchpad"). The tile is sized to the bounding box of the windows inside it,
-// so a floating terminal looks like a floating terminal instead of being stretched to the monitor's aspect.
+// Sized to the bounding box of the windows inside it, so a floating terminal looks like a floating
+// terminal instead of being stretched to the monitor's aspect.
 Rectangle {
     id: root
 
     property string specialName: ""
     property bool current: false              // open on this monitor: outlined like the focused workspace
-    property var monitorData: null            // monitor the island is on
+    property var monitorData: null
     property int monitorId: 0
     property real previewScale: 0.16
     property real fallbackWidth: 0            // empty special workspace: pretend it is a full monitor (px at previewScale)

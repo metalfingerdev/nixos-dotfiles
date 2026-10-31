@@ -1,11 +1,7 @@
 import QtQuick
 
-// A thick pill slider (Android's quick settings): the primary fill carries the icon, the value sits
-// at the far end of the track. value: 0..1, bound to the real level; act in onMoved.
-// Press or drag anywhere to set it: moved() fires on every move (live), and the slider shows the
-// drag position meanwhile, so a slow source doesn't make it jump back.
-// `iconClicked` (with iconClickable): a click on the icon itself, e.g. mute.
-// Keyboard: Tab reaches it, Left/Right step it by `step`, Enter/Space click the icon.
+// moved() fires on every move, and the slider shows the drag position meanwhile, so a slow source
+// doesn't make it jump back.
 Item {
     id: root
 
@@ -28,11 +24,8 @@ Item {
     function clamp(v) { return isFinite(v) ? Math.max(0, Math.min(1, v)) : 0 }
 
     activeFocusOnTab: true
-    function nudge(by) { const v = clamp(value + by); moved(v); committed(v) }
-    Keys.onLeftPressed:   nudge(-step)
-    Keys.onRightPressed:  nudge(step)
-    Keys.onReturnPressed: if (iconClickable) iconClicked()
-    Keys.onSpacePressed:  if (iconClickable) iconClicked()
+    function nudge(dir) { const v = clamp(value + dir * step); moved(v); committed(v) }
+    function activate() { if (iconClickable) iconClicked() }
 
     implicitWidth: 300
     implicitHeight: 52
@@ -70,14 +63,12 @@ Item {
 
         // the value, at the far end: dim on the track, and the same text clipped to the fill on
         // top of it, so it reads wherever the fill's edge cuts through it
-        Text {
+        Label {
             id: amount
             x: track.width - width - 16
             anchors.verticalCenter: parent.verticalCenter
             text: root.valueText
             color: Config.dim
-            font.family: Config.font
-            font.pixelSize: Config.body
             font.weight: Font.Medium
             font.features: { "tnum": 1 }
         }
@@ -96,11 +87,8 @@ Item {
         }
     }
 
-    MouseArea {
+    ClickArea {
         id: drag
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
         preventStealing: true
 
         function at(x) { return root.clamp((x - track.height / 2) / Math.max(1, width - track.height)) }
@@ -120,7 +108,6 @@ Item {
             else if (!root.overIcon) root.committed(root.dragValue)
             root.overIcon = false
         }
-        // the wheel nudges it
-        onWheel: wheel => root.nudge(wheel.angleDelta.y > 0 ? root.step : -root.step)
+        onWheel: wheel => root.nudge(wheel.angleDelta.y > 0 ? 1 : -1)
     }
 }

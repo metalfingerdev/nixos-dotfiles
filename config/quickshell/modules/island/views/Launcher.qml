@@ -1,5 +1,4 @@
 import QtQuick
-import QtCore
 import Quickshell
 import Quickshell.Io
 import Quickshell.Widgets
@@ -7,20 +6,10 @@ import qs.modules.island
 import qs.modules.components
 import qs.modules.services
 
-// Search apps, files and the island's own actions, with filter chips: All, Apps, Files, Actions.
-//   apps      ranked: the name starts with the query > a word in it does > the name contains it >
-//             its generic name or keywords do ("browser" finds Firefox) > the query's letters in
-//             order ("ffx"). Ties go to the app launched most, then the shorter name. With no
-//             query: the most launched apps. Terminal apps (Terminal=true) open in kitty
-//   files     names under ~ (5 levels, hidden folders skipped), from 2 letters; opened with xdg-open
-//   actions   the island's views and quick settings, lock, suspend...
-//   math      "12*7+3" shows the result; Enter copies it
-// Keys: type to filter, Up/Down select, Enter runs, Tab / Shift+Tab change the filter, Escape
-// closes, Backspace on an empty field goes back. The pointer only takes the selection when it moves.
 Item {
     id: root
 
-    readonly property int maxRows: 7         // shown at once; the rest scroll
+    readonly property int maxRows: 7
     readonly property int maxResults: 24     // per source
     readonly property int rowH: 64
     readonly property string terminal: "kitty"
@@ -34,10 +23,8 @@ Item {
     property int selected: 0
     readonly property string query: bar.text.trim().toLowerCase()
 
-    // ---- how often each app was launched (remembered) ----
     property string usesJson: "{}"
-    property Settings store: Settings {
-        location: StandardPaths.writableLocation(StandardPaths.GenericStateLocation) + "/quickshell/island.ini"
+    property Store store: Store {
         category: "launcher"
         property alias uses: root.usesJson
     }
@@ -49,7 +36,6 @@ Item {
         usesJson = JSON.stringify(u)
     }
 
-    // ---- apps ----
     // 0 = no match; higher = better
     function score(app, q) {
         const name = app.name.toLowerCase()
@@ -76,7 +62,6 @@ Item {
                          description: m.app.comment || m.app.genericName || "" }))
     }
 
-    // ---- actions ----
     function view(v) { return () => Engine.open(v) }
     function quit(f) { return () => { Engine.close(); f() } }
     readonly property var actions: [
@@ -109,7 +94,6 @@ Item {
             .map(a => ({ kind: "action", name: a.name, description: a.description, icon: a.icon, run: a.run }))
     }
 
-    // ---- math ----
     readonly property var calc: {
         const q = bar.text.trim()
         if (!/^[\d\s+\-*/%^().,]+$/.test(q) || !/\d/.test(q) || !/[+\-*/%^]/.test(q)) return null
@@ -122,7 +106,6 @@ Item {
         } catch (e) { return null }
     }
 
-    // ---- files (a background `find`, a moment after typing stops) ----
     property var files: []
     property string searched: ""
     property bool pending: false
@@ -179,7 +162,6 @@ Item {
         return "description"
     }
 
-    // ---- what shows, in order ----
     readonly property var results: {
         const out = []
         if (calc) out.push(calc)
@@ -191,7 +173,6 @@ Item {
     onResultsChanged: selected = Math.min(selected, Math.max(0, results.length - 1))
     onSelectedChanged: list.positionViewAtIndex(selected, ListView.Contain)
 
-    // an empty list says why
     readonly property string hint: results.length > 0 ? ""
         : filter === "files" && query.length < 2 ? "Type at least two letters to search your files"
         : finder.running || debounce.running ? "Searching…"
@@ -221,7 +202,6 @@ Item {
     implicitWidth: 800
     implicitHeight: 20 + bar.height + 12 + (results.length > 0 ? list.height : 56) + 18
 
-    // back: to the view that was open before, like every other view
     BackButton {
         id: back
         x: 20
@@ -262,14 +242,12 @@ Item {
         }
     }
 
-    Text {
+    Label {
         visible: root.hint !== ""
         x: 36
         y: bar.y + bar.height + 28
         text: root.hint
         color: Config.dim
-        font.family: Config.font
-        font.pixelSize: Config.body
     }
 
     ListView {
@@ -295,7 +273,6 @@ Item {
             color: current ? Config.secondary : "transparent"
             Behavior on color { ColorAnimation { duration: 100 } }
 
-            // an app's own icon, or a glyph in a tonal circle
             Item {
                 id: lead
                 x: 12
@@ -332,30 +309,25 @@ Item {
                 anchors { left: lead.right; leftMargin: 14; right: parent.right; rightMargin: 14; verticalCenter: parent.verticalCenter }
                 spacing: 2
 
-                Text {
+                Label {
                     width: parent.width
                     text: row.modelData.name
                     elide: Text.ElideRight
                     color: row.current ? Config.secondaryInk : Config.text
-                    font.family: Config.font
                     font.pixelSize: Config.body + 2
                     font.weight: Font.Medium
                 }
-                Text {
+                Label {
                     width: parent.width
                     visible: text !== ""
                     text: row.modelData.description ?? ""
                     elide: Text.ElideRight
                     color: row.current ? Config.mix(Config.secondaryInk, Config.secondary, 0.25) : Config.dim
-                    font.family: Config.font
                     font.pixelSize: Config.small + 1
                 }
             }
 
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
+            ClickArea {
                 property point last: Qt.point(-1, -1)
                 // only a real move takes the selection: a pointer resting where a row appears
                 // under it must not fight the keyboard

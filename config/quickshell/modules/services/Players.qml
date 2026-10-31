@@ -4,13 +4,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Services.Mpris
 
-// Knows MPRIS media players. Knows nothing about the island.
-//
-// active: the player to show and control: the one the user picked (while it still exists), else
-//         one that is playing, else the first.
-// length / position / canSeek: the last GOOD values for the current track. Players report junk
-//         for a moment after a seek or while buffering (lengthSupported false, a bogus length,
-//         canSeek false), so a bad reading keeps the previous one. A new track starts over.
+// length / position / canSeek are the last GOOD values for the current track: players report junk for
+// a moment after a seek or while buffering (lengthSupported false, a bogus length, canSeek false).
 Singleton {
     id: root
 
@@ -20,14 +15,8 @@ Singleton {
     readonly property var active: (picked && list.includes(picked)) ? picked
                                 : list.find(p => p.isPlaying) ?? list[0] ?? null
     readonly property bool playing: active?.isPlaying ?? false
+    readonly property bool hasTrack: (active?.trackTitle ?? "") !== ""
 
-    // cycle through the players (the view's "switch player" button)
-    function pickNext() {
-        if (list.length < 2) return
-        picked = list[(list.indexOf(active) + 1) % list.length]
-    }
-
-    // ---- last good values ----
     property real length: 0              // seconds; 0 = unknown
     property real rawPosition: 0
     property bool seekable: false
@@ -85,7 +74,6 @@ Singleton {
     function next()     { if (active?.canGoNext) active.next() }
     function previous() { if (active?.canGoPrevious) active.previous() }
 
-    // shuffle, and repeat: off -> one track -> the playlist -> off
     readonly property bool shuffle: active?.shuffle ?? false
     readonly property string loop: active?.loopState === MprisLoopState.Track ? "track"
                                  : active?.loopState === MprisLoopState.Playlist ? "playlist" : "none"

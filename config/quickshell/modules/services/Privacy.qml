@@ -5,11 +5,8 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pipewire
 
-// Knows whether something is recording: the microphone or the camera. Knows nothing about the island.
-//
-// PipeWire: a microphone (audio source node) or camera (video source node) linked to an app's
-// stream means it's in use. A camera opened straight through V4L2 (not through PipeWire) is
-// caught by polling `fuser /dev/video*`, only on machines that have video devices.
+// A camera opened straight through V4L2 bypasses PipeWire, so it is caught by polling
+// `fuser /dev/video*`, only on machines that have video devices.
 Singleton {
     id: root
 
@@ -24,7 +21,6 @@ Singleton {
     function isSource(node, flag) { return has(node, flag) && !node.isStream }
     function isStream(node) { return !!node && node.isStream }
 
-    // ---- V4L2 cameras that bypass PipeWire ----
     property bool hasVideoDevices: false
     property bool polledCamera: false
 

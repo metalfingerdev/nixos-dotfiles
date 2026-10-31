@@ -1,21 +1,16 @@
 import QtQuick
 import qs.modules.island
+import qs.modules.parts
 import qs.modules.components
 import qs.modules.services
 
-// The battery: level, charging state, time left, and the details (power draw, capacity, health,
-// cycles) as chips.
-// One view, two uses: pinned (`open battery`), and the toast Triggers raises when the charger is
-// plugged in or out or the battery runs low. Click the toast to pin it.
-// Pinned, below them: the screen's brightness (with a backlight) and the power profile (with
-// power-profiles-daemon).
-// Keys (pinned): arrows/Tab move, [ ] brightness, Backspace back, Escape closes.
+// One view, two uses: pinned, and the toast Triggers raises when the charger comes or goes or the
+// battery runs low.
 Item {
     id: root
 
     Component.onCompleted: Toggles.readProfile()
 
-    // brightness from anywhere in the view
     Keys.onPressed: event => {
         const t = event.text
         if (t === "]") Backlight.set(Backlight.percent + 5)
@@ -24,9 +19,7 @@ Item {
         Engine.key()
     }
 
-    readonly property color levelColor: Energy.charging || Energy.full ? Config.good
-                                      : Energy.level === "critical" ? Config.bad
-                                      : Energy.level === "low" ? Config.warn : Config.primary
+    readonly property color levelColor: Config[Energy.tone] ?? Config.primary
 
     readonly property string status: {
         if (!Energy.present) return "No battery"
@@ -89,27 +82,22 @@ Item {
             Column {
                 anchors { left: badge.right; leftMargin: 14; right: parent.right; verticalCenter: parent.verticalCenter }
 
-                Text {
+                Label {
                     text: Energy.present ? (Energy.percent >= 0 ? Energy.percent + "%" : "…") : "No battery"
-                    color: Config.text
-                    font.family: Config.font
                     font.pixelSize: Config.display
                     font.weight: Font.Normal
                     font.features: { "tnum": 1 }
                 }
-                Text {
+                Label {
                     visible: !Engine.pinned
                     width: parent.width
                     text: root.status
                     elide: Text.ElideRight
                     color: Config.dim
-                    font.family: Config.font
-                    font.pixelSize: Config.body
                 }
             }
         }
 
-        // a thick Material progress bar
         Progress {
             visible: Energy.present
             width: parent.width
@@ -138,11 +126,9 @@ Item {
                         anchors.centerIn: parent
                         spacing: 6
                         Icon { anchors.verticalCenter: parent.verticalCenter; name: modelData.icon; size: 16; color: Config.dim }
-                        Text {
+                        Label {
                             anchors.verticalCenter: parent.verticalCenter
                             text: modelData.text
-                            color: Config.text
-                            font.family: Config.font
                             font.pixelSize: Config.small + 1
                         }
                     }
@@ -150,23 +136,16 @@ Item {
             }
         }
 
-        Slider {
+        BrightnessSlider {
             visible: Engine.pinned && Backlight.available
             width: parent.width
             implicitHeight: 48
-            icon: Backlight.percent < 34 ? "brightness_low" : Backlight.percent < 67 ? "brightness_medium" : "brightness_high"
-            value: Backlight.percent / 100
-            onMoved: v => Backlight.set(v * 100)
         }
 
         Segmented {
             visible: Engine.pinned && Toggles.profile !== ""
             width: parent.width
-            options: [
-                { key: "power-saver", label: "Saver",       icon: "eco" },
-                { key: "balanced",    label: "Balanced",    icon: "balance" },
-                { key: "performance", label: "Performance", icon: "speed" }
-            ]
+            options: Toggles.profiles
             current: Toggles.profile
             onPicked: key => Toggles.setProfile(key)
         }

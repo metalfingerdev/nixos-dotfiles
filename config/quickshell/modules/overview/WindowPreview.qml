@@ -4,22 +4,16 @@ import Quickshell
 import Quickshell.Wayland
 import qs.modules.services
 
-// A live, draggable thumbnail of one window, placed by its real Hyprland geometry.
-//   left click   -> activated(address)        (the owner decides what that means)
-//   middle click -> closes the window
-//   drag         -> drop on a workspace tile / special tile / "+" tile to move it
 Item {
     id: root
 
-    // ---- the window ----
     property var toplevel: null
     readonly property string address: Toplevels.addressOf(toplevel)
     readonly property var windowData: Desktops.windowByAddress[address] ?? null
     readonly property var monitorData: Desktops.monitorById(windowData?.monitor)
     readonly property int workspaceId: Number(windowData?.workspace?.id ?? -1)
 
-    // ---- placement (set by whoever owns the tile this window is drawn over) ----
-    property var widgetMonitorData: null      // monitor the island is on
+    property var widgetMonitorData: null
     property int widgetMonitorId: 0
     property real previewScale: 0.16
     property real availableWorkspaceWidth: 0
@@ -34,9 +28,8 @@ Item {
     property int baseZ: OverviewConfig.windowZ
     property int recaptureToken: 0
 
-    // ---- drag wiring ----
-    property QtObject dnd: null               // shared drag state (see Desktops.qml)
-    property Item tip: null                   // shared WindowTip
+    property QtObject dnd: null
+    property Item tip: null
     property Item homeParent: null            // set together with dragLayer: re-parent while dragging, so a
     property Item dragLayer: null             // clipped container (special tile) cannot cut the thumbnail off
 
@@ -159,7 +152,7 @@ Item {
         }
     }
 
-    // hover / press tint + the app icon (an icon is all a thumbnail shows until the first frame arrives)
+    // the app icon: all a thumbnail shows until the first frame arrives
     Rectangle {
         anchors.fill: parent
         radius: root.cornerRadius
@@ -185,7 +178,6 @@ Item {
         }
     }
 
-    // rounded mask for the capture (same shape as the tint above)
     Item {
         id: previewMask
         anchors.centerIn: parent
@@ -203,9 +195,6 @@ Item {
         }
     }
 
-    // ---- interaction ----
-
-    // Resolve where the window was dropped. Returns true when a move was dispatched.
     function drop() {
         if (!dnd || !address) return false
         const targetWorkspace = dnd.targetWorkspace
@@ -309,7 +298,6 @@ Item {
         }
     }
 
-    // ---- snapshot mode: re-capture when the owner bumps the token ----
     function refreshCapture() {
         if (OverviewConfig.livePreviews || !OverviewConfig.previewsEnabled) return
         previewCaptureEnabled = false

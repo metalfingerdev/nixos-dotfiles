@@ -13,10 +13,8 @@ Scope {
 	property bool unlockInProgress: false
 	property bool showFailure: false
 
-	// Clear the failure text once the user starts typing.
 	onCurrentTextChanged: showFailure = false;
 
-	// A fresh start for the next lock: no text, no failure message.
 	function reset() {
 		currentText = "";
 		showFailure = false;
@@ -32,13 +30,11 @@ Scope {
 	PamContext {
 		id: pam
 
-		// Its best to have a custom pam config for quickshell, as the system one
-		// might not be what your interface expects, and break in some way.
-		// This particular example only supports passwords.
+		// A config of its own: the system one might not be what this interface expects, and break in some way.
+		// It only supports passwords.
 		configDirectory: "pam"
 		config: "password.conf"
 
-		// pam_unix will ask for a response for the password prompt
 		onPamMessage: {
 			if (this.responseRequired) {
 				this.respond(root.currentText);

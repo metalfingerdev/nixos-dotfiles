@@ -5,17 +5,9 @@ import qs.modules.island
 import qs.modules.components
 import qs.modules.services
 
-// The resting view: the clock, plus whatever is live right now, as a dynamic indicator.
-//   playing     the album cover (bars when there is none) left of the clock, bars right of it
-//   recording   a red dot and the time recorded
-//   Do not disturb, charging   an icon each
-// The island grows to fit, so it's a capsule of whatever is there. The pointer on it expands it
-// (views/Expanded.qml); a click opens Tabs.
-// View contract: set implicitWidth / implicitHeight. The island sizes itself to them.
+// The island grows to fit, so it's a capsule of whatever is there.
 Item {
     id: root
-
-    readonly property bool media: Players.active !== null && (Players.active.trackTitle ?? "") !== ""
 
     implicitWidth: Math.max(120, row.implicitWidth + 32)
     implicitHeight: 36
@@ -30,7 +22,6 @@ Item {
         anchors.centerIn: parent
         spacing: 8
 
-        // recording: the first thing to see
         Row {
             visible: Toggles.recording
             anchors.verticalCenter: parent.verticalCenter
@@ -47,32 +38,26 @@ Item {
                     NumberAnimation { to: 1; duration: 700 }
                 }
             }
-            Text {
+            Label {
                 anchors.verticalCenter: parent.verticalCenter
                 text: Toggles.recordTime
                 color: Config.recording
-                font.family: Config.font
-                font.pixelSize: Config.body
                 font.weight: Font.DemiBold
                 font.features: { "tnum": 1 }
             }
         }
 
-        // the cover, or the bars when the player has none
         ClippingRectangle {
-            visible: root.media
+            visible: Players.hasTrack
             anchors.verticalCenter: parent.verticalCenter
             width: 22
             height: 22
             radius: 11
             color: Config.container
 
-            Image {
+            CoverImage {
                 id: cover
-                anchors.fill: parent
                 source: Players.active?.trackArtUrl ?? ""
-                fillMode: Image.PreserveAspectCrop
-                asynchronous: true
                 sourceSize: Qt.size(44, 44)
                 visible: status === Image.Ready
                 opacity: Players.playing ? 1 : 0.5
@@ -87,11 +72,9 @@ Item {
             }
         }
 
-        Text {
+        Label {
             anchors.verticalCenter: parent.verticalCenter
             text: Qt.formatDateTime(clock.date, "HH:mm")
-            color: Config.text
-            font.family: Config.font
             font.pixelSize: Config.body + 1
             font.weight: Font.DemiBold
             font.features: { "tnum": 1 }
@@ -99,7 +82,7 @@ Item {
 
         // bars beside a cover too, so "playing" reads at a glance
         Equalizer {
-            visible: root.media && Players.playing && cover.status === Image.Ready
+            visible: Players.hasTrack && Players.playing && cover.status === Image.Ready
             anchors.verticalCenter: parent.verticalCenter
             running: Players.playing
             barWidth: 2

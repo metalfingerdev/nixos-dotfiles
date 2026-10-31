@@ -10,6 +10,30 @@ copies and the existing suites run against them. No code in the repo was changed
 
 Baseline: `machine.test.js` 50/50, `tst_keyboard.qml` 13/13.
 
+## Status (2026-10-31)
+
+Worked through, and each claim re-checked against the code first, because the code had moved since this
+was written. Tests: `machine.test.js` 56/56, `tst_keyboard.qml` 15/15.
+
+| Item | Outcome |
+|---|---|
+| B1, B2, B3 | fixed as proposed, with tests |
+| B4 | fixed as proposed. `edged()` had already covered the edge events; the mode event still lost the intent |
+| I1, I2 | not done: behaviour choices, still open |
+| I3 | the doc sentence fixed (D2); `close` keeps its meaning on a toast |
+| I4 | done (`Engine.toast`, `peeked`, `atRest`, `idle`); `Engine.peeking` removed in favour of the snapshot |
+| I5 | no longer applies: the peek is `Expanded` now, a click on it opening Tabs is the design, and Peek leaves no history |
+| I6, I7 | done |
+| R1 | done, as `Audio.levelIcon`, `Backlight.icon` and the sliders themselves in `parts/` (`Audio.glyph` was taken) |
+| R2, R3, R5, R7, R8, R9, R10, R12, R13 | done |
+| R4 | no longer applies: `Expanded` uses MediaCard's `compact` |
+| R6 | half: `showText` removed; `Expanded` uses `maxWidth` |
+| R11 | done as `Energy.tone`, a Config role by name: Config can't see Energy, and services stay free of the theme |
+| R14 | left alone, as suggested |
+| D1, D2, D3 | done |
+
+Everything below is the audit as written, with its line numbers from that day.
+
 ## At a glance
 
 | # | What | Kind | Severity | Effort |

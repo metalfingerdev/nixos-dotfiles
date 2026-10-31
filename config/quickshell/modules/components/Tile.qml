@@ -1,9 +1,5 @@
 import QtQuick
 
-// A focusable card (Material 3): palettes, power actions. Lay its content out inside (children
-// fill it, minus `padding`). `current` draws the primary ring (the palette in use); `tint`
-// recolours it (a power action waiting for its confirming press).
-// Mouse: click. Keyboard: Tab/arrows reach it, Enter/Space press it, its `shortcut` key too.
 Rectangle {
     id: root
 
@@ -17,11 +13,7 @@ Rectangle {
     signal clicked()
 
     activeFocusOnTab: true
-    function press() { clicked() }
-    function activate() { press() }
-    Keys.onReturnPressed: press()
-    Keys.onEnterPressed:  press()
-    Keys.onSpacePressed:  press()
+    function activate() { clicked() }
 
     radius: Config.cardRadius
     color: Config.state(tint.a > 0 ? tint : Config.container, Config.text, area.containsMouse, area.pressed || keyboardSelected)
@@ -29,11 +21,8 @@ Rectangle {
     border.color: Config.primary
     Behavior on color { ColorAnimation { duration: 120 } }
 
-    MouseArea {
+    ClickArea {
         id: area
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
         onClicked: root.clicked()
     }
 
@@ -43,5 +32,5 @@ Rectangle {
     }
 
     FocusRing { on: root.keyboardSelected }
-    KeyBadge { key: root.shortcut; anchors { right: parent.right; top: parent.top; rightMargin: -6; topMargin: -6 } }
+    KeyBadge { key: root.shortcut }
 }

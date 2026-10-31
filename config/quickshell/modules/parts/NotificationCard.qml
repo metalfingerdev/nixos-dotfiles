@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Widgets
+import qs.modules.island
 import qs.modules.components
 import qs.modules.services
 
@@ -29,9 +30,8 @@ Rectangle {
     }
 
     activeFocusOnTab: center
-    Keys.onReturnPressed: Notifier.invoke(modelData.id, "default")
-    Keys.onEnterPressed:  Notifier.invoke(modelData.id, "default")
-    Keys.onDeletePressed: Notifier.dismiss(modelData.id)
+    function press() { Notifier.invoke(modelData.id, "default") }
+    Keys.onDeletePressed: { Engine.key(); Notifier.dismiss(modelData.id) }
 
     implicitWidth: 420
     implicitHeight: Math.max(72, column.implicitHeight + 32)
@@ -41,12 +41,9 @@ Rectangle {
     border.color: Config.bad
     Behavior on color { ColorAnimation { duration: 120 } }
 
-    MouseArea {
+    ClickArea {
         id: area
-        anchors.fill: parent
-        hoverEnabled: true
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
-        cursorShape: Qt.PointingHandCursor
         onClicked: mouse => {
             const id = root.modelData.id
             if (root.center || mouse.button === Qt.MiddleButton) Notifier.invoke(id, "default")
@@ -63,12 +60,9 @@ Rectangle {
         radius: 20
         color: Config.high
 
-        Image {
+        CoverImage {
             id: picture
-            anchors.fill: parent
             source: root.n?.image ?? ""
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
             visible: source != "" && status === Image.Ready
         }
         IconImage {
@@ -92,25 +86,23 @@ Rectangle {
         anchors { left: badge.right; leftMargin: 14; right: close.left; rightMargin: 6; top: parent.top; topMargin: 15 }
         spacing: 2
 
-        Text {
+        Label {
             width: parent.width
             text: (root.n?.appName || "Notification") + "  ·  " + root.ago(root.modelData.time)
             elide: Text.ElideRight
             color: Config.dim
-            font.family: Config.font
             font.pixelSize: Config.small
         }
-        Text {
+        Label {
             width: parent.width
             text: (root.n?.summary ?? "") + (root.modelData.count > 1 ? "  (" + root.modelData.count + ")" : "")
             textFormat: Text.PlainText
             elide: Text.ElideRight
             color: root.modelData.critical ? Config.bad : Config.text
-            font.family: Config.font
             font.pixelSize: Config.body + 1
             font.weight: Font.DemiBold
         }
-        Text {
+        Label {
             width: parent.width
             visible: text !== ""
             text: root.n?.body ?? ""
@@ -119,7 +111,6 @@ Rectangle {
             elide: Text.ElideRight
             maximumLineCount: 2
             color: Config.dim
-            font.family: Config.font
             font.pixelSize: Config.small + 1
         }
 

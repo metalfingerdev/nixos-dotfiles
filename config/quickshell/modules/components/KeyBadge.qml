@@ -1,11 +1,9 @@
 import QtQuick
 
-// A control's shortcut key as a small keycap on its corner, shown while the keyboard is in use
-// (Config.focusVisible). Controls with a `shortcut` place one themselves; ViewLoader presses the
-// control when its key is typed.
 Rectangle {
     property string key: ""
 
+    anchors { right: parent.right; top: parent.top; rightMargin: -6; topMargin: -6 }
     visible: key !== "" && Config.focusVisible
     width: Math.max(20, label.implicitWidth + 10)
     height: 20

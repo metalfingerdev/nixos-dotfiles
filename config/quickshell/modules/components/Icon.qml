@@ -1,7 +1,6 @@
 import QtQuick
 
-// A Material Symbols glyph, by its ligature name: Icon { name: "wifi" }.
-// Names: https://fonts.google.com/icons (the font comes from modules/features/theme.nix).
+// By ligature name: https://fonts.google.com/icons
 Text {
     property string name: ""
     property real size: 18

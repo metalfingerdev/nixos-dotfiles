@@ -2,14 +2,9 @@ import QtQuick
 import qs.modules.components
 import qs.modules.services
 
-// GNOME's workspace indicator: one dot per workspace, the focused one stretched into a bar, and
-// one empty workspace after the last.
-// Dots of workspaces with windows are brighter than empty ones. Changes slide, they don't jump.
-// With `clickable`, a dot focuses its workspace.
 Row {
     id: root
 
-    property int least: 1               // show at least this many
     property real dot: 8
     property real bar: 28
     property bool clickable: false
@@ -17,8 +12,7 @@ Row {
     spacing: 6
 
     Repeater {
-        // like GNOME: every workspace up to the last one in use, then one empty one after it
-        model: Math.max(root.least, Desktops.shown)
+        model: Desktops.shown
 
         Rectangle {
             id: pip

@@ -1,29 +1,17 @@
 pragma Singleton
 
 import QtQuick
-import QtCore
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import qs.modules.components
 import qs.modules.services
 
-// What hypridle would do, inside the shell. Each step counts from the last input:
-//   dim      the backlight drops to dimTo %, and comes back on input
-//   lock     the lock screen (input doesn't undo this one)
-//   off      the screens go off, and come back on input
-//   suspend  the machine sleeps
+// What hypridle would do, inside the shell (commands: docs/ipc.md).
 // A step doesn't run while something inhibits idling: a Wayland inhibitor (a fullscreen video) or a
 // logind one (`systemd-inhibit --what=idle`, the dashboard's Caffeine). One skipped this way waits
 // for the next time the session goes idle, as in hypridle.
-//
-// Whatever puts the machine to sleep (the suspend step, the lid, `systemctl suspend`), the screen
-// locks first, and `loginctl lock-session` locks it too. Nothing here unlocks: only the password does.
-//   qs ipc call idle enable false          stop the steps (the lock before sleep stays)
-//   qs ipc call idle toggle
-//   qs ipc call idle set lock 600          a step's seconds; 0 = never
-//   qs ipc call idle dimTo 10              how far the dim step goes, in percent
-//   qs ipc call idle status                all of those, and the steps that have run, as JSON
-// views/Settings.qml sets the same things.
+// Nothing here unlocks: only the password does.
 Singleton {
 	id: root
 
@@ -31,7 +19,6 @@ Singleton {
 	property bool secure: false
 	signal lockRequested()
 
-	// ---- remembered across restarts ----
 	property bool enabled: true
 	property int dimAfter: 150
 	property int lockAfter: 300
@@ -39,9 +26,7 @@ Singleton {
 	property int suspendAfter: 1800
 	property int dimTo: 10
 
-	// ~/.local/state/quickshell/island.ini, like the island's settings
-	property Settings store: Settings {
-		location: StandardPaths.writableLocation(StandardPaths.GenericStateLocation) + "/quickshell/island.ini"
+	property Store store: Store {
 		category: "idle"
 		property alias enabled: root.enabled
 		property alias dimAfter: root.dimAfter
@@ -51,7 +36,6 @@ Singleton {
 		property alias dimTo: root.dimTo
 	}
 
-	// ---- the steps ----
 	component Step: IdleMonitor {
 		property string name: ""
 		property int after: 0        // seconds; 0 = never
@@ -145,7 +129,6 @@ Singleton {
 		}
 	}
 
-	// ---- the lock before sleep, and logind's own lock request ----
 	property bool goingToSleep: false
 
 	// Holds the sleep back until the screen is locked, or nothing would be covered when it wakes.

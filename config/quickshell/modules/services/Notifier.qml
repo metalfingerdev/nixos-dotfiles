@@ -1,40 +1,24 @@
 pragma Singleton
 
 import QtQuick
-import QtCore
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
+import qs.modules.components
 
-// Owns every notification until it is dismissed. Knows nothing about the island.
-// Behaves like dunst:
-//   - every popup has its own countdown: the app's expire_timeout if it sent one (0 = sticky),
-//     else the urgency default. Critical defaults to sticky.
-//   - only the first maxPopups popups count down; the rest wait their turn ("+N more").
-//   - a popup that times out or is closed is not gone: it stays in `items` (dunst's history, our
-//     notification center) until dismissed. Transient notifications skip the history.
-//   - identical notifications stack into one entry with a count.
-//   - replaces_id updates the entry in place and pops it up again.
-//   - Do not disturb (`dnd`, remembered): new notifications go straight to the center, silently.
-//     Critical ones still pop up.
-//
-// items:  newest first. Plain objects { id, ref, critical, popup, count, time }.
-//         Text, icons and actions are read live from `ref` (the Quickshell Notification).
-// popups: the items still showing as popups, critical first, then newest.
+// Behaves like dunst, down to keeping what timed out or was closed in `items` (dunst's history, our
+// center) until dismissed. An item's text, icons and actions are read live from its `ref`.
 Singleton {
     id: root
 
-    // ---- config (dunst defaults) ----
     property int lowMs: 10000
     property int normalMs: 10000
     property int criticalMs: 0              // 0 = stays until closed
     property int maxPopups: 3               // the rest wait, shown as "+N more"
     property bool stackDuplicates: true
 
-    // Do not disturb: nothing pops up but critical notifications
     property bool dnd: false
-    property Settings store: Settings {
-        location: StandardPaths.writableLocation(StandardPaths.GenericStateLocation) + "/quickshell/island.ini"
+    property Store store: Store {
         category: "notifications"
         property alias dnd: root.dnd
     }
@@ -79,7 +63,6 @@ Singleton {
         n.bodyChanged.connect(() => root.add(n))
     }
 
-    // New, replaced or popped from history: to the top, popping up, with a fresh countdown.
     function add(n) {
         const prev = find(n.id)
         const dup = stackDuplicates ? (items.find(i => i.id !== n.id && same(i.ref, n)) ?? null) : null
@@ -111,7 +94,6 @@ Singleton {
         all.forEach(i => i.ref.dismiss())
     }
 
-    // A popup is over (timed out, or closed by the user): it moves to the history.
     function hide(ids) {
         ids.forEach(id => delete left[id])
         const transient = items.filter(i => ids.includes(i.id) && i.ref.transient)
@@ -132,7 +114,6 @@ Singleton {
         if (!resident && find(id)) dismiss(id)
     }
 
-    // dunst's history-pop: the newest closed notification pops up again.
     function pop() {
         const i = items.find(i => !i.popup)
         if (i) add(i.ref)
@@ -173,7 +154,6 @@ Singleton {
         items = kept.map(n => root.entry(n, false, 1))
     }
 
-    // dunstctl-style:  qs ipc call notifications close | closeAll | action | pop | clear
     IpcHandler {
         target: "notifications"
 

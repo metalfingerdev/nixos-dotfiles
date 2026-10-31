@@ -1,15 +1,8 @@
 import QtQuick
 
-// A search bar (Material 3): a pill with a glyph (`icon`) in a primary circle, the field, then any
-// children (filter chips) on the right. A focus scope: `focus: true` on the bar puts the keyboard
-// in its field. The field takes its own keys and reports them as signals, so the view decides
-// what they do:
-//   key()              any keystroke (for Engine.key(): ViewLoader never sees these)
-//   accepted()         Enter            up() / down()   arrows, only with `takesArrows` (otherwise
-//                                       they move focus out of the field, like Tab)
-//   tab(backward)      Tab / Backtab, only with `takesTab` (otherwise Tab moves focus as usual)
-//   escaped()          Escape           backspaceEmpty()  Backspace on an empty field
-// With `readOnly` it's a button that looks like a field: clicked() on a click.
+// The field takes its own keys and reports them as signals, so the view decides what they do, and
+// ViewLoader never sees them: key() is for Engine.key(). up() / down() only with `takesArrows`, tab()
+// only with `takesTab`; otherwise those keys move focus out of the field as usual.
 FocusScope {
     id: root
 

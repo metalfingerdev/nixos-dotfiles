@@ -4,9 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Knows how to end, pause or lock the session. Knows nothing about the island.
-// Every action but lock is one detached command, so nothing here waits on it. Lock is the shell's
-// own lock screen (modules/lock): run("lock") asks for it with lockRequested(), and Lock.qml locks.
+// Lock is the shell's own lock screen: run("lock") only asks (lockRequested), and Lock.qml locks.
 Singleton {
     id: root
 
@@ -35,7 +33,6 @@ Singleton {
         if (c) Quickshell.execDetached(c)
     }
 
-    // ---- uptime, read on demand (the Power view refreshes it when it opens) ----
     property int uptime: -1              // seconds
     function refresh() { uptimeFile.reload() }
 

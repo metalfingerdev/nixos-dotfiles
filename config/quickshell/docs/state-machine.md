@@ -53,14 +53,14 @@ Hover holds, the keyboard restarts:
 - **The top edge isn't the surface.** `reach`/`retreat` reveal and hold the island; only `hover` expands
   it. `Bar` sends `hover` only below the top `hotZone` pixels, so in notch style, where the surface
   touches the edge, reaching for the edge still only shows the clock. Coming down from the edge sends
-  `hover` and `retreat` in either order, so at Rest `edged()` leaves a running hover intent alone.
+  `hover` and `retreat` in either order, so `rearm()` leaves a running hover intent alone while hovered.
 
 ## Transition table
 
 | Phase \ Event | hover | leave | reach/retreat | peek | unpeek | open | close | back | alert | key | mode | expire |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | **Hidden** | | | reach → Rest | reveal → Rest | | → Pinned | | | → Toast | | unhide | |
-| **Rest** | intent | rearm | edged | keep | release (→ Hidden) | → Pinned | | | → Toast | | retime | lapse |
+| **Rest** | intent | rearm | rearm | keep | release (→ Hidden) | → Pinned | | | → Toast | | retime | lapse |
 | **Peek** | (cancels grace) | letGo | | | | → Pinned | → Rest | → Rest | → Toast | | | → Rest |
 | **Pinned** | rearm | rearm | rearm | | | toggle | → Rest | goBack | alertPinned | start | | → Rest |
 | **Toast** | rearm | rearm | rearm | | | → Pinned | toastEnd | toastEnd | alertToast | | | toastEnd |
@@ -96,11 +96,13 @@ because the durations match.
 
 ## History (Back)
 
-- Opening from Pinned pushes the current `{view, x, priority}`. Opening from anything else, Peek included,
-  starts with an empty history (`trail()`): Peek lives under the pointer, so Back never returns to it.
+- Opening from Pinned pushes the current `{view, x, priority}`. Opening from a toast keeps the toast's
+  history, so pinning a toast still returns to what it interrupted. Opening from anything else, Peek
+  included, starts with an empty history (`trail()`): Peek lives under the pointer, so Back never returns to it.
 - `back` (Backspace, the mouse's back button, a view's back arrow) pops the top entry and restores it as
   **Pinned**, with its anchor: the view that was open before. If the history is empty, back closes the island.
-- `close` (Escape, a click outside) goes straight to Rest from anywhere, history and all.
+- `close` (Escape, a click outside) goes straight to Rest, history and all. On a toast it only ends the
+  toast (`toastEnd`), back to what it interrupted: `Triggers.settle()` relies on that.
 
 ## Alerts, priority and the queue
 
@@ -122,7 +124,8 @@ priorities, never `cfg.priority(view)` of what is on screen.
   priorities (what it shows now includes the urgent thing). Equal or higher priority replaces the current
   toast, and the replaced toast is parked (with its priority) if it may queue. Lower priority is parked.
 - **Parking** (`park`) keeps one slot. Only views with `queue: true` are kept. The highest priority wins,
-  and the newer alert wins a tie. The same view parked again keeps the higher priority.
+  and the newer alert wins a tie. The same view parked again keeps the higher priority. A view that
+  reaches the screen any other way leaves the queue (`enter()`), so it can't show twice.
 - **Delivery**: every route back to Rest (`toRest`, `toastEnd`) shows the parked alert first. A delivered
   toast returns to Rest, not to whatever was open before.
 - **When a toast ends** (`toastEnd`): go back through history if there is one, else deliver the parked

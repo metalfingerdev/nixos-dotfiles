@@ -1,28 +1,16 @@
 pragma Singleton
 
 import QtQuick
-import QtCore
 
-// Colours, shape and type for the whole island, after Material 3 (Android's quick settings):
-// tonal surfaces, pill tiles, thick pill sliders, the primary colour for "on". Bar, the components
-// and every view read these; nothing else hard-codes a colour. `name` picks a palette
-// (views/Colours.qml, views/Theme.qml, IPC `palette`) and is remembered across restarts. No view
-// file may share a singleton's name (Config.qml, Wallpaper.qml, ...): views see their own folder
+// Nothing else hard-codes a colour.
+// No view file may share a singleton's name (Config.qml, Wallpaper.qml, ...): views see their own folder
 // first, and it would hide that singleton from every view.
-//
-// Plain QtQuick + QtCore (no Quickshell), so modules/tests/tst_keyboard.qml can still load Pill.
+// Plain QtQuick (no Quickshell), so modules/tests/tst_keyboard.qml can still load Pill.
 QtObject {
     id: root
 
-    // Every palette has the same keys, Material 3 roles:
-    //   surface     the island itself                    container   tiles, cards, fields (off)
-    //   high        hover, slider tracks, icon circles   highest     pressed, keyboard focus
-    //   primary     "on": active tiles, sliders, the play button      onPrimary   text/icons on it
-    //   secondary   selected chips and segments (a quieter "on")      onSecondary text/icons on it
-    // (QML reads a property called onX as a signal handler, so those two are primaryInk and
-    // secondaryInk below.)
-    //   text        primary text      dim   secondary text      outline   borders, placeholders
-    //   good, warn, bad   status
+    // Every palette has the same keys, Material 3 roles. QML reads a property called onX as a signal
+    // handler, so onPrimary and onSecondary are primaryInk and secondaryInk below.
     readonly property var palettes: ({
         teal:     { label: "Teal", dark: true, surface: "#0e1514", container: "#1a2120", high: "#252b2a", highest: "#303635",
                     primary: "#80d5c8", onPrimary: "#003731", secondary: "#334b47", onSecondary: "#cce8e2",
@@ -59,15 +47,8 @@ QtObject {
     })
     readonly property var names: Object.keys(palettes)
 
-    // ---- where the colours come from (views/Colours.qml) ----
-    //   source   "preset": a palette above, by `name`
-    //            "accent": generated from `accent`, exactly that colour as the primary
-    //            "wallpaper": generated from the hue of a wallpaper colour (`wallpaperSeed`, kept up
-    //                         to date by shell.qml from services/Wallpaper.qml), at
-    //                         `wallpaperSaturation` and `wallpaperTone`: a wallpaper's own colours are
-    //                         often too dark or too muddy to read as they are
-    //   tint     how much of the colour goes into a generated scheme's surfaces, 0..1: 0 is neutral
-    //   darkMode a generated scheme's light or dark version
+    // A wallpaper's own colours are often too dark or too muddy to read as they are, so only the hue of
+    // `wallpaperSeed` is used, at `wallpaperSaturation` and `wallpaperTone`.
     property string source: "preset"
     property string name: "teal"
     property color accent: "#4f9d8f"
@@ -82,7 +63,6 @@ QtObject {
     readonly property real wallpaperLightness: darkMode ? wallpaperTone : 1 - wallpaperTone
     function setWallpaperLightness(v) { wallpaperTone = darkMode ? v : 1 - v }
 
-    // The scheme a source generates (also for a preview of one that isn't in use: views/Theme.qml).
     function generated(from) {
         const primary = from === "wallpaper"
             ? Qt.hsla(Math.max(0, wallpaperSeed.hslHue), wallpaperSeed.hslHue < 0 ? 0 : wallpaperSaturation, wallpaperLightness, 1)
@@ -95,8 +75,7 @@ QtObject {
         const luminance = 0.2126 * linear(c.r) + 0.7152 * linear(c.g) + 0.0722 * linear(c.b)
         return Qt.hsla(Math.max(0, c.hslHue), Math.min(0.5, c.hslSaturation), luminance > 0.179 ? 0.08 : 0.97, 1)
     }
-    // A whole palette around one colour: it is the primary, and its hue at Material's tones makes the
-    // other roles, as saturated as `tint` says. HSL, not Material's HCT, so tones are approximate.
+    // HSL, not Material's HCT, so tones are approximate.
     function scheme(primary, tint, dark) {
         const h = Math.max(0, primary.hslHue)
         // a greyer primary tints less, so grey has truly neutral surfaces with no jump on the way there
@@ -125,11 +104,9 @@ QtObject {
         else darkMode = on
     }
 
-    // Size of the whole island (views/Settings.qml): Bar scales every view by this, so all sizes
-    // below are at 100 %. 0.8 .. 1.4.
+    // Bar scales every view by this, so all sizes below are at 100 %. 0.8 .. 1.4.
     property real scale: 1.0
 
-    // ---- Material roles ----
     readonly property color surface:     current.surface
     readonly property color container:   current.container
     readonly property color high:        current.high
@@ -145,19 +122,9 @@ QtObject {
     readonly property color warn:        current.warn
     readonly property color bad:         current.bad
     readonly property bool  dark:        current.dark
-    // a hairline between sections
     readonly property color divider:     mix(surface, outline, 0.35)
-    // the icon circle on a primary tile: the primary, a shade deeper
     readonly property color primaryDeep: mix(primary, primaryInk, 0.16)
 
-    // ---- the older names, still used by the workspace overview ----
-    readonly property color raised:   container
-    readonly property color hover:    high
-    readonly property color selected: highest
-    readonly property color track:    high
-    readonly property color faint:    outline
-
-    // a + (b - a) * t, per channel: Material's state layers and tonal blends
     function mix(a, b, t) {
         return Qt.rgba(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, a.a + (b.a - a.a) * t)
     }
@@ -165,26 +132,21 @@ QtObject {
     function state(base, ink, hovered, pressed) {
         return pressed ? mix(base, ink, 0.12) : hovered ? mix(base, ink, 0.08) : base
     }
-    // "#rrggbb", as people write a colour
+    // the same state layer on a control with no fill of its own: mixing into a transparent base would shift its colour too
+    function layer(hovered, pressed) { return Qt.rgba(text.r, text.g, text.b, pressed ? 0.12 : hovered ? 0.08 : 0) }
     function hex(c) {
         const h = v => Math.round(v * 255).toString(16).padStart(2, "0")
         return "#" + h(c.r) + h(c.g) + h(c.b)
     }
 
-    // ---- shape (Material 3) ----
     // the island's largest corner; a shape lower than twice this is a capsule (the compact clock, HUDs)
     readonly property int radius: 28
-    readonly property int cardRadius: 24       // cards inside the island (media, notifications)
-    readonly property int innerRadius: 16      // rows, fields
-    readonly property int smallRadius: 12      // thumbnails, album art
+    readonly property int cardRadius: 24
+    readonly property int innerRadius: 16
+    readonly property int smallRadius: 12
 
-    // ---- the island's look (views/Settings.qml, IPC `style` / `handle`), remembered with the palette ----
-    //   style   "pill":  floats below the top edge, every corner round
-    //           "notch": flush with the top edge, square top, curving into the screen edge
-    //   handle  auto-hide: what stays at the top edge while hidden: "strip" (a thin bar) or "none"
     property string style: "pill"
     property string handle: "strip"
-    // "Activate Linux" in each screen's corner (modules/activatelinux, views/Settings.qml, IPC `activateLinux`)
     property bool activateLinux: true
 
     // Glass is Hyprland's (hypr/modules/look.lua): every window is drawn at decoration.active_opacity over
@@ -193,12 +155,9 @@ QtObject {
     property real windowOpacity: 1
     readonly property color island: Qt.rgba(surface.r, surface.g, surface.b, Math.max(0, Math.min(1, windowOpacity)))
 
-    // ---- motion ----
-    // The island's morph (Bar), and anything inside a view that has to move with the island's edge
-    // (parts/WorkspaceButtons.qml), through Motion. The same ease-out and length as Hyprland's windows
-    // (the "Glide" curve in hypr/modules/look.lua, speed 3.5 = 350 ms), so the shell and the desktop
-    // move alike. It never overshoots: a notch revealed from auto-hide stops flush with the top edge
-    // instead of dipping a pixel below it and settling back.
+    // The same ease-out and length as Hyprland's windows (the "Glide" curve in hypr/modules/look.lua, speed
+    // 3.5 = 350 ms), so the shell and the desktop move alike. It never overshoots: a notch revealed from
+    // auto-hide stops flush with the top edge instead of dipping a pixel below it and settling back.
     readonly property var curve: [0.22, 1, 0.36, 1, 1, 1]     // Easing.BezierSpline: x1, y1, x2, y2, end
     readonly property int motionMs: 350
 
@@ -216,8 +175,7 @@ QtObject {
     readonly property color camera: "#35ff72"
     readonly property color recording: "#ff5449"
 
-    // One Material Symbols glyph per thing, used everywhere it appears (Tabs, the
-    // dashboard, the launcher's actions, headers), so the same thing always looks the same.
+    // One glyph per thing, so the same thing looks the same everywhere it appears.
     readonly property var symbol: ({
         back: "arrow_back", open: "arrow_forward", close: "close",
         hub: "apps", dashboard: "tune", launcher: "search", notifications: "notifications",
@@ -240,9 +198,7 @@ QtObject {
     readonly property int headline: 30
     readonly property int display: 56
 
-    // ~/.local/state/quickshell/island.ini. The config dir is a read-only Nix store path.
-    property Settings store: Settings {
-        location: StandardPaths.writableLocation(StandardPaths.GenericStateLocation) + "/quickshell/island.ini"
+    property Store store: Store {
         category: "theme"
         property alias source: root.source
         property alias name: root.name

@@ -4,17 +4,6 @@ import qs.modules.island
 import qs.modules.components
 import qs.modules.services
 
-// The island's colours (views/Theme.qml has them as one row; this is everything). Each choice
-// applies at once and is remembered (components/Config.qml).
-//   where they come from   Presets: the palettes, each as a card in its own colours
-//                          Accent: any colour: the map (hue and lightness), its saturation, or a hex
-//                          Wallpaper: generated from the wallpaper; a click makes another of its
-//                          colours the one it's generated from (it stays on the wallpaper), and
-//                          sliders set how saturated and light that comes out
-//   Surface tint (generated schemes): how much of the colour goes into the island's surfaces
-//   Mode: dark or light (with a preset, light is Paper and dark the last dark palette)
-// Keys: P A W where the colours come from, Tab moves, arrows step the map and the sliders,
-// Enter/Space choose, Backspace back, Escape closes.
 Item {
     id: root
 
@@ -52,7 +41,6 @@ Item {
     implicitWidth: contentW + 2 * pad
     implicitHeight: column.implicitHeight + 2 * pad
 
-    // a slider that names what it sets, at its far end
     component Level: Slider {
         id: level
         property string title: ""
@@ -85,7 +73,6 @@ Item {
             onPicked: key => Config.source = key
         }
 
-        // ================= presets: each palette in its own colours =================
         Grid {
             visible: Config.source === "preset"
             columns: 4
@@ -110,15 +97,12 @@ Item {
                     focus: current && Config.source === "preset"   // the keyboard starts on the palette in use
                     onClicked: Config.name = modelData
 
-                    Text {
+                    Label {
                         anchors { left: parent.left; top: parent.top }
                         text: card.p.label
                         color: card.p.text
-                        font.family: Config.font
-                        font.pixelSize: Config.body
                         font.weight: Font.DemiBold
                     }
-                    // primary, secondary, container: the colours the island is made of
                     Row {
                         anchors { left: parent.left; bottom: parent.bottom }
                         spacing: -6
@@ -139,7 +123,6 @@ Item {
             }
         }
 
-        // ================= an accent you pick: every colour there is =================
         ColourMap {
             visible: root.accent
             width: parent.width
@@ -151,7 +134,6 @@ Item {
             onMoved: (h, l) => { root.hue = h; root.lightness = l; root.setAccent() }
         }
 
-        // ================= the wallpaper's colours: a click generates the scheme from that one =================
         Row {
             visible: root.wallpaper
             width: parent.width
@@ -163,12 +145,9 @@ Item {
                 radius: Config.innerRadius
                 color: Config.container
 
-                Image {
-                    anchors.fill: parent
+                CoverImage {
                     source: Wallpaper.current ? Wallpaper.fileUrl(Wallpaper.current) : ""
                     sourceSize: Qt.size(352, 220)
-                    fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
                 }
             }
             Flow {
@@ -188,17 +167,14 @@ Item {
                         onPicked: Wallpaper.pick(modelData)
                     }
                 }
-                Text {
+                Label {
                     visible: Wallpaper.swatches.length === 0
                     text: "No wallpaper colours yet"
                     color: Config.dim
-                    font.family: Config.font
-                    font.pixelSize: Config.body
                 }
             }
         }
 
-        // ================= how that colour is used =================
         Row {
             id: levels
             readonly property real each: (width - (root.wallpaper ? 2 : 1) * spacing) / (root.wallpaper ? 3 : 2)
@@ -234,12 +210,10 @@ Item {
             }
         }
 
-        // ================= any colour by its number, and the mode =================
         Row {
             width: parent.width
             spacing: 12
 
-            // the field, with the colour it would be at its start (a search bar's badge)
             Rectangle {
                 visible: root.accent
                 width: parent.width - mode.width - parent.spacing

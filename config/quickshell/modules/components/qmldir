@@ -24,3 +24,8 @@ KeyBadge     1.0 KeyBadge.qml
 KeyHints     1.0 KeyHints.qml
 BackButton   1.0 BackButton.qml
 Motion       1.0 Motion.qml
+Label        1.0 Label.qml
+SectionLabel 1.0 SectionLabel.qml
+ClickArea    1.0 ClickArea.qml
+CoverImage   1.0 CoverImage.qml
+Store        1.0 Store.qml

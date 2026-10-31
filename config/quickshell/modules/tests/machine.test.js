@@ -7,33 +7,13 @@ const src = fs.readFileSync(path.join(__dirname, "../island/Machine.js"), "utf8"
 const ctx = vm.createContext({}); vm.runInContext(src, ctx)
 const M = ctx
 
-// ---- fake Registry (mirrors Registry.qml) -----------------------------------------------------
-const V = { Compact: 0, Network: 1, Launcher: 2, Bluetooth: 3, Volume: 4, Brightness: 5, Notifications: 6,
-            Media: 7, Battery: 8, Clock: 9, Power: 10, Theme: 11, Workspaces: 12, Tabs: 13, Dashboard: 14, Switcher: 15,
-            Mixer: 16, Settings: 17, Colours: 18, Wallpapers: 19, Expanded: 20 }
-const REG = {
-    [V.Compact]:    { priority: 0, timeout: 0 },
-    [V.Network]:    { priority: 2, timeout: 5000 },
-    [V.Launcher]:   { priority: 2, timeout: 8000 },
-    [V.Bluetooth]:  { priority: 2, timeout: 5000 },
-    [V.Volume]:     { priority: 1, timeout: 1500, queue: false },
-    [V.Brightness]: { priority: 1, timeout: 1500, queue: false },
-    [V.Notifications]: { priority: 2, critical: 3, timeout: 0, queue: true },
-    [V.Media]:      { priority: 2, timeout: 8000 },
-    [V.Mixer]:      { priority: 2, timeout: 8000 },
-    [V.Battery]:    { priority: 2, critical: 3, timeout: 4000, queue: true },
-    [V.Clock]:      { priority: 2, timeout: 8000 },
-    [V.Power]:      { priority: 2, timeout: 8000 },
-    [V.Theme]:      { priority: 2, timeout: 8000 },
-    [V.Colours]:    { priority: 2, timeout: 8000 },
-    [V.Wallpapers]: { priority: 2, timeout: 8000 },
-    [V.Settings]:   { priority: 2, timeout: 8000 },
-    [V.Workspaces]: { priority: 2, timeout: 8000 },
-    [V.Tabs]:       { priority: 2, timeout: 8000 },
-    [V.Dashboard]:  { priority: 2, timeout: 12000 },
-    [V.Switcher]:   { priority: 1, timeout: 1200, queue: false },
-    [V.Expanded]:   { priority: 2, timeout: 6000 },
-}
+// The Registry and the View enum come from the QML itself, so they can't drift from it.
+const read = file => fs.readFileSync(path.join(__dirname, "../island", file), "utf8")
+const names = read("Engine.qml").match(/enum View \{([^}]*)\}/)[1].match(/\w+/g)
+const V = Object.fromEntries(names.map((n, i) => [n, i]))
+const entries = read("Registry.qml").match(/entries: (\[[\s\S]*?\n    \])/)[1]
+    .replace(/Qt\.resolvedUrl\([^)]*\)/g, '""').replace(/Engine\.View\./g, "V.")
+const REG = Object.fromEntries(vm.runInNewContext(entries, { V }).map(e => [e.view, e]))
 const cfg = {
     restView: V.Compact, peekView: V.Expanded, graceMs: 140, hoverMs: 140, hideMs: 700,
     known:    v => REG[v] !== undefined,
@@ -351,6 +331,28 @@ test("switching again while the switcher shows refreshes its countdown", () => {
 test("a notification replaces the switcher; the switcher isn't parked", () => {
     let s = run(M.initial(V.Compact, false), alert(V.Switcher), alert(V.Notifications))
     assert.strictEqual(s.view, V.Notifications); assert.strictEqual(s.queued, -1)
+})
+
+console.log("alerts already on screen, and what a toast interrupted")
+test("an alert shown while it also waits in the queue isn't shown again later", () => {
+    let s = run(M.initial(V.Compact, false), open(V.Dashboard), alert(V.Battery), alert(V.Battery, 3))
+    assert.strictEqual(s.view, V.Battery); assert.strictEqual(s.queued, -1)
+    s = run(s, E.Expire, E.Close)
+    assert.strictEqual(s.phase, P.Rest)
+})
+test("opening a view that waits in the queue takes it out of the queue", () => {
+    const s = run(M.initial(V.Compact, false), open(V.Dashboard), alert(V.Notifications), open(V.Notifications))
+    assert.strictEqual(s.queued, -1)
+    assert.strictEqual(run(s, E.Close).phase, P.Rest)
+})
+test("pinning a toast keeps what it interrupted: Back returns there", () => {
+    const s = run(M.initial(V.Compact, false), open(V.Dashboard), alert(V.Notifications, CRIT), open(V.Notifications), E.Back)
+    assert.strictEqual(s.phase, P.Pinned); assert.strictEqual(s.view, V.Dashboard)
+})
+test("the hover intent survives the edge or the mode changing while hovered", () => {
+    const s = run(M.initial(V.Compact, false), E.Hover)
+    for (const e of [E.Reach, E.Retreat, { type: E.Mode, on: true }])
+        assert.strictEqual(run(s, e).timer, s.timer, JSON.stringify(e))
 })
 
 console.log(`\n${pass} passed, ${fail} failed`)

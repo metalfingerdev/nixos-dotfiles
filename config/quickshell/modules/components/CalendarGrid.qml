@@ -1,8 +1,6 @@
 import QtQuick
 
-// One month: weekday initials, then six weeks of days (so the height never changes between
-// months). Days outside the month are faint; today gets the accent.
-//   CalendarGrid { year: 2026; month: 9 }      // month is 0-based, like Date
+// Always six weeks, so the height never changes between months.
 Item {
     id: root
 
@@ -13,7 +11,6 @@ Item {
     property int firstDay: Qt.locale().firstDayOfWeek % 7
     property int cell: 30
 
-    // how many cells come before the 1st
     readonly property int offset: (new Date(year, month, 1).getDay() - firstDay + 7) % 7
 
     implicitWidth: cell * 7
@@ -30,7 +27,7 @@ Item {
         Repeater {
             model: 7
 
-            Text {
+            Label {
                 required property int index
                 width: root.cell
                 height: root.cell
@@ -38,7 +35,6 @@ Item {
                 verticalAlignment: Text.AlignVCenter
                 text: Qt.locale().dayName((root.firstDay + index) % 7, Locale.NarrowFormat)
                 color: Config.dim
-                font.family: Config.font
                 font.pixelSize: Config.small
                 font.weight: Font.DemiBold
             }
@@ -66,13 +62,11 @@ Item {
                     color: Config.primary
                 }
 
-                Text {
+                Label {
                     anchors.centerIn: parent
                     text: day.date.getDate()
                     color: day.isToday ? Config.primaryInk : day.inMonth ? Config.text : Config.outline
                     opacity: day.inMonth ? 1 : 0.6
-                    font.family: Config.font
-                    font.pixelSize: Config.body
                     font.weight: day.isToday ? Font.Bold : Font.Normal
                 }
             }

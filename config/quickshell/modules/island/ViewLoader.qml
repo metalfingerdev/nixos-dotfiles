@@ -1,27 +1,10 @@
 import QtQuick
 
-// The island's view slot: a Loader plus the DEFAULT keyboard, for every view.
 // Plain QtQuick (no Engine, no Quickshell), so modules/tests/tst_keyboard.qml can drive it.
 //
-// The Loader is a focus scope. A key goes to the focused item first and bubbles up; whatever the
-// view doesn't accept ends up here:
-//   Tab / Backtab          next / previous focusable item in the view (activeFocusOnTab), wrapping
-//   arrows                 the nearest focusable item that way (so grids and rows work); with
-//                          nothing that way, the next (Right/Down) or previous (Left/Up), wrapping
-//   a letter, digit or sign   presses the control whose `shortcut` it is (Pill, QuickTile, Tile,
-//                          ListEntry, Chip, a Segmented option): they show it as a keycap while the
-//                          keyboard is in use
-//   Escape                 cancel() (Bar: Engine.close(): everything closes, back to the clock)
-//   Backspace              back()   (Bar: Engine.back(): the view that was open before)
-// Every key that reaches here, and every focus move inside the view, emits activity() (Bar:
-// Engine.key(), which restarts the countdown). The same, minus the focus a view gets when it
-// loads, emits navigated() (Bar: focus rings show; see Config.focusVisible).
-// A view that accepts keys itself reports them the same way (see views/Launcher.qml).
-// Enter/Space press the focused control (each control handles that itself).
-//
-// A view with its own rules handles keys in its Keys handlers; anything it leaves unaccepted
-// still gets the defaults. A view that sets `focus: true` on an item keeps that initial focus;
-// otherwise its first focusable item gets it.
+// A key goes to the focused item first and bubbles up, so a view overrides any default by accepting
+// the key. Every key that reaches here and every focus move inside the view restarts the countdown
+// (activity); a view that accepts keys itself must report them too (see views/Launcher.qml).
 Loader {
     id: root
 
@@ -45,12 +28,15 @@ Loader {
         switch (event.key) {
         case Qt.Key_Tab:     step(true);  break
         case Qt.Key_Backtab: step(false); break
-        case Qt.Key_Right:   move(1, 0);  break
-        case Qt.Key_Left:    move(-1, 0); break
+        case Qt.Key_Right:   if (!nudge(1)) move(1, 0);   break
+        case Qt.Key_Left:    if (!nudge(-1)) move(-1, 0); break
         case Qt.Key_Down:    move(0, 1);  break
         case Qt.Key_Up:      move(0, -1); break
         case Qt.Key_Escape:    cancel(); break
         case Qt.Key_Backspace: back(); break
+        case Qt.Key_Return:
+        case Qt.Key_Enter:   event.accepted = press(false); break
+        case Qt.Key_Space:   event.accepted = press(true);  break
         default: {
             const plain = !(event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier))
             event.accepted = plain && shortcut(event.text)
@@ -71,13 +57,11 @@ Loader {
         if (!focusedInside(item)) step(true)
     }
 
-    // inside the loaded view (and not the view's root itself)
     function inView(it) {
         for (let p = it; p; p = p.parent) if (p === item) return it !== item
         return false
     }
 
-    // true = the view already asked for focus somewhere (QML's `focus: true`)
     function focusedInside(it) {
         if (!it) return false
         for (let i = 0; i < it.children.length; i++) {
@@ -87,7 +71,6 @@ Loader {
         return false
     }
 
-    // Move to the next/previous item with activeFocusOnTab, staying inside the view.
     function step(forward) {
         const current = Window.activeFocusItem
         const from = inView(current) ? current : root
@@ -95,7 +78,6 @@ Loader {
         if (next && next !== from && inView(next)) next.forceActiveFocus()
     }
 
-    // Every focusable item of the view: the window's focus chain, kept to the view.
     function focusables() {
         const out = []
         const first = root.nextItemInFocusChain(true)
@@ -108,9 +90,8 @@ Loader {
         return out
     }
 
-    // Arrow keys: the nearest focusable item in direction (dx, dy). "Nearest" is the gap along the
-    // axis plus three times the miss across it, so a grid's neighbour beats a closer diagonal.
-    // Nothing that way: the next or previous item, as Tab would (and it wraps).
+    // "Nearest" is the gap along the axis plus three times the miss across it, so a grid's neighbour beats
+    // a closer diagonal.
     function move(dx, dy) {
         const current = Window.activeFocusItem
         if (!inView(current)) { step(dx + dy > 0); return }
@@ -127,7 +108,7 @@ Loader {
                 along = dy > 0 ? b.y - (a.y + a.height) : a.y - (b.y + b.height)
                 across = Math.max(0, Math.abs((b.x + b.width / 2) - (a.x + a.width / 2)) - (a.width + b.width) / 2)
             }
-            if (along < -4) continue                                  // not that way
+            if (along < -4) continue
             const centre = dx !== 0 ? Math.abs((b.y + b.height / 2) - (a.y + a.height / 2))
                                     : Math.abs((b.x + b.width / 2) - (a.x + a.width / 2))
             const score = Math.max(0, along) + 3 * across + 0.05 * centre
@@ -137,7 +118,24 @@ Loader {
         else step(dx + dy > 0)
     }
 
-    // A typed character: press the visible, enabled control whose `shortcut` it is.
+    // Here, not in each control: a handler on the control accepts the key, so it never reaches this
+    // Loader and doesn't count as activity, and a pinned view timed out while it was being used.
+    // press() is what Enter does where it differs from Space (a tile's Enter opens, its Space switches).
+    function press(space) {
+        const it = Window.activeFocusItem
+        if (!inView(it)) return false
+        if (!space && typeof it.press === "function") it.press()
+        else if (typeof it.activate === "function") it.activate()
+        else return false
+        return true
+    }
+    function nudge(dir) {
+        const it = Window.activeFocusItem
+        if (!inView(it) || typeof it.nudge !== "function") return false
+        it.nudge(dir)
+        return true
+    }
+
     function shortcut(text) {
         if (!item || !text || text.length !== 1 || text === " ") return false
         const hit = find(item, text.toLowerCase())

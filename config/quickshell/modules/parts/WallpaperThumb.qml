@@ -3,10 +3,6 @@ import Quickshell.Widgets
 import qs.modules.components
 import qs.modules.services
 
-// One wallpaper as a rounded thumbnail (views/Theme.qml's row, views/Wallpapers.qml's grid). The
-// one showing has a primary ring and a check; `picked` (the keyboard's selection in its list) a
-// thick ring. Under the pointer, its file name shows along the bottom. A click emits clicked():
-// the view applies it.
 ClippingRectangle {
     id: root
 
@@ -19,15 +15,11 @@ ClippingRectangle {
     radius: Config.innerRadius
     color: Config.container
 
-    Image {
-        anchors.fill: parent
+    CoverImage {
         source: root.path ? Wallpaper.fileUrl(root.path) : ""
         sourceSize: Qt.size(384, 240)            // decode small: wallpapers are big
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
     }
 
-    // the file name, under the pointer
     Rectangle {
         visible: area.containsMouse
         anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
@@ -37,17 +29,14 @@ ClippingRectangle {
             GradientStop { position: 1; color: Qt.rgba(Config.surface.r, Config.surface.g, Config.surface.b, 0.85) }
         }
 
-        Text {
+        Label {
             anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: 10; bottomMargin: 7 }
             text: Wallpaper.baseName(root.path)
             elide: Text.ElideMiddle
-            color: Config.text
-            font.family: Config.font
             font.pixelSize: Config.small
         }
     }
 
-    // applied: a primary ring and a check; the keyboard's pick: a thick ring
     Rectangle {
         anchors.fill: parent
         radius: root.radius
@@ -69,11 +58,8 @@ ClippingRectangle {
         }
     }
 
-    MouseArea {
+    ClickArea {
         id: area
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
         onClicked: root.clicked()
     }
 }

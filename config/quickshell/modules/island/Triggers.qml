@@ -7,9 +7,8 @@ import qs.modules.services
 Scope {
     id: root
 
-    // ---- config ----
-    property bool followFocus: true      // the idle island moves to the monitor Hyprland focuses
-    property bool switcherToasts: true   // switching workspace shows the dots (views/Switcher.qml)
+    property bool followFocus: true
+    property bool switcherToasts: true
 
     // services report their initial values at startup; don't toast those
     property bool armed: false
@@ -28,31 +27,26 @@ Scope {
         function onPercentChanged() { root.alert(Engine.View.Brightness) }
     }
 
-    // ---- the focused monitor: an idle island follows it (an open one stays where it is) ----
     Connections {
         target: Hyprland
         enabled: root.followFocus
         function onFocusedMonitorChanged() {
             const name = Hyprland.focusedMonitor?.name
-            if (name && (Engine.hidden || Engine.phase === "rest")) Engine.setScreen(name)
+            if (name && Engine.idle) Engine.setScreen(name)
         }
     }
 
-    // ---- workspaces: GNOME-style dots when the focused workspace changes. Not while a view that
-    // shows workspaces itself is open (Tabs, the overview), nor over Expanded under the pointer.
-    // Priority 1 and queue: false (Registry), so it never interrupts anything and is never kept. ----
+    // Priority 1 and queue: false (Registry), so it never interrupts a view and is never kept. Not over
+    // Expanded either: at Peek any alert would replace it under the pointer.
     Connections {
         target: Hyprland
         enabled: root.switcherToasts
         function onFocusedWorkspaceChanged() {
             const id = Hyprland.focusedWorkspace?.id ?? -1
-            if (id <= 0 || Engine.phase === "peek") return
-            if (Engine.view === Engine.View.Tabs || Engine.view === Engine.View.Workspaces) return
-            root.alert(Engine.View.Switcher)
+            if (id > 0 && !Engine.peeked) root.alert(Engine.View.Switcher)
         }
     }
 
-    // ---- battery: the charger coming or going, and running low (critical: nearly empty) ----
     Connections {
         target: Energy
         function onPluggedChanged() { if (Energy.present) root.alert(Engine.View.Battery) }
@@ -62,10 +56,9 @@ Scope {
         }
     }
 
-    // ---- notifications: one view. As a toast it shows the popups, and lives exactly as long as
-    // there are any; pinned it is the center. ----
+    // As a toast the view lives exactly as long as there are popups; pinned it is the center.
     readonly property bool notifications: Engine.view === Engine.View.Notifications
-    readonly property bool popupShown: notifications && Engine.phase === "toast"
+    readonly property bool popupShown: notifications && Engine.toast
     readonly property bool centerShown: notifications && Engine.pinned
 
     // Popups count down only while on screen and not under the pointer.

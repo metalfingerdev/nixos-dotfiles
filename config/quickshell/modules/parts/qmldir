@@ -6,3 +6,6 @@ MediaCard        1.0 MediaCard.qml
 NotificationCard 1.0 NotificationCard.qml
 WorkspaceButtons 1.0 WorkspaceButtons.qml
 WallpaperThumb   1.0 WallpaperThumb.qml
+VolumeSlider     1.0 VolumeSlider.qml
+BrightnessSlider 1.0 BrightnessSlider.qml
+DateStamp        1.0 DateStamp.qml

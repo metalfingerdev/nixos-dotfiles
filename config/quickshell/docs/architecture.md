@@ -20,7 +20,7 @@ else turns input into one `Engine` call or turns `Engine` state into pixels.
 - `snapshot` is the only mutable state. `send(event)` replaces it with `Machine.reduce(snapshot, event, config())`.
 - If `snapshot.timer` changes identity, `arm()` restarts the single `Timer` with `timer.ms`, or stops it when
   the timer is `null`. When it fires, `Engine` sends `Expire`.
-- Read-only properties (`view`, `phase`, `hidden`, `pinned`, `keyboard`, `hovered`, `autoHide`, `anchorX`)
+- Read-only properties (`view`, `phase`, `hidden`, `pinned`, `toast`, `peeked`, `atRest`, `idle`, `hovered`, `autoHide`, `anchorX`)
   are what the UI binds to.
 - The public API is one function per event: `open(v, x?)`, `close()`, `back()`, `alert(v, priority?)`,
   `hover(on)`, `edge(on, screenName)`, `setAutoHide(on)`, `key()`.
@@ -54,7 +54,7 @@ Each `Bar` creates two layer-shell `PanelWindow`s:
    - normally only the **proxy** rect, so the rest of the screen stays clickable;
    - the **whole screen** while a view is Pinned: a click anywhere outside the island closes it;
    - **nothing** while Hidden: the strip handle is only a hint, the spacer's hot zone reveals.
-   - Keyboard: while `Engine.keyboard` (a view is Pinned) the overlay takes
+   - Keyboard: while `Engine.pinned` the overlay takes
      exclusive keyboard focus (`WlrKeyboardFocus.Exclusive`). See [Keyboard and hover](#keyboard-and-hover).
 
 ## Bar: the proxy/surface morph
@@ -119,7 +119,7 @@ list view) and the new size's redirect would land mid-slide and the island would
 The peek key (IPC `peek true`/`peek false`, see [ipc.md](ipc.md)) calls `Engine.peek(on)`: it shows the
 rest view while held (revealing it from Hidden) and, in auto-hide mode, hides it at once on release. The
 rest view doesn't take the keyboard. `Engine.togglePeek()` (IPC `togglePeek`) is the one-binding version:
-`peek(!Engine.peeking)`.
+`peek(!snapshot.peeking)`.
 
 While the island holds the keyboard (an exclusive layer), Hyprland refuses to focus any window, so the
 window it thinks is focused goes stale. When the island lets go, Hyprland focuses that window again and
@@ -143,13 +143,16 @@ through the view, and whatever the view doesn't accept reaches the defaults:
 | Tab / Backtab | next / previous item with `activeFocusOnTab` in the view, wrapping |
 | arrows | the nearest focusable item that way, by screen position (so grids work); nothing that way: next (Right/Down) or previous (Left/Up), wrapping |
 | a letter, digit or sign | presses the control whose `shortcut` it is (shown as a keycap while the keyboard is in use) |
-| Enter, Space | press the focused control (handled by the control) |
+| Enter, Space | call the focused control's `press()` (Enter only, where it differs from Space) or `activate()` |
+| Left, Right on a control that steps | its `nudge(-1 \| 1)` (Slider, Progress), and focus stays; otherwise as the arrows above |
 | Escape | `cancel()`, which Bar maps to `Engine.close()`: everything closes, back to the clock |
 | Backspace | `back()`, which Bar maps to `Engine.back()`: the view that was open before (closes when there is none). The mouse's back button does the same, anywhere on the island or outside it |
 
 Every key that reaches `ViewLoader`, and every focus move inside the view, emits `activity()`, which Bar
-maps to `Engine.key()`. Keys a view accepts itself never reach it, so such a view calls `Engine.key()`
-itself (the launcher's field does, in `Keys.onPressed`).
+maps to `Engine.key()`. That's why Enter, Space and stepping live here and not in the controls: a `Keys`
+handler on a control accepts the key, so it would never count, and a pinned view would time out while it
+was being used. Keys a view does accept itself (text fields) never reach it, so such a view calls
+`Engine.key()` itself (the launcher's field does, in `Keys.onPressed`).
 
 The same, minus the focus a view takes as it loads (`settleMs`), emits `navigated()`, which turns on
 `Config.focusVisible`; so does `Ipc.open` (a view opened over IPC is a keybind). The pointer *moving*

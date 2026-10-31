@@ -4,28 +4,21 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Knows /sys/class/power_supply (the battery and the charger). Knows nothing about the island.
-// sysfs has no change events, so we poll each device's `uevent` file (every value in one read),
-// the same approach as Backlight. No UPower needed. On a desktop with no battery, `present`
-// stays false and nothing ever fires.
-//
-// warn(critical): the battery just dropped to `lowAt` (critical = false) or `criticalAt` (true)
-// while discharging. Each threshold warns once per discharge.
+// sysfs has no change events, so this polls each device's `uevent` file (every value in one read).
+// No UPower needed. Each threshold warns once per discharge.
 Singleton {
     id: root
 
-    // ---- config ----
     property int lowAt: 15
     property int criticalAt: 5
     property int pollMs: 2000
 
-    // ---- state ----
-    property string battery: ""          // e.g. /sys/class/power_supply/BAT0
-    property string charger: ""          // e.g. /sys/class/power_supply/ACAD
+    property string battery: ""
+    property string charger: ""
     readonly property bool present: battery !== ""
 
     property int percent: -1             // -1 = not read yet
-    property string status: ""           // Charging, Discharging, Full, Not charging, Unknown
+    property string status: ""
     property bool plugged: false
     property real watts: 0               // power draw (or charge rate); 0 = the battery doesn't say
     property real energyWh: 0
@@ -38,7 +31,6 @@ Singleton {
     readonly property bool discharging: status === "Discharging" || (!plugged && !charging && present)
     readonly property int health: designWh > 0 ? Math.round(fullWh * 100 / designWh) : -1
 
-    // minutes until empty (discharging) or full (charging); -1 = unknown
     readonly property int minutesLeft: {
         if (watts <= 0) return -1
         if (charging) return Math.round((fullWh - energyWh) / watts * 60)
@@ -47,8 +39,9 @@ Singleton {
     }
 
     readonly property string level: percent <= criticalAt ? "critical" : percent <= lowAt ? "low" : "ok"
+    // a Config role, by name: services stay free of the theme. "" = the viewer's own colour
+    readonly property string tone: charging || full ? "good" : level === "critical" ? "bad" : level === "low" ? "warn" : ""
 
-    // the Material Symbols glyph for the state of charge
     readonly property string glyph: {
         if (!present) return "power"
         if (charging) return "battery_charging_full"
@@ -65,7 +58,6 @@ Singleton {
         return h > 0 ? h + " h " + String(m).padStart(2, "0") + " min" : m + " min"
     }
 
-    // ---- 1. find the devices once ----
     Process {
         running: true
         command: ["sh", "-c",
@@ -83,7 +75,6 @@ Singleton {
         }
     }
 
-    // ---- 2. read them ----
     function parse(text) {
         const out = {}
         for (const line of text.split("\n")) {

@@ -3,9 +3,7 @@ import qs.modules.island
 import qs.modules.components
 import qs.modules.services
 
-// Lock, suspend, log out, restart, shut down. The last three ask first: the first press arms the
-// tile (it turns red and says "again?"), a second press within `confirmMs` runs it.
-// Keys: L S O R P (each tile shows its own), arrows/Tab move, Enter presses, Backspace back, Escape closes.
+// The ones that end the session ask first: the first press arms the tile, a second within `confirmMs` runs it.
 Item {
     id: root
 
@@ -73,12 +71,10 @@ Item {
                                 color: tile.waiting ? Config.surface : Config.text
                             }
                         }
-                        Text {
+                        Label {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: tile.waiting ? "Again?" : tile.modelData.label
                             color: tile.waiting ? Config.surface : Config.text
-                            font.family: Config.font
-                            font.pixelSize: Config.body
                             font.weight: tile.waiting ? Font.DemiBold : Font.Normal
                         }
                     }

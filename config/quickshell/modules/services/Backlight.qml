@@ -4,20 +4,17 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Knows /sys/class/backlight. Knows nothing about the island.
-// sysfs has no change events, so we poll (same approach as DynamicGlacier).
-// On a desktop with no backlight, `path` stays "" and nothing ever fires.
-// set(percent) goes through brightnessctl (the keys use it too); a drag sends many values, so
-// only the newest one waiting runs once the previous call is done.
+// sysfs has no change events, so this polls.
+// A drag sends many values, so only the newest one waiting runs once the previous brightnessctl call is done.
 Singleton {
     id: root
 
-    property string path: ""     // e.g. /sys/class/backlight/intel_backlight
+    property string path: ""
     property int max: 0
     property int percent: -1     // -1 = not read yet
     readonly property bool available: path !== "" && max > 0
+    readonly property string icon: percent < 34 ? "brightness_low" : percent < 67 ? "brightness_medium" : "brightness_high"
 
-    // 1. Find the backlight device once.
     Process {
         running: true
         command: ["sh", "-c",
@@ -25,7 +22,6 @@ Singleton {
         stdout: StdioCollector { onStreamFinished: root.path = text.trim() }
     }
 
-    // 2. Read max + current from files.
     FileView {
         id: maxFile
         path: root.path === "" ? "" : root.path + "/max_brightness"
@@ -43,7 +39,6 @@ Singleton {
         }
     }
 
-    // 3. Re-read twice a second. percent only emits when the rounded value changes.
     Timer {
         interval: 500
         repeat: true
@@ -52,7 +47,6 @@ Singleton {
         onTriggered: { maxFile.reload(); curFile.reload() }
     }
 
-    // ---- setting it ----
     property int wanted: -1
     function set(p) {
         if (!available) return

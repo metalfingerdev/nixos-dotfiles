@@ -1,26 +1,13 @@
 .pragma library
 
-// Pure statechart: no QML, no timers, no clock, no globals.
-//   reduce(state, event, cfg) -> state
-// States are plain objects and are never mutated. The timer is part of the state:
-// the shell arms its one real Timer whenever state.timer changes identity.
+// Pure: no QML, no timers, no clock, no globals, so every transition can be replayed in a test.
+// States are never mutated, and the timer is part of the state: the shell arms its one real Timer
+// whenever state.timer changes identity. docs/state-machine.md has the phases and the events.
 //
-//   state { phase, view, prio, hovered, edge, peeking, x, ms, timer, history, autoHide, queued, queuedPrio }
-//   prio  priority of what is showing: the alert's own, else cfg.priority(view). Kept in history and
-//         in the queue, so an urgent alert stays urgent wherever it goes
-//   peeking  the peek key is held (IPC `peek true` until `peek false`). Only ever true at Rest
-//   timer { ms, kind } | null   kind: "hold" (phase countdown) | "intent" (hover) | "grace" (peek)
-//   x     anchor in window coords: the x to centre on, -1 = the screen centre
-//   event { type, view?, x?, on?, priority? }   priority: alerts only; omitted = cfg.priority(view)
-//   cfg   { restView, peekView, graceMs, hoverMs, hideMs,
-//           known(view), timeout(view), priority(view), queues(view) }
-//
-//   Hidden  island parked off-screen (auto-hide mode only); the top-edge hot zone reveals it
-//   Rest    restView; in auto-hide mode it lingers hideMs, then goes back to Hidden. The peek key
-//           shows it while held: releasing it hides at once (auto-hide), not after the linger
-//   Peek    peekView (Expanded) shown because the pointer is on the island; no countdown, no keyboard
-//   Pinned  an opened view; counts down by its Registry timeout unless held, each keystroke restarts it
-//   Toast   a view the system triggered (volume, notification...); same countdown as Pinned
+//   prio   what is showing: the alert's own, else the view's. Kept in history and in the queue,
+//          so an urgent alert stays urgent wherever it goes
+//   timer  { ms, kind } | null; kind: "hold" (phase countdown) | "intent" (hover) | "grace" (peek)
+//   x      the x to centre on, -1 = the screen centre
 
 var Phase = { Hidden: "hidden", Rest: "rest", Peek: "peek", Pinned: "pinned", Toast: "toast" }
 var Event = { Hover: "hover", Leave: "leave", Reach: "reach", Retreat: "retreat", Mode: "mode",
@@ -33,12 +20,10 @@ function initial(restView, autoHide) {
              history: [], autoHide: !!autoHide, queued: -1, queuedPrio: -1 }
 }
 
-// ---- atoms -------------------------------------------------------------------
 function set(s, patch) { return Object.assign({}, s, patch) }
 function timed(s)      { return s.phase === Phase.Pinned || s.phase === Phase.Rest || s.phase === Phase.Toast }
 // The pointer is on the island or in the top-edge hot zone, or the peek key is held: countdowns pause.
 function holding(s)    { return s.hovered || s.edge || s.peeking }
-// An event's priority: its own if it brought one, else the view's.
 function prio(e, cfg)  { return e.priority !== undefined ? e.priority : cfg.priority(e.view) }
 // What a history entry remembers about the current view, so Back restores it exactly.
 function here(s)       { return { view: s.view, x: s.x, priority: s.prio } }
@@ -56,31 +41,34 @@ function start(s)      { return set(s, { timer: wanted(s) }) }
 // for the phase countdown just because the durations happen to match.
 function rearm(s) {
     const w = wanted(s), t = s.timer
+    // While hovered wanted() is null, and that would drop the running hover intent: the peek would never come.
+    if (t && t.kind === "intent" && s.hovered) return s
     return w && t && t.kind === w.kind && t.ms === w.ms ? s : set(s, { timer: w })
 }
 
-// How long Rest lingers: only in auto-hide mode.
 function restMs(s, cfg) { return s.autoHide ? cfg.hideMs : 0 }
 
-// The history an open() leaves behind: Pinned views stack up; anything else starts fresh. Peek only
-// lives under the pointer, so Back never returns to it.
-function trail(s) { return s.phase === Phase.Pinned ? s.history.concat([here(s)]) : [] }
+// The history a new view leaves behind. A toast passes on what it interrupted, whether it is pinned or
+// replaced by another toast. Peek only lives under the pointer, so Back never returns to it.
+function trail(s) {
+    if (s.phase === Phase.Pinned) return s.history.concat([here(s)])
+    return s.phase === Phase.Toast ? s.history : []
+}
 
-// Where a view is anchored. The resting view always centres; no coordinate = centre.
 function anchor(view, e, cfg) { return view === cfg.restView || e.x === undefined ? -1 : e.x }
 
-// ---- the one way to change phase ---------------------------------------------
-// `peeking` is cleared on every phase change (reveal() sets it after entering Rest), so the peek
-// key never outlives its Rest: a release that never arrives can't hold anything afterwards.
+// The one way to change phase. `peeking` is cleared on every change (reveal() sets it after entering
+// Rest), so the peek key never outlives its Rest: a release that never arrives can't hold anything afterwards.
 function enter(s, cfg, phase, view, ms, e) {
     e = e || {}
+    const shown = s.queued === view     // however it reached the screen, it mustn't show again from the queue
     return start(set(s, {
         phase: phase, view: view, ms: ms, x: anchor(view, e, cfg), peeking: false,
+        queued: shown ? -1 : s.queued, queuedPrio: shown ? -1 : s.queuedPrio,
         prio: e.priority !== undefined ? e.priority : cfg.priority(view)
     }))
 }
 
-// ---- transitions: (state, event, cfg) -> state -------------------------------
 function rest(s, e, cfg)     { return enter(set(s, { history: [] }), cfg, Phase.Rest, cfg.restView, restMs(s, cfg)) }
 // Every road back to Rest first delivers the alert that was waiting, if any.
 function toRest(s, e, cfg)   { return s.queued >= 0 ? deliver(s, e, cfg) : rest(s, e, cfg) }
@@ -99,28 +87,18 @@ function toPinned(s, e, cfg) {
 function toggle(s, e, cfg)   { return e.view === s.view ? toRest(s, e, cfg) : toPinned(s, e, cfg) }
 function grace(s, e, cfg)    { return set(s, { timer: { ms: cfg.graceMs, kind: "grace" } }) }
 
-// Back: pop the last entry and restore its view AND its anchor. Empty history = close.
 function goBack(s, e, cfg) {
     if (s.history.length === 0) return toRest(s, e, cfg)
     const p = s.history[s.history.length - 1]
     return enter(set(s, { history: s.history.slice(0, -1) }), cfg, Phase.Pinned, p.view, cfg.timeout(p.view), p)
 }
 
-// ---- triggered views (toasts) --------------------------------------------------
-// What a toast leaves behind to return to: a Pinned view stacks up; toast-over-toast keeps what
-// the first one stacked; anything else (Rest, Hidden, Peek) leaves nothing.
-function toastTrail(s) {
-    if (s.phase === Phase.Pinned) return s.history.concat([here(s)])
-    return s.phase === Phase.Toast ? s.history : []
-}
-
-// The one way into Toast: show `view` at `priority`, centred (an alert has no click to anchor to),
-// with the countdown from its Registry entry. Same view again = refresh: the countdown restarts.
+// An alert has no click to anchor to, so a toast is centred. Same view again = refresh: the countdown restarts.
 function toast(s, view, priority, history, cfg) {
     return enter(set(s, { history: history }), cfg, Phase.Toast, view, cfg.timeout(view), { priority: priority })
 }
 
-function toToast(s, e, cfg) { return usable(e.view, cfg) ? toast(s, e.view, prio(e, cfg), toastTrail(s), cfg) : s }
+function toToast(s, e, cfg) { return usable(e.view, cfg) ? toast(s, e.view, prio(e, cfg), trail(s), cfg) : s }
 
 // Remember a blocked alert, if its Registry entry says it is worth waiting for. One slot: the
 // highest priority wins, the newest wins a tie. The same view again keeps the higher priority.
@@ -156,16 +134,14 @@ function alertToast(s, e, cfg) {
     return park(s, e.view, p, cfg)
 }
 
-// A toast is over (expired, dismissed or backed out of): return to what it interrupted, else show
-// what was waiting, else settle. Auto-hide goes straight back to Hidden: no compact flash.
+// Auto-hide goes straight back to Hidden: no compact flash.
 function toastEnd(s, e, cfg) {
     if (s.history.length > 0) return goBack(s, e, cfg)
     if (s.queued >= 0)        return deliver(s, e, cfg)
     return s.autoHide ? toHidden(s, e, cfg) : rest(s, e, cfg)
 }
 
-// Hover at Rest: wait cfg.hoverMs before peeking (0 = instant). With no peek view, hovering just
-// holds the linger timer (rearm sees "holding" and drops it).
+// With no peek view, hovering just holds the linger timer (rearm sees "holding" and drops it).
 function intent(s, e, cfg) {
     if (cfg.peekView < 0) return rearm(s)
     return cfg.hoverMs > 0 ? set(s, { timer: { ms: cfg.hoverMs, kind: "intent" } }) : toPeek(s, e, cfg)
@@ -179,33 +155,22 @@ function lapse(s, e, cfg) {
     return s
 }
 
-// The pointer reached or left the top edge at Rest: re-apply the timer rule, unless it is on the
-// island: it came down from the edge onto the surface, and rearm() would drop the running hover intent.
-function edged(s, e, cfg)  { return s.hovered ? s : rearm(s) }
-
-// Pointer left: the peek collapses after graceMs, unless it came back.
 function letGo(s, e, cfg)  { return s.hovered ? s : grace(s, e, cfg) }
 
-// The peek key shows the rest view for as long as it is held.
-// Pressed at Hidden: reveal the island at Rest, held.
 function reveal(s, e, cfg) { return keep(rest(s, e, cfg), e, cfg) }
-// Pressed at Rest: hold it there (no linger). While hovered, the hover intent keeps running.
-function keep(s, e, cfg)   { const k = set(s, { peeking: true }); return s.hovered ? k : rearm(k) }
+function keep(s, e, cfg)   { return rearm(set(s, { peeking: true })) }
 // Released: auto-hide hides at once. The pointer still on the island (or at the edge) keeps it,
 // and letting go of that starts the usual linger. A key pressed in another phase holds nothing here.
 function release(s, e, cfg) {
     if (!s.peeking) return s
     const r = set(s, { peeking: false })
-    if (r.hovered) return r                    // a running hover intent stays: rearm() would drop it
     return r.autoHide && !holding(r) ? toHidden(r, e, cfg) : rearm(r)
 }
 
-// Auto-hide switched on/off while Rest: retime the linger.
 function retime(s, e, cfg)  { return rearm(set(s, { ms: restMs(s, cfg) })) }
-// Auto-hide switched off while Hidden: come back.
 function unhide(s, e, cfg)  { return s.autoHide ? s : toRest(s, e, cfg) }
 
-// ---- facts tracked in every phase, before the phase sees the event ------------
+// Tracked in every phase, before the phase sees the event, so no table row can forget one.
 function track(s, e) {
     switch (e.type) {
     case Event.Hover:   return set(s, { hovered: true, timer: s.phase === Phase.Peek ? null : s.timer })
@@ -218,29 +183,28 @@ function track(s, e) {
     return s
 }
 
-// ---- transition table: data, not code -----------------------------------------
 var table = {}
 table[Phase.Hidden] = {
-    [Event.Reach]:   toRest,               // pointer hit the top-edge hot zone
-    [Event.Peek]:    reveal,               // the peek key shows the rest view while held
-    [Event.Open]:    toPinned,             // IPC can open straight from hidden
+    [Event.Reach]:   toRest,
+    [Event.Peek]:    reveal,
+    [Event.Open]:    toPinned,
     [Event.Alert]:   toToast,
     [Event.Mode]:    unhide
 }
 table[Phase.Rest] = {
     [Event.Hover]:   intent,
     [Event.Leave]:   rearm,                // starts the linger timer (auto-hide) or clears hover intent
-    [Event.Reach]:   edged,                // pointer in the hot zone holds the linger...
-    [Event.Retreat]: edged,                // ...and leaving it starts the linger
-    [Event.Peek]:    keep,                 // the peek key holds the rest view...
-    [Event.Unpeek]:  release,              // ...and releasing it hides it (auto-hide)
+    [Event.Reach]:   rearm,
+    [Event.Retreat]: rearm,
+    [Event.Peek]:    keep,
+    [Event.Unpeek]:  release,
     [Event.Open]:    toPinned,
     [Event.Alert]:   toToast,
     [Event.Mode]:    retime,
     [Event.Expire]:  lapse
 }
 table[Phase.Peek] = {
-    [Event.Leave]:   letGo,                // collapse after a short grace
+    [Event.Leave]:   letGo,
     [Event.Open]:    toPinned,
     [Event.Alert]:   toToast,
     [Event.Close]:   toRest,
@@ -256,16 +220,16 @@ table[Phase.Pinned] = {
     [Event.Open]:    toggle,               // opening the open view closes it
     [Event.Close]:   toRest,
     [Event.Back]:    goBack,
-    [Event.Key]:     start,                // a keystroke: the countdown starts over (unless held)
+    [Event.Key]:     start,
     [Event.Expire]:  toRest
 }
 table[Phase.Toast] = {
-    [Event.Hover]:   rearm,                // a toast is held like a pinned view
+    [Event.Hover]:   rearm,
     [Event.Leave]:   rearm,
     [Event.Reach]:   rearm,
     [Event.Retreat]: rearm,
     [Event.Alert]:   alertToast,
-    [Event.Open]:    toPinned,             // click the toast: pin its view
+    [Event.Open]:    toPinned,
     [Event.Close]:   toastEnd,
     [Event.Back]:    toastEnd,
     [Event.Expire]:  toastEnd

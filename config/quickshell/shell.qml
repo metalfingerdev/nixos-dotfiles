@@ -13,13 +13,10 @@ ShellRoot {
     Ipc {}
     Triggers {}
     
-    // live snapshot overlay, hidden until `qs ipc call island debug true`
     Debug {}
 
-    // the lock screen, unlocked until `qs ipc call lock screen`
     Lock {}
 
-    // "Activate Linux" in every screen's bottom-right corner
     ActivateLinux {}
 
     // services that must exist from the start (their IPC targets), not only once a view shows them
@@ -30,7 +27,6 @@ ShellRoot {
     Binding { target: Config; property: "wallpaperSeed"; value: Wallpaper.seed }
     Binding { target: Config; property: "windowOpacity"; value: Desktops.windowOpacity }
 
-    // one Bar per screen; only the one on Engine.activeScreen shows the island
     Variants {
         model: Quickshell.screens
 

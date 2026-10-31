@@ -1,20 +1,15 @@
 import QtQuick
 
-// On/off switch (Material 3). It only reports: bind `checked` to the real state and act in onToggled.
-// Mouse: click. Keyboard: Tab/arrows reach it (ViewLoader's default keys), Enter/Space flip it.
-// `enabled: false` greys it out and ignores input (e.g. Wi-Fi blocked by a hardware switch).
+// It only reports: bind `checked` to the real state and act in onToggled.
 Item {
     id: root
 
     property bool checked: false
     signal toggled(bool on)
 
-    function flip() { if (enabled) toggled(!checked) }
+    function activate() { if (enabled) toggled(!checked) }
 
     activeFocusOnTab: true
-    Keys.onReturnPressed: flip()
-    Keys.onEnterPressed:  flip()
-    Keys.onSpacePressed:  flip()
 
     implicitWidth: 52
     implicitHeight: 32
@@ -31,7 +26,6 @@ Item {
 
         FocusRing { on: root.activeFocus }
 
-        // the handle grows when on, and under the pointer
         Rectangle {
             readonly property real size: root.checked || area.pressed ? track.height - 8 : track.height - 14
             width: area.containsMouse && !root.checked ? size + 2 : size
@@ -53,11 +47,8 @@ Item {
         }
     }
 
-    MouseArea {
+    ClickArea {
         id: area
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: root.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-        onClicked: root.flip()
+        onClicked: root.activate()
     }
 }

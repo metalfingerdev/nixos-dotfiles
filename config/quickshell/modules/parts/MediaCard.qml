@@ -5,10 +5,6 @@ import qs.modules.island
 import qs.modules.components
 import qs.modules.services
 
-// What's playing, as a card (Android's media player): the album art blurred behind a scrim, the
-// output it plays on, title and artist, play/pause in a primary circle, previous/next around the
-// position. `compact`: one row: art, text, three buttons, a thin line.
-// A click on the text opens the full Media view.
 ClippingRectangle {
     id: root
 
@@ -24,13 +20,10 @@ ClippingRectangle {
     radius: Config.cardRadius
     color: Config.container
 
-    // ---- the art, blurred, under a scrim that keeps the text readable ----
-    Image {
+    // the scrim keeps the text readable over the art
+    CoverImage {
         id: backdrop
-        anchors.fill: parent
         source: root.player?.trackArtUrl ?? ""
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
         sourceSize: Qt.size(192, 192)
         visible: false
     }
@@ -54,7 +47,6 @@ ClippingRectangle {
         }
     }
 
-    // ---- compact: art, text, buttons ----
     Item {
         visible: root.compact
         anchors.fill: parent
@@ -68,12 +60,9 @@ ClippingRectangle {
             radius: Config.smallRadius
             color: Config.high
 
-            Image {
+            CoverImage {
                 id: thumbArt
-                anchors.fill: parent
                 source: root.player?.trackArtUrl ?? ""
-                fillMode: Image.PreserveAspectCrop
-                asynchronous: true
                 sourceSize: Qt.size(96, 96)
             }
             Equalizer {
@@ -88,21 +77,18 @@ ClippingRectangle {
             anchors { left: thumb.right; leftMargin: 12; right: compactControls.left; rightMargin: 8; verticalCenter: parent.verticalCenter }
             spacing: 2
 
-            Text {
+            Label {
                 width: parent.width
                 text: root.player?.trackTitle || "Unknown title"
                 elide: Text.ElideRight
-                color: Config.text
-                font.family: Config.font
                 font.pixelSize: Config.body + 1
                 font.weight: Font.DemiBold
             }
-            Text {
+            Label {
                 width: parent.width
                 text: root.player?.trackArtist || root.player?.identity || ""
                 elide: Text.ElideRight
                 color: Config.dim
-                font.family: Config.font
                 font.pixelSize: Config.small + 1
             }
         }
@@ -137,7 +123,6 @@ ClippingRectangle {
         }
     }
 
-    // ---- full: output, text and the big button, then the position between previous and next ----
     Item {
         visible: !root.compact
         anchors { fill: parent; margins: 16 }
@@ -153,13 +138,12 @@ ClippingRectangle {
                 size: 15
                 color: Config.dim
             }
-            Text {
+            Label {
                 anchors.verticalCenter: parent.verticalCenter
                 width: parent.width - 21
                 text: (root.player?.identity ?? "") + "  ·  " + Audio.label(Audio.sink)
                 elide: Text.ElideRight
                 color: Config.dim
-                font.family: Config.font
                 font.pixelSize: Config.small + 1
             }
         }
@@ -169,22 +153,18 @@ ClippingRectangle {
             anchors { left: parent.left; right: play.left; rightMargin: 12; top: output.bottom; topMargin: 12 }
             spacing: 2
 
-            Text {
+            Label {
                 width: parent.width
                 text: root.player?.trackTitle || "Unknown title"
                 elide: Text.ElideRight
-                color: Config.text
-                font.family: Config.font
                 font.pixelSize: Config.title
                 font.weight: Font.DemiBold
             }
-            Text {
+            Label {
                 width: parent.width
                 text: root.player?.trackArtist || root.player?.trackAlbum || ""
                 elide: Text.ElideRight
                 color: Config.dim
-                font.family: Config.font
-                font.pixelSize: Config.body
             }
         }
         MouseArea {

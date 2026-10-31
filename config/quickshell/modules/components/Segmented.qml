@@ -1,11 +1,5 @@
 import QtQuick
 
-// A segmented button (Material 3): an outlined pill split into options; the chosen one takes the
-// secondary fill and a check. options: [{ key, label, icon?, shortcut? }]; bind `current` to the
-// real value and act in onPicked. Each segment is focusable: Tab/arrows reach it, Enter/Space pick
-// it, and an option's `shortcut` key picks it from anywhere in the view.
-//   Segmented { options: [{ key: "pill", label: "Pill" }, { key: "notch", label: "Notch" }]
-//               current: Config.style; onPicked: k => Config.style = k }
 Rectangle {
     id: root
 
@@ -39,7 +33,6 @@ Rectangle {
 
                 width: root.width / Math.max(1, root.options.length)
                 height: root.height
-                // the outer ends follow the pill; the inner edges stay square
                 topLeftRadius: index === 0 ? root.radius : 0
                 bottomLeftRadius: index === 0 ? root.radius : 0
                 topRightRadius: index === root.options.length - 1 ? root.radius : 0
@@ -49,11 +42,7 @@ Rectangle {
                 Behavior on color { ColorAnimation { duration: 140 } }
 
                 activeFocusOnTab: true
-                Keys.onReturnPressed: activate()
-                Keys.onEnterPressed:  activate()
-                Keys.onSpacePressed:  activate()
 
-                // divider to the left of every segment but the first
                 Rectangle {
                     visible: segment.index > 0
                     width: 1
@@ -73,22 +62,17 @@ Rectangle {
                         size: 20
                         color: segment.chosen ? Config.secondaryInk : Config.text
                     }
-                    Text {
+                    Label {
                         visible: text !== ""                 // an icon-only option stays centred
                         anchors.verticalCenter: parent.verticalCenter
                         text: segment.modelData.label ?? ""
                         color: segment.chosen ? Config.secondaryInk : Config.text
-                        font.family: Config.font
-                        font.pixelSize: Config.body
                         font.weight: Font.Medium
                     }
                 }
 
-                MouseArea {
+                ClickArea {
                     id: area
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
                     onClicked: segment.activate()
                 }
 
@@ -104,7 +88,7 @@ Rectangle {
                     border.width: 3
                     border.color: Config.primary
                 }
-                KeyBadge { key: segment.shortcut; anchors { right: parent.right; top: parent.top; rightMargin: 8; topMargin: -8 } }
+                KeyBadge { key: segment.shortcut; anchors { rightMargin: 8; topMargin: -8 } }
             }
         }
     }

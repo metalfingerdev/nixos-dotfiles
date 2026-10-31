@@ -5,20 +5,14 @@ import qs.modules.parts
 import qs.modules.components
 import qs.modules.services
 
-// The wallpapers (views/Theme.qml shows them in one row; this is all of them):
-//   the one showing, big (its name is in the header)
-//   every image in Wallpaper.dir, four across; more scroll. A click applies one (awww remembers it)
-// Its colours are views/Colours.qml's (from the wallpaper).
 // Named Wallpapers, not Wallpaper: a view must not share a singleton's name (services/Wallpaper.qml).
-// Keys: R random, arrows/Tab move (in the grid the arrows pick and Enter/Space apply; off its edge
-// they leave it), Backspace back, Escape closes.
 Item {
     id: root
 
     readonly property int pad: 24
     readonly property int contentW: 840
     readonly property int across: 4
-    readonly property int rows: 2               // shown at once; the rest scroll
+    readonly property int rows: 2
     readonly property real gap: 12
     readonly property bool any: Wallpaper.files.length > 0
 
@@ -48,7 +42,6 @@ Item {
             }
         }
 
-        // ---- the one showing ----
         ClippingRectangle {
             visible: Wallpaper.current !== ""
             width: parent.width
@@ -56,16 +49,12 @@ Item {
             radius: Config.cardRadius
             color: Config.container
 
-            Image {
-                anchors.fill: parent
+            CoverImage {
                 source: Wallpaper.current ? Wallpaper.fileUrl(Wallpaper.current) : ""
                 sourceSize: Qt.size(1280, 720)
-                fillMode: Image.PreserveAspectCrop
-                asynchronous: true
             }
         }
 
-        // ---- every image ----
         Item {
             visible: root.any
             width: parent.width
@@ -92,9 +81,7 @@ Item {
                 // the grid moves its own selection with the arrows (off its edge it lets them go,
                 // and ViewLoader moves focus out); report every key, so the countdown restarts
                 Keys.onPressed: event => { Engine.key(); event.accepted = false }
-                Keys.onReturnPressed: Wallpaper.set(Wallpaper.files[currentIndex])
-                Keys.onEnterPressed:  Wallpaper.set(Wallpaper.files[currentIndex])
-                Keys.onSpacePressed:  Wallpaper.set(Wallpaper.files[currentIndex])
+                function activate() { Wallpaper.set(Wallpaper.files[currentIndex]) }
 
                 delegate: Item {
                     id: cell
@@ -114,7 +101,6 @@ Item {
             }
         }
 
-        // ---- nothing to show ----
         Column {
             visible: !root.any
             width: parent.width
@@ -128,12 +114,10 @@ Item {
                 size: 48
                 color: Config.dim
             }
-            Text {
+            Label {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: "No images in " + Wallpaper.dir
                 color: Config.dim
-                font.family: Config.font
-                font.pixelSize: Config.body
             }
         }
 

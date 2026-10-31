@@ -6,15 +6,6 @@ import qs.modules.island
 import qs.modules.components
 import qs.modules.services
 
-// Now playing (the active MPRIS player), wide, with the album art blurred behind it:
-//   big art on the left; the player, title and artist; the position (click, drag, or focus it and
-//   use Left/Right to seek); shuffle · previous · play/pause · next · repeat
-//   Output: where the sound goes (click another device to move it there), each with its volume:
-//   the wheel over one sets it (+ and - too, while it has the focus)
-//   Players: the others, when there are several (click one to show and control it)
-//   the mixer button (V): every app's volume
-// Keys: P play/pause, B previous, N next, S shuffle, R repeat, V mixer, arrows/Tab move, Backspace back,
-// Escape closes.
 Item {
     id: root
 
@@ -42,18 +33,14 @@ Item {
     implicitWidth: player ? 780 : 520
     implicitHeight: (player ? column.implicitHeight : empty.implicitHeight) + 2 * pad
 
-    // ---- the art, blurred, fading into the island ----
     Item {
         visible: root.player !== null && backdrop.status === Image.Ready
         width: parent.width
         height: Math.min(parent.height, 320)
 
-        Image {
+        CoverImage {
             id: backdrop
-            anchors.fill: parent
             source: root.player?.trackArtUrl ?? ""
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
             sourceSize: Qt.size(192, 192)
             visible: false
         }
@@ -68,7 +55,6 @@ Item {
         }
     }
 
-    // ---- nothing playing ----
     Column {
         id: empty
         visible: !root.player
@@ -92,7 +78,6 @@ Item {
         }
     }
 
-    // ---- a player ----
     Column {
         id: column
         visible: root.player !== null
@@ -134,12 +119,9 @@ Item {
                     size: 64
                     color: Config.outline
                 }
-                Image {
+                CoverImage {
                     id: cover
-                    anchors.fill: parent
                     source: root.player?.trackArtUrl ?? ""
-                    fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
                     sourceSize: Qt.size(480, 480)
                 }
             }
@@ -152,28 +134,24 @@ Item {
                     anchors { left: parent.left; right: parent.right; top: parent.top; topMargin: 8 }
                     spacing: 4
 
-                    Text {
+                    Label {
                         width: parent.width
                         text: root.player?.trackTitle || "Unknown title"
                         elide: Text.ElideRight
                         maximumLineCount: 2
                         wrapMode: Text.Wrap
-                        color: Config.text
-                        font.family: Config.font
                         font.pixelSize: Config.headline
                         font.weight: Font.DemiBold
                     }
-                    Text {
+                    Label {
                         width: parent.width
                         text: root.player?.trackArtist || root.player?.trackAlbum || ""
                         elide: Text.ElideRight
                         color: Config.dim
-                        font.family: Config.font
                         font.pixelSize: Config.large + 1
                     }
                 }
 
-                // position, then the controls, at the foot of the column
                 Column {
                     anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
                     spacing: 14
@@ -183,15 +161,13 @@ Item {
                         width: parent.width
                         height: 20
 
-                        Text {
+                        Label {
                             id: elapsed
                             anchors.verticalCenter: parent.verticalCenter
                             width: 52
                             // while dragging: where the drop would seek to
                             text: root.clock(seekBar.dragging ? seekBar.shownFraction * Players.length : Players.position)
                             color: Config.dim
-                            font.family: Config.font
-                            font.pixelSize: Config.body
                             font.features: { "tnum": 1 }
                         }
                         Progress {
@@ -202,15 +178,13 @@ Item {
                             seekable: Players.canSeek
                             onSeek: f => Players.seek(f)
                         }
-                        Text {
+                        Label {
                             id: total
                             anchors { right: parent.right; verticalCenter: parent.verticalCenter }
                             width: 52
                             horizontalAlignment: Text.AlignRight
                             text: root.clock(Players.length)
                             color: Config.dim
-                            font.family: Config.font
-                            font.pixelSize: Config.body
                             font.features: { "tnum": 1 }
                         }
                     }
@@ -286,7 +260,6 @@ Item {
             }
         }
 
-        // ---- where it plays, and the other players ----
         Row {
             width: parent.width
             spacing: 20
@@ -296,19 +269,16 @@ Item {
                 width: Players.list.length > 1 ? (parent.width - parent.spacing) / 2 : parent.width
                 spacing: 6
 
-                Text {
+                Label {
                     leftPadding: 4
                     bottomPadding: 4
                     text: "Output"
-                    color: Config.text
-                    font.family: Config.font
                     font.pixelSize: Config.large
                     font.weight: Font.Medium
                 }
                 Repeater {
                     model: Audio.sinks.slice(0, 4)
 
-                    // a click plays here; the wheel, or + and - while focused, sets its volume
                     ListEntry {
                         id: output
                         required property var modelData
@@ -331,19 +301,17 @@ Item {
                             Engine.key()
                         }
 
-                        // its volume: a short bar, then the level
                         Progress {
                             Layout.preferredWidth: 72
                             Layout.alignment: Qt.AlignVCenter
                             fraction: output.silent ? 0 : output.level / 100
                         }
-                        Text {
+                        Label {
                             Layout.preferredWidth: 44
                             Layout.alignment: Qt.AlignVCenter
                             horizontalAlignment: Text.AlignRight
                             text: output.silent ? "Muted" : output.level + "%"
                             color: output.active ? Config.secondaryInk : Config.dim
-                            font.family: Config.font
                             font.pixelSize: Config.small + 1
                             font.features: { "tnum": 1 }
                         }
@@ -356,12 +324,10 @@ Item {
                 width: (parent.width - parent.spacing) / 2
                 spacing: 6
 
-                Text {
+                Label {
                     leftPadding: 4
                     bottomPadding: 4
                     text: "Players"
-                    color: Config.text
-                    font.family: Config.font
                     font.pixelSize: Config.large
                     font.weight: Font.Medium
                 }
@@ -379,11 +345,8 @@ Item {
                             ClippingRectangle {
                                 width: 44; height: 44; radius: 12
                                 color: Config.high
-                                Image {
-                                    anchors.fill: parent
+                                CoverImage {
                                     source: entry.modelData.trackArtUrl ?? ""
-                                    fillMode: Image.PreserveAspectCrop
-                                    asynchronous: true
                                     sourceSize: Qt.size(88, 88)
                                 }
                             }
