@@ -56,6 +56,13 @@ hl.window_rule({
 
     opaque = true,
 })
+hl.window_rule({
+    -- VLC never says so, so it goes by class
+    name  = "opaque-vlc",
+    match = { class = "^vlc$" },
+
+    opaque = true,
+})
 
 -- Firefox is always solid, whatever the tab shows.
 hl.window_rule({
