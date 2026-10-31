@@ -92,21 +92,10 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 2
 
-                Tab { icon: Config.symbol.launcher;  shortcut: "a"; view: Engine.View.Launcher }
-                Tab { icon: Config.symbol.dashboard; shortcut: "d"; view: Engine.View.Dashboard }
-                Tab {
-                    icon: Config.symbol.media; shortcut: "m"; view: Engine.View.Media
-
-                    // playing: a dot under the note
-                    Rectangle {
-                        visible: Players.playing
-                        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 2 }
-                        width: 4; height: 4; radius: 2
-                        color: Config.primary
-                    }
-                }
+                Tab { icon: Config.symbol.launcher;  shortcut: "d"; view: Engine.View.Launcher }
+                Tab { icon: Config.symbol.Mixer;     shortcut: "v"; view: Engine.View.Mixer }
                 Tab { icon: Config.symbol.settings;  shortcut: "i"; view: Engine.View.Settings }
-                Tab { icon: Config.symbol.power;     shortcut: "p"; view: Engine.View.Power }
+                Tab { icon: Config.symbol.power;     shortcut: "x"; view: Engine.View.Power }
             }
 
             Divider {}
