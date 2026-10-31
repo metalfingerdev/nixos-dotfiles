@@ -58,32 +58,6 @@ Rectangle {
 			top: parent.top
 			margins: root.margin
 		}
-		layer.enabled: true
-		layer.effect: Lifted {}
-
-		Label {
-			anchors.right: parent.right
-			text: Qt.formatDateTime(clock.date, "HH:mm")
-			// The native font renderer tends to look nicer at large sizes.
-			renderType: Text.NativeRendering
-			font.pixelSize: 112
-			font.weight: Font.Medium
-			font.features: { "tnum": 1 }
-		}
-
-		Label {
-			anchors.right: parent.right
-			text: Qt.formatDateTime(clock.date, "dddd, d MMMM")
-			font.pixelSize: Config.title
-		}
-	}
-
-	Row {
-		anchors {
-			left: parent.left
-			top: parent.top
-			margins: root.margin
-		}
 		spacing: 28
 
 		ClippingRectangle {
@@ -138,6 +112,32 @@ Rectangle {
 				text: LockConfig.shownInfo
 				font.pixelSize: Config.large
 			}
+		}
+	}
+
+	Row {
+		anchors {
+			left: parent.left
+			top: parent.top
+			margins: root.margin
+		}
+		layer.enabled: true
+		layer.effect: Lifted {}
+
+		Label {
+			anchors.right: parent.right
+			text: Qt.formatDateTime(clock.date, "HH:mm")
+			// The native font renderer tends to look nicer at large sizes.
+			renderType: Text.NativeRendering
+			font.pixelSize: 112
+			font.weight: Font.Medium
+			font.features: { "tnum": 1 }
+		}
+
+		Label {
+			anchors.right: parent.right
+			text: Qt.formatDateTime(clock.date, "dddd, d MMMM")
+			font.pixelSize: Config.title
 		}
 	}
 
