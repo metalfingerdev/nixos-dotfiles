@@ -3,7 +3,7 @@
   flake.modules.nixos.webdev = { pkgs, ... }: {
     programs.nix-ld.enable = true;
     programs.nix-ld.libraries = with pkgs; [
-      stdevnv.cc.cc
+      stdenv.cc.cc
       openssl
       curl
       icu
@@ -32,7 +32,7 @@
     };
 
     home.sessionPath = [
-      "$HOME/.local/share/pnpm"
+      "$HOME/.local/share/pnpm/bin"
       "$HOME/.npm-global/bin"
     ];
   };
