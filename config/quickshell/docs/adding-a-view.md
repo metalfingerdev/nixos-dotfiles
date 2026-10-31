@@ -42,8 +42,8 @@ The contract:
   may share a singleton's name (`Config.qml`, `Wallpaper.qml`, ...): views see their own folder first,
   and it would hide the singleton (hence `views/Wallpapers.qml`). A QML property can't be named `onSomething` (QML reads it as a signal handler and it
   stays black), hence `primaryInk`.
-- **Keyboard**: nothing to do for the basics. A pinned view, and the peek view (while hovered), gets the
-  keyboard, and `ViewLoader` gives it default keys: Tab moves through focusable items (every control is
+- **Keyboard**: nothing to do for the basics. A pinned view gets the keyboard (the peek view doesn't:
+  it only lives under the pointer), and `ViewLoader` gives it default keys: Tab moves through focusable items (every control is
   one), arrows move to the nearest one that way, Enter/Space press the focused one, Escape and
   Backspace go back. Give a control a `shortcut: "x"` (Pill, QuickTile, Tile, ListEntry, Chip, a
   Segmented option) and typing x presses it; it shows as a keycap while the keyboard is in use. Keys

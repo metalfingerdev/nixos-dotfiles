@@ -29,12 +29,13 @@ QtObject {
         Mixer,
         Settings,
         Colours,
-        Wallpapers
+        Wallpapers,
+        Expanded
     }
 
     // ---- config ----
     readonly property int restView: Engine.View.Compact
-    property int peekView: Engine.View.Tabs              // what hovering at rest shows. -1 = off
+    property int peekView: Engine.View.Expanded          // what hovering the island at rest shows. -1 = off
     property int graceMs: 140          // Peek collapses this long after the pointer leaves
     property int hoverMs: 140          // Peek waits this long before showing (0 = instant)
     property int hideMs: 700           // auto-hide: how long the island lingers at rest before hiding
@@ -52,8 +53,9 @@ QtObject {
     readonly property bool   peeking: snapshot.peeking   // the peek key is down (or toggled on)
     readonly property real   anchorX: snapshot.x      // window x to centre on, -1 = screen centre
     readonly property bool   pinned:  snapshot.phase === Machine.Phase.Pinned
-    // the island takes the keyboard: a pinned view, or the peek view (hovered)
-    readonly property bool   keyboard: pinned || snapshot.phase === Machine.Phase.Peek
+    // the island takes the keyboard: a pinned view. Not the peek view: the pointer passing over the
+    // island must not take typing from an app
+    readonly property bool   keyboard: pinned
 
     // ---- which screen shows the island (the machine knows nothing about screens) ----
     property string screenName: ""                    // "" = the first screen

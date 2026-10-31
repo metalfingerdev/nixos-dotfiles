@@ -10,7 +10,7 @@ import Quickshell.Io
 //   image   the background picture, a path (GIFs play)  ""  = the wallpaper
 //   avatar  the profile picture, a path (GIFs play)  ""  = a person glyph
 //   avatarShape  its frame: "circle" | "square"
-//   name    the name under it                      ""  = the full name in the passwd entry
+//   name    the name beside it                     ""  = the full name in the passwd entry
 //   info    the line under the name                ""  = user@host
 Singleton {
 	id: root

@@ -61,43 +61,61 @@ QtObject {
 
     // ---- where the colours come from (views/Colours.qml) ----
     //   source   "preset": a palette above, by `name`
-    //            "accent": generated from `accent`, Material You style
-    //            "wallpaper": generated from the wallpaper's dominant colour (`wallpaperSeed`,
-    //                         kept up to date by shell.qml from services/Wallpaper.qml)
-    //   variant  how colourful a generated scheme is: "tonal" | "vibrant" | "muted" | "mono"
+    //            "accent": generated from `accent`, exactly that colour as the primary
+    //            "wallpaper": generated from the hue of a wallpaper colour (`wallpaperSeed`, kept up
+    //                         to date by shell.qml from services/Wallpaper.qml), at
+    //                         `wallpaperSaturation` and `wallpaperTone`: a wallpaper's own colours are
+    //                         often too dark or too muddy to read as they are
+    //   tint     how much of the colour goes into a generated scheme's surfaces, 0..1: 0 is neutral
     //   darkMode a generated scheme's light or dark version
     property string source: "preset"
     property string name: "teal"
     property color accent: "#4f9d8f"
     property color wallpaperSeed: "#4f9d8f"
-    property string variant: "tonal"
+    property real wallpaperSaturation: 0.8
+    property real wallpaperTone: 0.72              // the primary's lightness in dark mode; light mode mirrors it
+    property real tint: 0.5
     property bool darkMode: true
-    readonly property color seed: source === "wallpaper" ? wallpaperSeed : accent
-    readonly property var current: source === "preset" ? (palettes[name] ?? palettes.teal) : scheme(seed, variant, darkMode)
+    readonly property var current: source === "preset" ? (palettes[name] ?? palettes.teal) : generated(source)
 
-    // A whole palette from one colour: the seed's hue at Material's tones for each role, with
-    // a saturation per role set by the variant. HSL, not Material's HCT, so tones are approximate.
-    function scheme(seed, variant, dark) {
-        const h = Math.max(0, seed.hslHue)
-        const c = ({ tonal:   { p: 0.50, s: 0.22, n: 0.10 },
-                     vibrant: { p: 0.82, s: 0.40, n: 0.16 },
-                     muted:   { p: 0.28, s: 0.12, n: 0.05 },
-                     mono:    { p: 0,    s: 0,    n: 0 } })[variant] ?? { p: 0.5, s: 0.22, n: 0.1 }
-        const mono = variant === "mono"
+    // the lightness the wallpaper's primary has right now, and setting it: the slider means what it says in either mode
+    readonly property real wallpaperLightness: darkMode ? wallpaperTone : 1 - wallpaperTone
+    function setWallpaperLightness(v) { wallpaperTone = darkMode ? v : 1 - v }
+
+    // The scheme a source generates (also for a preview of one that isn't in use: views/Theme.qml).
+    function generated(from) {
+        const primary = from === "wallpaper"
+            ? Qt.hsla(Math.max(0, wallpaperSeed.hslHue), wallpaperSeed.hslHue < 0 ? 0 : wallpaperSaturation, wallpaperLightness, 1)
+            : accent
+        return scheme(primary, tint, darkMode)
+    }
+    // near-black or near-white in the colour's hue, whichever reads on it (WCAG's luminance)
+    function inkOn(c) {
+        const linear = v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)
+        const luminance = 0.2126 * linear(c.r) + 0.7152 * linear(c.g) + 0.0722 * linear(c.b)
+        return Qt.hsla(Math.max(0, c.hslHue), Math.min(0.5, c.hslSaturation), luminance > 0.179 ? 0.08 : 0.97, 1)
+    }
+    // A whole palette around one colour: it is the primary, and its hue at Material's tones makes the
+    // other roles, as saturated as `tint` says. HSL, not Material's HCT, so tones are approximate.
+    function scheme(primary, tint, dark) {
+        const h = Math.max(0, primary.hslHue)
+        // a greyer primary tints less, so grey has truly neutral surfaces with no jump on the way there
+        const t = tint * Math.min(1, primary.hslSaturation * 4)
+        const s = 0.8 * t, n = 0.32 * t
         const tone = (sat, light) => Qt.hsla(h, sat, light, 1)
         return dark ? {
             label: "Generated", dark: true,
-            surface: tone(c.n, 0.065), container: tone(c.n, 0.105), high: tone(c.n, 0.145), highest: tone(c.n, 0.185),
-            primary: tone(c.p, mono ? 0.90 : 0.72), onPrimary: tone(c.p, mono ? 0.10 : 0.14),
-            secondary: tone(c.s, 0.26), onSecondary: tone(c.s, 0.88),
-            text: tone(c.n, 0.91), dim: tone(c.n, 0.75), outline: tone(c.n, 0.52),
+            surface: tone(n, 0.065), container: tone(n, 0.105), high: tone(n, 0.145), highest: tone(n, 0.185),
+            primary: primary, onPrimary: inkOn(primary),
+            secondary: tone(s, 0.26), onSecondary: tone(s, 0.88),
+            text: tone(n, 0.91), dim: tone(n, 0.75), outline: tone(n, 0.52),
             good: "#8bd5a0", warn: "#f2c36b", bad: "#ffb4ab"
         } : {
             label: "Generated", dark: false,
-            surface: tone(c.n, 0.975), container: tone(c.n, 0.935), high: tone(c.n, 0.895), highest: tone(c.n, 0.855),
-            primary: tone(c.p, mono ? 0.12 : 0.40), onPrimary: tone(c.p, 0.985),
-            secondary: tone(c.s, 0.86), onSecondary: tone(c.s, 0.16),
-            text: tone(c.n, 0.10), dim: tone(c.n, 0.32), outline: tone(c.n, 0.50),
+            surface: tone(n, 0.975), container: tone(n, 0.935), high: tone(n, 0.895), highest: tone(n, 0.855),
+            primary: primary, onPrimary: inkOn(primary),
+            secondary: tone(s, 0.86), onSecondary: tone(s, 0.16),
+            text: tone(n, 0.10), dim: tone(n, 0.32), outline: tone(n, 0.50),
             good: "#2e9b5f", warn: "#b7791f", bad: "#d64545"
         }
     }
@@ -229,7 +247,9 @@ QtObject {
         property alias source: root.source
         property alias name: root.name
         property alias accent: root.accent
-        property alias variant: root.variant
+        property alias tint: root.tint
+        property alias wallpaperSaturation: root.wallpaperSaturation
+        property alias wallpaperTone: root.wallpaperTone
         property alias darkMode: root.darkMode
         property alias scale: root.scale
         property alias style: root.style

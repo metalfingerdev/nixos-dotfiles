@@ -8,9 +8,13 @@ surfaces, pill tiles with an icon circle, thick pill sliders, segmented buttons,
 How you move through it:
 
 ```
-Compact (rest) ──hover (peek) / click (pin)──► Tabs (the hub) ──► any view
-   clock + live                                  back, workspaces, one tab per view,
-   indicators                                    status (each segment opens its view), clock
+Compact (rest) ──pointer on the island──► Expanded (only while it's there)
+   clock + live                              time, what's on, what's playing
+   indicators
+      │                                         │
+      └───────────────── click ─────────────────┴──► Tabs (the hub) ──► any view
+                                                       back, workspaces, one tab per view,
+                                                       status (each segment opens its view), clock
 
 Backspace, the mouse's back button, ← ──► the view that was open before
 Escape, a click outside, a timer      ──► home (the clock)
@@ -54,7 +58,7 @@ modules/
     Lock.qml                  the session lock: a LockSurface per screen, `qs ipc call lock screen`
     LockContext.qml           what's typed and PAM, shared by every screen's surface
     LockConfig.qml            what the lock shows (a singleton: IPC and views/Settings.qml set it)
-    LockSurface.qml           the picture, the clock, the avatar and name, the password field
+    LockSurface.qml           the picture; the avatar and name top left, the clock top right, the password field along the bottom
     Idle.qml                  hypridle's job, a singleton: dim, lock, screens off, suspend; the lock before sleep
     pam/password.conf         PAM for the lock: pam_unix (the password only)
   activatelinux/
@@ -69,7 +73,7 @@ modules/
     Ipc.qml                   `qs ipc call island ...` commands
     Triggers.qml              system events -> alerts (volume, brightness, battery, media, workspace switch)
     Debug.qml                 live snapshot overlay, toggled with `qs ipc call island debug true`
-    views/                    one QML file per view: Compact Tabs Dashboard Launcher Network Bluetooth
+    views/                    one QML file per view: Compact Expanded Tabs Dashboard Launcher Network Bluetooth
                               Media Mixer Notification Workspaces Clock Battery Power Theme (with the
                               full Colours and Wallpapers) Settings, and the toasts Volume Brightness
                               Switcher
@@ -88,6 +92,7 @@ modules/
     Segmented.qml Chip.qml SearchBar.qml Toggle.qml (switch) Header.qml (top app bar)
     Icon.qml                  a Material Symbols glyph
     Swatch.qml                a round colour to pick (or a palette: its surface around its primary)
+    ColourMap.qml             every colour: hue and lightness on a map, washed by a saturation
     ListEntry Tile ScrollList Progress Equalizer CalendarGrid
   tests/
     machine.test.js           Node tests for Machine.js
@@ -119,14 +124,15 @@ Bar: Loader shows Registry.get(view).url
 | Where | Property | Default | Meaning |
 |---|---|---|---|
 | `Engine.qml` | `debug` | `false` | debug overlay + proxy box; IPC `debug` / `toggleDebug` |
-| | `peekView` | `Tabs` | view shown when you hover the resting island; `-1` turns peeking off. The peek key shows the rest view instead |
+| | `peekView` | `Expanded` | view shown when the pointer is on the resting island's surface (not at the top edge); `-1` turns peeking off. The peek key shows the rest view instead |
 | | `hoverMs` | 140 | hover delay before peeking |
 | | `graceMs` | 140 | how long a peek stays after the pointer leaves |
 | | `hideMs` | 700 | auto-hide: how long the island lingers before hiding |
 | | initial `autoHide` | `true` | second argument to `Machine.initial(...)` |
 | `Config.qml` | `source` | `preset` | where colours come from: `preset`, `accent` or `wallpaper`; IPC `colours` |
 | | `name` | `teal` | preset palette (teal blue graphite midnight nord rose forest paper); IPC `palette` |
-| | `accent` / `variant` / `darkMode` | / `tonal` / `true` | a generated scheme: its colour, how colourful, dark or light; IPC `accent` `variant` `mode` |
+| | `accent` / `tint` / `darkMode` | / `0.5` / `true` | a generated scheme: its colour, how much of it the surfaces take (0..1), dark or light; IPC `accent` `tint` `mode` |
+| | `wallpaperSaturation` / `wallpaperTone` | `0.8` / `0.72` | how the wallpaper colour's hue becomes a primary |
 | | `scale` | 1.0 | the whole island's size (0.8 .. 1.4); IPC `size` |
 | | `style` | `pill` | `pill` floats below the edge; `notch` is flush with it, with anti-corners; IPC `style` |
 | | `handle` | `strip` | auto-hide: a thin bar stays at the top edge while hidden (`none`: nothing); IPC `handle` |

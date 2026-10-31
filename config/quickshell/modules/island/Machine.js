@@ -18,7 +18,7 @@
 //   Hidden  island parked off-screen (auto-hide mode only); the top-edge hot zone reveals it
 //   Rest    restView; in auto-hide mode it lingers hideMs, then goes back to Hidden. The peek key
 //           shows it while held: releasing it hides at once (auto-hide), not after the linger
-//   Peek    peekView shown because of hover; no countdown
+//   Peek    peekView (Expanded) shown because the pointer is on the island; no countdown, no keyboard
 //   Pinned  an opened view; counts down by its Registry timeout unless held, each keystroke restarts it
 //   Toast   a view the system triggered (volume, notification...); same countdown as Pinned
 
@@ -62,11 +62,9 @@ function rearm(s) {
 // How long Rest lingers: only in auto-hide mode.
 function restMs(s, cfg) { return s.autoHide ? cfg.hideMs : 0 }
 
-// The history an open() leaves behind: Peek and Pinned views stack up; Rest and Hidden start fresh.
-function trail(s) {
-    return s.phase === Phase.Pinned || s.phase === Phase.Peek
-         ? s.history.concat([here(s)]) : []
-}
+// The history an open() leaves behind: Pinned views stack up; anything else starts fresh. Peek only
+// lives under the pointer, so Back never returns to it.
+function trail(s) { return s.phase === Phase.Pinned ? s.history.concat([here(s)]) : [] }
 
 // Where a view is anchored. The resting view always centres; no coordinate = centre.
 function anchor(view, e, cfg) { return view === cfg.restView || e.x === undefined ? -1 : e.x }
@@ -95,10 +93,8 @@ function usable(view, cfg) { return cfg.known(view) && view !== cfg.restView }
 function toPinned(s, e, cfg) {
     if (!cfg.known(e.view)) return s
     if (e.view === cfg.restView) return toRest(s, e, cfg)        // "open compact" means "go home"
-    // pinning the view that is peeking (a click on the peek) keeps it, it doesn't stack it
-    const history = s.phase === Phase.Peek && e.view === s.view ? s.history : trail(s)
     // opening is the user's choice, not an alert: the view's own priority
-    return enter(set(s, { history: history }), cfg, Phase.Pinned, e.view, cfg.timeout(e.view), { x: e.x })
+    return enter(set(s, { history: trail(s) }), cfg, Phase.Pinned, e.view, cfg.timeout(e.view), { x: e.x })
 }
 function toggle(s, e, cfg)   { return e.view === s.view ? toRest(s, e, cfg) : toPinned(s, e, cfg) }
 function grace(s, e, cfg)    { return set(s, { timer: { ms: cfg.graceMs, kind: "grace" } }) }
@@ -183,6 +179,10 @@ function lapse(s, e, cfg) {
     return s
 }
 
+// The pointer reached or left the top edge at Rest: re-apply the timer rule, unless it is on the
+// island: it came down from the edge onto the surface, and rearm() would drop the running hover intent.
+function edged(s, e, cfg)  { return s.hovered ? s : rearm(s) }
+
 // Pointer left: the peek collapses after graceMs, unless it came back.
 function letGo(s, e, cfg)  { return s.hovered ? s : grace(s, e, cfg) }
 
@@ -230,8 +230,8 @@ table[Phase.Hidden] = {
 table[Phase.Rest] = {
     [Event.Hover]:   intent,
     [Event.Leave]:   rearm,                // starts the linger timer (auto-hide) or clears hover intent
-    [Event.Reach]:   rearm,                // pointer in the hot zone holds the linger...
-    [Event.Retreat]: rearm,                // ...and leaving it starts the linger
+    [Event.Reach]:   edged,                // pointer in the hot zone holds the linger...
+    [Event.Retreat]: edged,                // ...and leaving it starts the linger
     [Event.Peek]:    keep,                 // the peek key holds the rest view...
     [Event.Unpeek]:  release,              // ...and releasing it hides it (auto-hide)
     [Event.Open]:    toPinned,

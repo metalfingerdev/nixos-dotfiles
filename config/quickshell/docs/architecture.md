@@ -54,7 +54,7 @@ Each `Bar` creates two layer-shell `PanelWindow`s:
    - normally only the **proxy** rect, so the rest of the screen stays clickable;
    - the **whole screen** while a view is Pinned: a click anywhere outside the island closes it;
    - **nothing** while Hidden: the strip handle is only a hint, the spacer's hot zone reveals.
-   - Keyboard: while `Engine.keyboard` (a view is Pinned, or the peek view is showing) the overlay takes
+   - Keyboard: while `Engine.keyboard` (a view is Pinned) the overlay takes
      exclusive keyboard focus (`WlrKeyboardFocus.Exclusive`). See [Keyboard and hover](#keyboard-and-hover).
 
 ## Bar: the proxy/surface morph
@@ -88,8 +88,12 @@ Loader item ──implicit size──► proxy (invisible, snaps instantly, the 
   blurs the overlay (namespace `glass:island`) under whatever isn't transparent.
 - A click on the surface's own background (under the view's controls), `pinShown()`: a toast opens its
   full view, the Registry's `opens` (the workspace dots open the overview, the volume and brightness
-  toasts the dashboard), or else its own view, Pinned; the clock (Compact, at rest) and the hub's peek
-  pin the hub, `Tabs`. Elsewhere it does nothing.
+  toasts the dashboard), or else its own view, Pinned; the clock (Compact, at rest) and Expanded (the
+  peek) pin the hub, `Tabs`. Elsewhere it does nothing.
+- **Shadow**: a `RectangularShadow` under the surface, from the same animated rect, close and light at Rest,
+  wider and deeper once the island opens. Bar draws it because Hyprland only shadows windows, not layers. It
+  isn't in the input mask, and its alpha stays under the `glass` layer rule's `ignore_alpha` (look.lua), so
+  the blur doesn't spread into it. An island less opaque than that `ignore_alpha` would lose its blur too.
 - **Privacy dots** sit beside the surface while `Privacy.microphone` / `Privacy.camera` is true.
 - The **Loader** inside the surface (`ViewLoader.qml`) is always the view's *final* size. As the surface grows, it reveals
   the content instead of squashing it. It is centred horizontally (or pinned to its final screen position
@@ -108,8 +112,8 @@ list view) and the new size's redirect would land mid-slide and the island would
 
 | | Peek (hover) | Pinned (click, IPC) | Rest, Toast, Hidden |
 |---|---|---|---|
-| keyboard | yes | yes | never, so a toast can't steal typing from an app |
-| hover | the view lives as long as the hover (plus `graceMs`) | pauses the countdown; leaving restarts it | holds a toast; at Rest, starts the peek |
+| keyboard | never, so the pointer passing over can't steal typing from an app | yes | never, for the same reason with a toast |
+| hover | the view lives as long as the hover (plus `graceMs`) | pauses the countdown; leaving restarts it | holds a toast; at Rest, starts the peek (on the surface only: the top `hotZone` pixels are the edge's) |
 | keystroke | nothing (no countdown) | restarts the countdown from the top | - |
 
 The peek key (IPC `peek true`/`peek false`, see [ipc.md](ipc.md)) calls `Engine.peek(on)`: it shows the

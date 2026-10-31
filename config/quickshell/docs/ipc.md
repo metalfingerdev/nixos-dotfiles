@@ -17,8 +17,8 @@ default.
 | `qs ipc call island toggleAutohide` | toggle auto-hide |
 | `qs ipc call island palette <name>` | a preset palette; `palettes` lists them |
 | `qs ipc call island colours <preset\|accent\|wallpaper>` | where colours come from |
-| `qs ipc call island accent <#rrggbb>` | a scheme generated from that colour (Material You style) |
-| `qs ipc call island variant <tonal\|vibrant\|muted\|mono>` | how colourful a generated scheme is |
+| `qs ipc call island accent <#rrggbb>` | a scheme generated around that colour, which is its primary |
+| `qs ipc call island tint <0..100>` | how much of the colour goes into a generated scheme's surfaces, in percent |
 | `qs ipc call island mode <dark\|light>` | a generated scheme's dark or light version |
 | `qs ipc call island size <80..140>` | the whole island's size, in percent |
 | `qs ipc call island style <pill\|notch>` | the island's shape |

@@ -46,11 +46,18 @@ hl.config({
         inactive_opacity   = 0.8,
         fullscreen_opacity = 1.0,
 
+        -- macOS: a wide soft shadow, lying below the window as if lit from above, deep on the window
+        -- in focus and fading to about half on the others. rules.lua keeps it to floating windows.
+        -- All but the colours are global in Hyprland: no window can have a smaller one of its own.
+        -- The island is a layer, and Hyprland has no shadows for layers: Quickshell draws its own (Bar).
         shadow = {
-            enabled      = false,
-            range        = 8,
-            render_power = 3,
-            color        = 0xee1a1a1a,
+            enabled        = true,
+            range          = 70,
+            render_power   = 2,
+            offset         = { 0, 12 },
+            scale          = 0.985, -- pulls the shadow's solid core under the window, or it shows as a dark band below it
+            color          = 0x66000000,
+            color_inactive = 0x33000000,
         },
 
         -- Frosted, not just soft: a wide smooth blur (size x passes), a little grain, and a touch
@@ -89,7 +96,7 @@ hl.layer_rule({
     name         = "glass",
     match        = { namespace = "^glass(:.+)?$" },
     blur         = true,
-    ignore_alpha = 0.1, -- a full-screen overlay is transparent outside what it draws: blur only that
+    ignore_alpha = 0.4, -- a full-screen overlay is transparent outside what it draws: blur only that, and not its shadow
 })
 
 -- Curves: plain beziers, none of them overshoots (no springs).

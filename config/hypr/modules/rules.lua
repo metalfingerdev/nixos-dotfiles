@@ -31,6 +31,22 @@ hl.window_rule({
     no_focus = true,
 })
 
+-- Shadows (look.lua) only where a window lies over something, as on macOS: floating windows, dialogs
+-- and pinned ones. A tiled window has nothing under it but its neighbours, 4 px away, and a shadow
+-- this wide would lie across them. These follow a window as it's toggled between the two.
+hl.window_rule({
+    name  = "no-shadow-tiled",
+    match = { float = false },
+
+    no_shadow = true,
+})
+hl.window_rule({
+    name  = "no-shadow-fullscreen",
+    match = { fullscreen = true },
+
+    no_shadow = true,
+})
+
 -- Video stays solid: the 80 % glass (look.lua) washes the blurred wallpaper into the picture.
 -- Fullscreen is already opaque; these cover video in a tiled or floating window.
 hl.window_rule({

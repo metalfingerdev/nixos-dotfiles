@@ -25,7 +25,7 @@
 |---|---|---|
 | Hidden | parked above the screen (auto-hide only); the top-edge hot zone reveals it | none |
 | Rest | `restView` (Compact), also shown while the peek key is held | `hideMs` in auto-hide mode, otherwise none; releasing the peek key hides at once |
-| Peek | `peekView`, shown because of hover | none; `graceMs` after the pointer leaves |
+| Peek | `peekView` (Expanded), shown because the pointer is on the island's surface, not at the top edge. No keyboard | none; `graceMs` after the pointer leaves |
 | Pinned | a view opened by click or IPC | the view's `Registry.timeout`, restarted by each keystroke |
 | Toast | a view raised by the system (`alert`) | the view's `Registry.timeout` |
 
@@ -48,15 +48,19 @@ Hover holds, the keyboard restarts:
   phase change, so a release that never arrives can't hold anything afterwards. The key is ignored
   while Peek, Pinned or Toast.
 - **`key`** is any keystroke in the island. It only matters while Pinned: `start()` gives a fresh
-  countdown from the top (still none while hovered). The peek view has the keyboard too, but it has no
-  countdown: it lives exactly as long as the hover.
+  countdown from the top (still none while hovered). The peek view has no keyboard and no countdown: it
+  lives exactly as long as the hover.
+- **The top edge isn't the surface.** `reach`/`retreat` reveal and hold the island; only `hover` expands
+  it. `Bar` sends `hover` only below the top `hotZone` pixels, so in notch style, where the surface
+  touches the edge, reaching for the edge still only shows the clock. Coming down from the edge sends
+  `hover` and `retreat` in either order, so at Rest `edged()` leaves a running hover intent alone.
 
 ## Transition table
 
 | Phase \ Event | hover | leave | reach/retreat | peek | unpeek | open | close | back | alert | key | mode | expire |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | **Hidden** | | | reach → Rest | reveal → Rest | | → Pinned | | | → Toast | | unhide | |
-| **Rest** | intent | rearm | rearm | keep | release (→ Hidden) | → Pinned | | | → Toast | | retime | lapse |
+| **Rest** | intent | rearm | edged | keep | release (→ Hidden) | → Pinned | | | → Toast | | retime | lapse |
 | **Peek** | (cancels grace) | letGo | | | | → Pinned | → Rest | → Rest | → Toast | | | → Rest |
 | **Pinned** | rearm | rearm | rearm | | | toggle | → Rest | goBack | alertPinned | start | | → Rest |
 | **Toast** | rearm | rearm | rearm | | | → Pinned | toastEnd | toastEnd | alertToast | | | toastEnd |
@@ -92,8 +96,8 @@ because the durations match.
 
 ## History (Back)
 
-- Opening from Peek or Pinned pushes the current `{view, x, priority}`. Opening from Rest or Hidden starts with an
-  empty history (`trail()`).
+- Opening from Pinned pushes the current `{view, x, priority}`. Opening from anything else, Peek included,
+  starts with an empty history (`trail()`): Peek lives under the pointer, so Back never returns to it.
 - `back` (Backspace, the mouse's back button, a view's back arrow) pops the top entry and restores it as
   **Pinned**, with its anchor: the view that was open before. If the history is empty, back closes the island.
 - `close` (Escape, a click outside) goes straight to Rest from anywhere, history and all.

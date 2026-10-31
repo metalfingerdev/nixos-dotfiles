@@ -15,7 +15,7 @@ import qs.modules.components
 //   qs ipc call island palette nord        switch colours (`palettes` lists them)
 //   qs ipc call island colours wallpaper   where colours come from: preset | accent | wallpaper
 //   qs ipc call island accent '#3b6fd8'    a scheme generated from that colour
-//   qs ipc call island variant vibrant     tonal | vibrant | muted | mono (generated schemes)
+//   qs ipc call island tint 40             how much colour the surfaces take, 0..100 (generated schemes)
 //   qs ipc call island mode light          dark | light (generated schemes)
 //   qs ipc call island size 120            the island's size, 80..140 %
 //   qs ipc call island style notch         pill | notch
@@ -66,7 +66,7 @@ IpcHandler {
         Config.accent = hex.startsWith("#") ? hex : "#" + hex
         Config.source = "accent"
     }
-    function variant(name: string): void { if (["tonal", "vibrant", "muted", "mono"].includes(name)) Config.variant = name }
+    function tint(percent: int): void    { Config.tint = Math.max(0, Math.min(1, percent / 100)) }
     function mode(name: string): void    { if (name === "dark" || name === "light") Config.darkMode = name === "dark" }
     function size(percent: int): void    { Config.scale = Math.max(0.8, Math.min(1.4, percent / 100)) }
     function palettes(): string          { return Config.names.join("\n") }

@@ -1,16 +1,30 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Widgets
 import qs.modules.components
 import qs.modules.services
 
-// One screen of the lock: the picture, the clock, who is locked out, the password field. What it
+// One screen of the lock: the picture, and out of its way in the corners and along the bottom, who
+// is locked out (top left), the clock (top right) and the password field (the very bottom). What it
 // shows comes from LockConfig and what's typed from the LockContext, so every screen matches.
 Rectangle {
 	id: root
 	required property LockContext context
 	// an animated background or avatar plays while this is on (Lock.qml: not while the screens are off)
 	property bool animate: true
+	readonly property int margin: 48
+
+	// a shadow, not a backing: the words stay readable on a bright picture and cover none of it
+	component Lifted: MultiEffect {
+		shadowEnabled: true
+		shadowColor: "#000000"
+		shadowOpacity: 0.85
+		shadowBlur: 0.5
+		shadowVerticalOffset: 1
+		shadowHorizontalOffset: 0
+		blurMax: 24
+	}
 
 	// the plain colour shows until the picture loads, and for good if there is no picture
 	color: Config.surface
@@ -43,13 +57,15 @@ Rectangle {
 
 	Column {
 		anchors {
-			horizontalCenter: parent.horizontalCenter
+			right: parent.right
 			top: parent.top
-			topMargin: parent.height * 0.1
+			margins: root.margin
 		}
+		layer.enabled: true
+		layer.effect: Lifted {}
 
 		Text {
-			anchors.horizontalCenter: parent.horizontalCenter
+			anchors.right: parent.right
 			text: Qt.formatDateTime(clock.date, "HH:mm")
 			color: Config.text
 			// The native font renderer tends to look nicer at large sizes.
@@ -61,7 +77,7 @@ Rectangle {
 		}
 
 		Text {
-			anchors.horizontalCenter: parent.horizontalCenter
+			anchors.right: parent.right
 			text: Qt.formatDateTime(clock.date, "dddd, d MMMM")
 			color: Config.text
 			font.family: Config.font
@@ -69,22 +85,17 @@ Rectangle {
 		}
 	}
 
-	Column {
-		// Uncommenting this will make the password entry invisible except on the active monitor.
-		// visible: Window.active
-
+	Row {
 		anchors {
-			horizontalCenter: parent.horizontalCenter
-			verticalCenter: parent.verticalCenter
-			verticalCenterOffset: parent.height * 0.08
+			left: parent.left
+			top: parent.top
+			margins: root.margin
 		}
-		width: 380
-		spacing: 6
+		spacing: 28
 
 		ClippingRectangle {
-			anchors.horizontalCenter: parent.horizontalCenter
-			width: 120
-			height: 120
+			width: 220
+			height: 220
 			radius: LockConfig.avatarShape === "square" ? Config.smallRadius : width / 2
 			color: Config.high
 			border.width: 3
@@ -107,7 +118,7 @@ Rectangle {
 				anchors.centerIn: parent
 				visible: avatar.status !== Image.Ready
 				name: "person"
-				size: 64
+				size: 120
 				filled: true
 				color: Config.dim
 				// Qt's default renderer garbles a filled Material Symbol this big
@@ -115,34 +126,62 @@ Rectangle {
 			}
 		}
 
-		Item { width: 1; height: 8 }
+		Column {
+			anchors.verticalCenter: parent.verticalCenter
+			spacing: 4
+			layer.enabled: true
+			layer.effect: Lifted {}
 
+			Text {
+				width: Math.min(implicitWidth, 480)
+				elide: Text.ElideRight
+				text: LockConfig.shownName
+				color: Config.text
+				font.family: Config.font
+				font.pixelSize: Config.headline
+				font.weight: Font.DemiBold
+			}
+
+			Text {
+				width: Math.min(implicitWidth, 480)
+				elide: Text.ElideRight
+				text: LockConfig.shownInfo
+				color: Config.text
+				font.family: Config.font
+				font.pixelSize: Config.large
+			}
+		}
+	}
+
+	Column {
+		// Uncommenting this will make the password entry invisible except on the active monitor.
+		// visible: Window.active
+
+		anchors {
+			horizontalCenter: parent.horizontalCenter
+			bottom: parent.bottom
+			bottomMargin: 24
+		}
+		width: Math.min(parent.width - 2 * root.margin, 960)
+		spacing: 10
+
+		// always takes its place, so the field doesn't jump when it shows
 		Text {
 			width: parent.width
 			horizontalAlignment: Text.AlignHCenter
-			elide: Text.ElideRight
-			text: LockConfig.shownName
-			color: Config.text
+			text: root.context.unlockInProgress ? "Checking…" : "Incorrect password"
+			opacity: root.context.unlockInProgress || root.context.showFailure ? 1 : 0
+			color: root.context.unlockInProgress ? Config.dim : Config.bad
 			font.family: Config.font
-			font.pixelSize: Config.title
-			font.weight: Font.DemiBold
+			font.pixelSize: Config.large
+			font.weight: Font.Medium
 		}
-
-		Text {
-			width: parent.width
-			horizontalAlignment: Text.AlignHCenter
-			elide: Text.ElideRight
-			text: LockConfig.shownInfo
-			color: Config.dim
-			font.family: Config.font
-			font.pixelSize: Config.body
-		}
-
-		Item { width: 1; height: 14 }
 
 		SearchBar {
 			id: passwordBox
 			width: parent.width
+			height: 76
+			fieldSize: Config.title
 
 			icon: "lock"
 			placeholder: "Password"
@@ -160,6 +199,8 @@ Rectangle {
 			onEscaped: root.context.currentText = "";
 
 			Pill {
+				implicitHeight: 60
+				iconSize: 28
 				icon: "arrow_forward"
 				kind: "filled"
 
@@ -171,18 +212,6 @@ Rectangle {
 			}
 		}
 
-		// always takes its place, so the column doesn't jump when it shows
-		Text {
-			width: parent.width
-			topPadding: 8
-			horizontalAlignment: Text.AlignHCenter
-			text: root.context.unlockInProgress ? "Checking…" : "Incorrect password"
-			opacity: root.context.unlockInProgress || root.context.showFailure ? 1 : 0
-			color: root.context.unlockInProgress ? Config.dim : Config.bad
-			font.family: Config.font
-			font.pixelSize: Config.body
-			font.weight: Font.Medium
-		}
 	}
 
 	// the wrong password: the field shakes its head

@@ -64,7 +64,7 @@ FocusScope {
         Icon {
             anchors.centerIn: parent
             name: root.icon
-            size: 20
+            size: Math.round(root.height * 0.36)
             color: Config.primaryInk
         }
     }

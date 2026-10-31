@@ -5,7 +5,7 @@ import qs.modules.parts
 import qs.modules.components
 import qs.modules.services
 
-// The hub: hovering the clock (Compact) peeks into it, a click pins it. One bar, left to right:
+// The hub: a click on the clock (Compact) or on Expanded opens it. One bar, left to right:
 //   back           the view that was open before (Backspace too); Escape closes
 //   workspaces     numbered, with the switcher's logic: up to the last one in use and one empty; the
 //                  focused one a wide primary pill, ones with windows filled, empty ones an outline.

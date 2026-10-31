@@ -13,6 +13,7 @@ Slider       1.0 Slider.qml
 Segmented    1.0 Segmented.qml
 Chip         1.0 Chip.qml
 Swatch       1.0 Swatch.qml
+ColourMap    1.0 ColourMap.qml
 SearchBar    1.0 SearchBar.qml
 Progress     1.0 Progress.qml
 ScrollList   1.0 ScrollList.qml

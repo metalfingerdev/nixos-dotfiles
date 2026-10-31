@@ -7,7 +7,9 @@ QtObject {
 
     readonly property var entries: [
         { name: "compact",    priority: 0, timeout: 0,    view: Engine.View.Compact,    url: Qt.resolvedUrl("views/Compact.qml") },
-        // the hub: hovering the clock (Compact) peeks into it, a click opens it
+        // what the clock grows into under the pointer (Machine's Peek); `open expanded` pins it
+        { name: "expanded",   priority: 2, timeout: 6000, view: Engine.View.Expanded,   url: Qt.resolvedUrl("views/Expanded.qml") },
+        // the hub: a click on the clock or on Expanded opens it
         { name: "tabs",       priority: 2, timeout: 8000, view: Engine.View.Tabs,       url: Qt.resolvedUrl("views/Tabs.qml") },
         // everything: quick settings, sliders, media, notifications
         { name: "dashboard",  priority: 2, timeout: 12000, view: Engine.View.Dashboard, url: Qt.resolvedUrl("views/Dashboard.qml") },

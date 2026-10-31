@@ -9,7 +9,8 @@ import qs.modules.services
 //   playing     the album cover (bars when there is none) left of the clock, bars right of it
 //   recording   a red dot and the time recorded
 //   Do not disturb, charging   an icon each
-// The island grows to fit, so it's a capsule of whatever is there. A click opens Tabs.
+// The island grows to fit, so it's a capsule of whatever is there. The pointer on it expands it
+// (views/Expanded.qml); a click opens Tabs.
 // View contract: set implicitWidth / implicitHeight. The island sizes itself to them.
 Item {
     id: root

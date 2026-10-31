@@ -10,7 +10,7 @@ import qs.modules.services
 //   Wallpaper   the images in one large row, the one showing in the middle
 // A click on a colour, the mode or a wallpaper applies it at once. Each section's round arrow (the
 // one a quick settings tile has when the setting has a view of its own) opens its full view:
-// Colours (views/Colours.qml: an accent, the wallpaper's colours, style) and Wallpaper
+// Colours (views/Colours.qml: any accent, the wallpaper's colours, how they're used) and Wallpaper
 // (views/Wallpapers.qml, every image). The island's size, shape and hiding are in views/Settings.qml.
 // Keys: C colours, W wallpapers, I settings, arrows/Tab move (in the row Left/Right pick and
 // Enter/Space apply), Backspace back, Escape closes.
@@ -113,7 +113,7 @@ Item {
 
                 // or a scheme generated from the accent, or from the wallpaper, drawn the same way
                 Swatch {
-                    readonly property var p: Config.scheme(Config.accent, Config.variant, Config.darkMode)
+                    readonly property var p: Config.generated("accent")
                     width: root.swatch; height: root.swatch
                     ring: p.surface
                     tone: p.primary
@@ -122,7 +122,7 @@ Item {
                     onPicked: Config.source = "accent"
                 }
                 Swatch {
-                    readonly property var p: Config.scheme(Wallpaper.seed, Config.variant, Config.darkMode)
+                    readonly property var p: Config.generated("wallpaper")
                     width: root.swatch; height: root.swatch
                     ring: p.surface
                     tone: p.primary

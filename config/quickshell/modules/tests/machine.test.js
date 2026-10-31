@@ -10,7 +10,7 @@ const M = ctx
 // ---- fake Registry (mirrors Registry.qml) -----------------------------------------------------
 const V = { Compact: 0, Network: 1, Launcher: 2, Bluetooth: 3, Volume: 4, Brightness: 5, Notifications: 6,
             Media: 7, Battery: 8, Clock: 9, Power: 10, Theme: 11, Workspaces: 12, Tabs: 13, Dashboard: 14, Switcher: 15,
-            Mixer: 16, Settings: 17, Colours: 18, Wallpapers: 19 }
+            Mixer: 16, Settings: 17, Colours: 18, Wallpapers: 19, Expanded: 20 }
 const REG = {
     [V.Compact]:    { priority: 0, timeout: 0 },
     [V.Network]:    { priority: 2, timeout: 5000 },
@@ -32,9 +32,10 @@ const REG = {
     [V.Tabs]:       { priority: 2, timeout: 8000 },
     [V.Dashboard]:  { priority: 2, timeout: 12000 },
     [V.Switcher]:   { priority: 1, timeout: 1200, queue: false },
+    [V.Expanded]:   { priority: 2, timeout: 6000 },
 }
 const cfg = {
-    restView: V.Compact, peekView: V.Tabs, graceMs: 140, hoverMs: 140, hideMs: 700,
+    restView: V.Compact, peekView: V.Expanded, graceMs: 140, hoverMs: 140, hideMs: 700,
     known:    v => REG[v] !== undefined,
     priority: v => REG[v] ? REG[v].priority : -1,
     queues:   v => REG[v] ? !!REG[v].queue : false,
@@ -111,13 +112,13 @@ test("alert <restView> is ignored", () => {
     assert.strictEqual(run(pinned, alert(V.Compact)).phase, P.Pinned)
 })
 
-test("pinning the peeking view (a click on the peek) leaves no history entry", () => {
-    let s = run(M.initial(V.Compact, false), E.Hover, E.Expire)                  // peeking Tabs
-    s = run(s, open(V.Tabs))
+test("opening from Expanded leaves no history entry: Back closes, it never pins Expanded", () => {
+    let s = run(M.initial(V.Compact, false), E.Hover, E.Expire)                  // Expanded under the pointer
+    s = run(s, open(V.Tabs))                                                     // a click on it
     assert.strictEqual(s.phase, P.Pinned); assert.strictEqual(s.history.length, 0)
-    assert.strictEqual(run(s, E.Back).phase, P.Rest)                             // Back closes, no Tabs twice
-    s = run(M.initial(V.Compact, false), E.Hover, E.Expire, open(V.Network))     // another view from the peek
-    assert.strictEqual(s.history.length, 1)
+    assert.strictEqual(run(s, E.Back).phase, P.Rest)
+    s = run(M.initial(V.Compact, false), E.Hover, E.Expire, open(V.Expanded))    // pinning the view itself
+    assert.strictEqual(s.phase, P.Pinned); assert.strictEqual(s.history.length, 0)
 })
 
 console.log("anchor")
@@ -210,10 +211,23 @@ test("peekView -1 doesn't turn the key off", () => {
 })
 
 console.log("existing behaviour (regression)")
-test("hover intent then peek", () => {
+test("hover intent then Expanded, never Tabs", () => {
     let s = run(M.initial(V.Compact, false), E.Hover)
     assert.deepStrictEqual(s.timer && s.timer.ms, 140)
-    s = run(s, E.Expire); assert.strictEqual(s.phase, P.Peek); assert.strictEqual(s.view, V.Tabs)
+    s = run(s, E.Expire); assert.strictEqual(s.phase, P.Peek); assert.strictEqual(s.view, V.Expanded)
+})
+test("the top edge reveals and holds the island but doesn't expand it", () => {
+    let s = run(M.initial(V.Compact, true), E.Reach)
+    assert.strictEqual(s.phase, P.Rest); assert.strictEqual(s.timer, null)
+    s = run(s, E.Hover); assert.strictEqual(s.timer.kind, "intent")              // only now, on the surface
+    assert.strictEqual(run(s, E.Expire).view, V.Expanded)
+})
+test("coming down from the top edge onto the surface expands, whichever event arrives first", () => {
+    for (const evs of [[E.Hover, E.Retreat], [E.Retreat, E.Hover]]) {
+        const s = run(M.initial(V.Compact, true), E.Reach, ...evs)
+        assert.strictEqual(s.timer.kind, "intent")
+        assert.strictEqual(run(s, E.Expire).view, V.Expanded)
+    }
 })
 test("peek grace then Rest", () => {
     let s = run(M.initial(V.Compact, false), E.Hover, E.Expire, E.Leave)
@@ -303,9 +317,9 @@ test("auto-hide: toast end goes straight to Hidden", () => {
 })
 
 console.log("the hub (Tabs) and the workspace switcher")
-test("Back goes to whatever was open before: the peeked hub (Tabs), a view", () => {
-    let s = run(M.initial(V.Compact, false), E.Hover, E.Expire)            // hover intent -> peek (Tabs)
-    s = run(s, open(V.Network), open(V.Mixer))
+test("Back goes to whatever was open before, and past the first view it closes", () => {
+    let s = run(M.initial(V.Compact, false), E.Hover, E.Expire)            // hover intent -> Expanded
+    s = run(s, open(V.Tabs), open(V.Network), open(V.Mixer))
     s = run(s, E.Back); assert.strictEqual(s.view, V.Network); assert.strictEqual(s.phase, P.Pinned)
     s = run(s, E.Back); assert.strictEqual(s.view, V.Tabs); assert.strictEqual(s.phase, P.Pinned)
     s = run(s, E.Back); assert.strictEqual(s.phase, P.Rest)

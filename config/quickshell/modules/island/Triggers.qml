@@ -39,7 +39,7 @@ Scope {
     }
 
     // ---- workspaces: GNOME-style dots when the focused workspace changes. Not while a view that
-    // shows workspaces itself is open (Tabs, the overview), nor over the hub's peek under the pointer.
+    // shows workspaces itself is open (Tabs, the overview), nor over Expanded under the pointer.
     // Priority 1 and queue: false (Registry), so it never interrupts anything and is never kept. ----
     Connections {
         target: Hyprland

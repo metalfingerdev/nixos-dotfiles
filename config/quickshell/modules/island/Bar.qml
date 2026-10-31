@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
+import QtQuick.Effects
 import QtQuick.Shapes
 
 import qs.modules.island
@@ -18,7 +19,8 @@ import qs.modules.services
 //         "notch"  flush with the top edge, square top, anti-corners curving into the screen edge
 //   handle "strip" while auto-hide has hidden the island, a thin bar stays at the top edge
 // The glass is Hyprland's: the overlay's namespace is glass:island, which hypr/modules/look.lua's `glass`
-// layer rule blurs, and the surface takes the windows' opacity (Config.island).
+// layer rule blurs, and the surface takes the windows' opacity (Config.island). The shadow isn't:
+// Hyprland only shadows windows, so the island casts its own.
 // Any shape lower than twice Config.radius is a capsule (the compact clock, the volume HUD).
 Scope {
     id: root
@@ -31,7 +33,7 @@ Scope {
     readonly property bool notch: Config.style === "notch"
     readonly property real gap: notch ? 0 : 8      // distance from the top edge
     readonly property real edgePad: 8              // keep the island this far from the screen sides
-    readonly property real hotZone: 4              // auto-hide: height of the top-edge strip that reveals the island
+    readonly property real hotZone: 4              // the top-edge strip: reveals the island (auto-hide), never expands it
     readonly property bool debug: Engine.debug     // show the proxy as a faint green box (watch it snap)
     readonly property int space: gap + Math.ceil(36 * Config.scale)   // height reserved at the top when auto-hide is off
 
@@ -61,6 +63,8 @@ Scope {
         target: Engine
         // the snapshot, not Engine.view: that binding may not have caught up yet
         function onAnchorXChanged() { if (Engine.snapshot.view === root.shown) root.anchor = Engine.anchorX }
+        // Expanded has no keyboard, so no focus ring or keycap means anything in it
+        function onPhaseChanged() { if (Engine.phase === "peek") Config.focusVisible = false }
     }
 
     // ---- animated rect, in window coords. Only snap() writes these. ----
@@ -96,10 +100,15 @@ Scope {
         sw = proxy.width; sh = proxy.height
     }
 
+    // The pointer is at the screen's top edge: on the spacer's hot zone or, where the overlay lies
+    // over it (a notch), in the overlay's own top strip. That holds the island but isn't "on" it.
+    readonly property bool atEdge: edgeHover.hovered || (pointer.hovered && pointer.point.position.y < hotZone)
+    onAtEdgeChanged: Engine.edge(atEdge, screen.name)
+
     // A click on the island itself (not on a control in the view): a toast opens its full view (the
     // Registry's `opens`: the workspace dots open the overview) or stops timing out (its own view
-    // is pinned); the clock (Compact) and the hub's peek open the hub, Tabs, pinned. Elsewhere it
-    // does nothing.
+    // is pinned); the clock (Compact) and Expanded open the hub, Tabs, pinned. Elsewhere it does
+    // nothing.
     function pinShown() {
         const x = Engine.anchorX >= 0 ? Engine.anchorX : undefined
         if (Engine.phase === "toast") Engine.open(Registry.get(Engine.view)?.opens ?? Engine.view, x)
@@ -132,7 +141,7 @@ Scope {
         Item {
             id: edge
             anchors.fill: parent
-            HoverHandler { onHoveredChanged: Engine.edge(hovered, root.screen.name) }
+            HoverHandler { id: edgeHover }
         }
     }
 
@@ -151,8 +160,8 @@ Scope {
 
         WlrLayershell.namespace: "glass:island"     // Hyprland's glass (hypr/modules/look.lua)
         WlrLayershell.layer: WlrLayer.Top
-        // Pinned views and the peek view (hover) get the keyboard (the user is here).
-        // Rest and Toast never take it, so a toast can't steal typing from an app.
+        // Pinned views get the keyboard (the user is here). Rest, Peek and Toast never take it, so
+        // neither the pointer passing over the island nor a toast can steal typing from an app.
         WlrLayershell.keyboardFocus: root.active && Engine.keyboard ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
         // Whether this window really has the keyboard (Hyprland sent it), not only asked for it.
@@ -173,7 +182,8 @@ Scope {
 
         // HOVER: the pointer is on the island while it is inside the FINAL rect (the proxy, like the
         // input mask), not the moving surface, so what counts as on the island doesn't shift while it
-        // animates. On the window's root item, so no control in the view can take the hover from it.
+        // animates, and below the top-edge strip (atEdge), so reaching for the edge never expands a
+        // notch. On the window's root item, so no control in the view can take the hover from it.
         HoverHandler {
             id: pointer
             // The pointer is back: focus rings hide until the keyboard moves focus again. Only a real
@@ -193,7 +203,7 @@ Scope {
         }
         readonly property bool onIsland: pointer.hovered
             && pointer.point.position.x >= proxy.x && pointer.point.position.x < proxy.x + proxy.width
-            && pointer.point.position.y >= proxy.y && pointer.point.position.y < proxy.y + proxy.height
+            && pointer.point.position.y >= Math.max(proxy.y, root.hotZone) && pointer.point.position.y < proxy.y + proxy.height
         onOnIslandChanged: Engine.hover(onIsland)
 
         // PROXY: invisible. The final size and position, in window coordinates. Never animated.
@@ -234,6 +244,31 @@ Scope {
                 visible: root.debug
                 color: '#338aff30'           // translucent green
             }
+        }
+
+        // SHADOW: under the island, from the same animated rect, so it morphs with it. Close and light
+        // at rest, deep and wide once the island opens (the Dynamic Island's lift). Not part of the
+        // input mask, so it never takes a click. It stays under look.lua's `ignore_alpha`, which
+        // keeps the glass's blur from spreading into it.
+        RectangularShadow {
+            readonly property bool open: Engine.phase !== "rest"
+            property real lift: open ? 16 : 5
+
+            // in a notch it carries on above the screen, so it doesn't thin out toward the top edge
+            x: root.sx
+            y: root.sy - (root.notch ? radius : 0)
+            width: root.sw
+            height: root.sh + (root.notch ? radius : 0)
+            radius: surface.r
+            offset: Qt.vector2d(0, lift)
+            blur: open ? 56 : 22
+            color: Qt.rgba(0, 0, 0, open ? 0.5 : 0.42)
+            opacity: Engine.hidden ? 0 : 1
+
+            Behavior on lift    { Motion {} }
+            Behavior on blur    { Motion {} }
+            Behavior on color   { ColorAnimation { duration: Config.motionMs } }
+            Behavior on opacity { NumberAnimation { duration: 150 } }
         }
 
         // ANTI-CORNERS (notch): the island curves into the screen edge instead of meeting it at a

@@ -7,37 +7,56 @@ import qs.modules.services
 // The island's colours (views/Theme.qml has them as one row; this is everything). Each choice
 // applies at once and is remembered (components/Config.qml).
 //   where they come from   Presets: the palettes, each as a card in its own colours
-//                          Accent: a scheme generated from a colour, one of twelve or any hex
-//                          Wallpaper: generated from the wallpaper; another of its colours can be
-//                          the accent
-//   Style (generated schemes): tonal, vibrant, muted or mono · Mode: dark or light (with a preset,
-//   light is Paper and dark the last dark palette)
-// Keys: P A W where the colours come from, arrows/Tab move, Enter/Space choose, Backspace back,
-// Escape closes.
+//                          Accent: any colour: the map (hue and lightness), its saturation, or a hex
+//                          Wallpaper: generated from the wallpaper; a click makes another of its
+//                          colours the one it's generated from (it stays on the wallpaper), and
+//                          sliders set how saturated and light that comes out
+//   Surface tint (generated schemes): how much of the colour goes into the island's surfaces
+//   Mode: dark or light (with a preset, light is Paper and dark the last dark palette)
+// Keys: P A W where the colours come from, Tab moves, arrows step the map and the sliders,
+// Enter/Space choose, Backspace back, Escape closes.
 Item {
     id: root
 
     readonly property int pad: 24
-    readonly property int contentW: 600
+    readonly property int contentW: 780
     readonly property bool generated: Config.source !== "preset"
-    readonly property var seeds: ["#d0453b", "#e0822a", "#d9a400", "#8db600", "#3f9b4f", "#2a9d8f",
-                                  "#1e9fc4", "#3b6fd8", "#5b5bd6", "#8a4fd0", "#c84f9b", "#8d6e63"]
-    readonly property var styles: [
-        { key: "tonal",   label: "Tonal" },
-        { key: "vibrant", label: "Vibrant" },
-        { key: "muted",   label: "Muted" },
-        { key: "mono",    label: "Mono" }
-    ]
+    readonly property bool accent: Config.source === "accent"
+    readonly property bool wallpaper: Config.source === "wallpaper"
+
+    // The accent as the map and its slider hold it. Kept apart from Config.accent because a colour
+    // forgets: white has no hue, grey no saturation, and the handle mustn't jump when it gets there.
+    property real hue: 0
+    property real saturation: 1
+    property real lightness: 0.5
+
+    function loadAccent() {
+        const c = Config.accent
+        if (c.hslHue >= 0) hue = c.hslHue
+        saturation = c.hslSaturation
+        lightness = c.hslLightness
+    }
+    function setAccent() {
+        Config.accent = Qt.hsla(hue, saturation, lightness, 1)
+        Engine.key()
+    }
+    Component.onCompleted: loadAccent()
+    // it changed elsewhere: the hex field, IPC
+    Connections {
+        target: Config
+        function onAccentChanged() {
+            if (Config.hex(Config.accent) !== Config.hex(Qt.hsla(root.hue, root.saturation, root.lightness, 1))) root.loadAccent()
+        }
+    }
 
     implicitWidth: contentW + 2 * pad
     implicitHeight: column.implicitHeight + 2 * pad
 
-    component Label: Text {
-        leftPadding: 4
-        color: Config.primary
-        font.family: Config.font
-        font.pixelSize: Config.body
-        font.weight: Font.DemiBold
+    // a slider that names what it sets, at its far end
+    component Level: Slider {
+        id: level
+        property string title: ""
+        valueText: title + "  " + Math.round(level.shown * 100) + "%"
     }
 
     Column {
@@ -51,7 +70,7 @@ Item {
             width: parent.width
             title: "Colours"
             subtitle: Config.source === "preset" ? Config.current.label
-                    : Config.source === "accent" ? "From " + Config.hex(Config.accent) : "From the wallpaper"
+                    : root.accent ? "From " + Config.hex(Config.accent) : "From the wallpaper"
             onBack: Engine.back()
         }
 
@@ -120,81 +139,21 @@ Item {
             }
         }
 
-        // ================= an accent you pick =================
-        Row {
-            visible: Config.source === "accent"
-            spacing: (column.width - 12 * 40) / 11
-
-            Repeater {
-                model: root.seeds
-
-                Swatch {
-                    required property string modelData
-                    width: 40; height: 40
-                    tone: modelData
-                    chosen: Qt.colorEqual(Config.accent, modelData)
-                    focus: chosen && Config.source === "accent"
-                    onPicked: Config.accent = modelData
-                }
-            }
-        }
-        // any colour: the field, with the colour it would be at its start (a search bar's badge)
-        Rectangle {
-            visible: Config.source === "accent"
+        // ================= an accent you pick: every colour there is =================
+        ColourMap {
+            visible: root.accent
             width: parent.width
-            height: 52
-            radius: height / 2
-            color: Config.high
-            border.width: field.activeFocus ? 2 : 0
-            border.color: Config.primary
-
-            Rectangle {
-                id: badge
-                x: 6
-                anchors.verticalCenter: parent.verticalCenter
-                width: parent.height - 12
-                height: width
-                radius: width / 2
-                color: field.digits.length === 6 ? "#" + field.digits : Config.accent
-                border.width: 1
-                border.color: Config.outline
-            }
-
-            TextInput {
-                id: field
-                anchors { left: badge.right; leftMargin: 14; right: parent.right; rightMargin: 20; top: parent.top; bottom: parent.bottom }
-                verticalAlignment: TextInput.AlignVCenter
-                activeFocusOnTab: true
-                color: Config.text
-                font.family: Config.mono
-                font.pixelSize: Config.large
-                maximumLength: 7
-                validator: RegularExpressionValidator { regularExpression: /#?[0-9A-Fa-f]{0,6}/ }
-                clip: true
-
-                readonly property string digits: text.replace("#", "")
-                function apply() {
-                    if (digits.length === 6) { Config.accent = "#" + digits; text = "" }
-                }
-                // the field accepts its keys, so ViewLoader never sees them: report them here
-                Keys.onPressed: event => { Engine.key(); event.accepted = false }
-                Keys.onReturnPressed: apply()
-                Keys.onEnterPressed:  apply()
-
-                Text {
-                    visible: field.text === ""
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "Any colour, e.g. " + Config.hex(Config.accent)
-                    color: Config.dim
-                    font.family: Config.font
-                    font.pixelSize: Config.body
-                }
-            }
+            height: 260
+            focus: root.accent                       // the keyboard starts on the map
+            hue: root.hue
+            lightness: root.lightness
+            saturation: root.saturation
+            onMoved: (h, l) => { root.hue = h; root.lightness = l; root.setAccent() }
         }
 
-        // ================= the wallpaper's colours: a click makes one the accent =================
+        // ================= the wallpaper's colours: a click generates the scheme from that one =================
         Row {
-            visible: Config.source === "wallpaper"
+            visible: root.wallpaper
             width: parent.width
             spacing: 16
 
@@ -222,13 +181,11 @@ Item {
 
                     Swatch {
                         required property color modelData
-                        width: 36; height: 36
+                        width: 44; height: 44
                         tone: modelData
-                        chosen: Qt.colorEqual(Wallpaper.seed, modelData)
-                        onPicked: {
-                            Config.accent = modelData
-                            Config.source = "accent"
-                        }
+                        chosen: Config.hex(Wallpaper.seed) === Config.hex(modelData)
+                        focus: chosen && root.wallpaper
+                        onPicked: Wallpaper.pick(modelData)
                     }
                 }
                 Text {
@@ -241,43 +198,112 @@ Item {
             }
         }
 
-        // ================= style and mode =================
+        // ================= how that colour is used =================
         Row {
+            id: levels
+            readonly property real each: (width - (root.wallpaper ? 2 : 1) * spacing) / (root.wallpaper ? 3 : 2)
+
+            visible: root.generated
             width: parent.width
-            spacing: 16
+            spacing: 12
 
-            // a generated scheme's style
-            Column {
-                visible: root.generated
-                width: parent.width - mode.width - parent.spacing
-                spacing: 10
-
-                Label { text: "Style"; topPadding: 4 }
-                Segmented {
-                    width: parent.width
-                    options: root.styles
-                    current: Config.variant
-                    onPicked: key => Config.variant = key
+            Level {
+                width: levels.each
+                title: "Saturation"
+                icon: "invert_colors"
+                value: root.accent ? root.saturation : Config.wallpaperSaturation
+                onMoved: v => {
+                    if (root.accent) { root.saturation = v; root.setAccent() }
+                    else { Config.wallpaperSaturation = v; Engine.key() }
                 }
             }
-            Column {
-                id: mode
-                width: root.generated ? 220 : parent.width
-                spacing: 10
+            Level {
+                visible: root.wallpaper
+                width: levels.each
+                title: "Lightness"
+                icon: "brightness_6"
+                value: Config.wallpaperLightness
+                onMoved: v => { Config.setWallpaperLightness(v); Engine.key() }
+            }
+            Level {
+                width: levels.each
+                title: "Surface tint"
+                icon: "format_color_fill"
+                value: Config.tint
+                onMoved: v => { Config.tint = v; Engine.key() }
+            }
+        }
 
-                Label { text: "Mode"; topPadding: 4 }
-                Segmented {
-                    width: parent.width
-                    options: [{ key: "dark", label: "Dark", icon: "dark_mode" }, { key: "light", label: "Light", icon: "light_mode" }]
-                    current: Config.dark ? "dark" : "light"
-                    onPicked: key => { Config.setDark(key === "dark"); Toggles.colorScheme(Config.dark) }
+        // ================= any colour by its number, and the mode =================
+        Row {
+            width: parent.width
+            spacing: 12
+
+            // the field, with the colour it would be at its start (a search bar's badge)
+            Rectangle {
+                visible: root.accent
+                width: parent.width - mode.width - parent.spacing
+                height: mode.height
+                radius: height / 2
+                color: Config.high
+                border.width: field.activeFocus ? 2 : 0
+                border.color: Config.primary
+
+                Rectangle {
+                    id: badge
+                    x: 6
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.height - 12
+                    height: width
+                    radius: width / 2
+                    color: field.digits.length === 6 ? "#" + field.digits : Config.accent
+                    border.width: 1
+                    border.color: Config.outline
                 }
+
+                TextInput {
+                    id: field
+                    anchors { left: badge.right; leftMargin: 12; right: parent.right; rightMargin: 20; top: parent.top; bottom: parent.bottom }
+                    verticalAlignment: TextInput.AlignVCenter
+                    activeFocusOnTab: true
+                    color: Config.text
+                    font.family: Config.mono
+                    font.pixelSize: Config.body + 1
+                    maximumLength: 7
+                    validator: RegularExpressionValidator { regularExpression: /#?[0-9A-Fa-f]{0,6}/ }
+                    clip: true
+
+                    readonly property string digits: text.replace("#", "")
+                    function apply() {
+                        if (digits.length === 6) { Config.accent = "#" + digits; text = "" }
+                    }
+                    // the field accepts its keys, so ViewLoader never sees them: report them here
+                    Keys.onPressed: event => { Engine.key(); event.accepted = false }
+                    Keys.onReturnPressed: apply()
+                    Keys.onEnterPressed:  apply()
+
+                    Text {
+                        visible: field.text === ""
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: Config.hex(Config.accent)
+                        color: Config.dim
+                        font: field.font
+                    }
+                }
+            }
+            Segmented {
+                id: mode
+                width: root.accent ? 240 : parent.width
+                options: [{ key: "dark", label: "Dark", icon: "dark_mode" }, { key: "light", label: "Light", icon: "light_mode" }]
+                current: Config.dark ? "dark" : "light"
+                onPicked: key => { Config.setDark(key === "dark"); Toggles.colorScheme(Config.dark) }
             }
         }
 
         KeyHints {
             width: parent.width
-            keys: [["⌫", "back"], ["Esc", "close"]]
+            keys: root.accent ? [["← → ↑ ↓", "colour"], ["Tab", "next"], ["⌫", "back"], ["Esc", "close"]]
+                              : [["⌫", "back"], ["Esc", "close"]]
         }
     }
 }

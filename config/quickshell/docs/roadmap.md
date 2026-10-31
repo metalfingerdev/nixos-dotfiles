@@ -36,6 +36,13 @@
       Backspace back, bold focus rings that no longer vanish under a still pointer, `KeyHints` footers.
 - [x] Theme: colours from a preset, an accent or the wallpaper (generated Material-You-style, with
       tonal/vibrant/muted/mono and dark/light), and a Size for the whole island.
+- [x] Colours: a full colour map (hue and lightness) with a saturation slider and a hex field instead of
+      twelve swatches; `tint` and, for the wallpaper, saturation and lightness sliders instead of the
+      tonal/vibrant/muted/mono styles. A wallpaper colour stays on the wallpaper, for that image.
+- [x] Expanded is back, small: the pointer on the island's surface grows the clock into it, after the
+      Dynamic Island. No keyboard. Tabs opens with a click; the top edge only reveals the clock.
+- [x] Shadows after macOS: floating windows only (hypr/modules/look.lua, rules.lua), deeper in focus; the
+      island casts its own (Hyprland has none for layers), deeper once it opens.
 - [x] Wide views with big controls; Network and Bluetooth laid out like the dashboard; the dashboard
       without its notification list (a bell with a count opens the center).
 
