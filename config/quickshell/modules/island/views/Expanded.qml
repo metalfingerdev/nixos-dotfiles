@@ -6,9 +6,10 @@ import qs.modules.components
 import qs.modules.services
 
 // What the clock grows into while the pointer is on the island (Machine's Peek phase), after the
-// Dynamic Island: the time and date, what's on (each segment opens its view) and what's playing,
-// with its controls. It has no keyboard and lives only as long as the hover, so the pointer passing
-// over it can't take typing from an app. A click anywhere else on it opens Tabs (Bar.pinShown).
+// Dynamic Island: the time and date, what's on (each segment opens its view, the group around them
+// the dashboard) and what's playing, with its controls. It has no keyboard and lives only as long as
+// the hover, so the pointer passing over it can't take typing from an app. A click anywhere else on
+// it opens Tabs (Bar.pinShown).
 // View contract: set implicitWidth / implicitHeight. The island sizes itself to them.
 Item {
     id: root
@@ -16,7 +17,7 @@ Item {
     readonly property int pad: 12
     readonly property bool media: Players.active !== null && (Players.active.trackTitle ?? "") !== ""
 
-    implicitWidth: 420 + 2 * pad                 // as wide as a compact MediaCard
+    implicitWidth: 460 + 2 * pad
     implicitHeight: column.implicitHeight + 2 * pad
 
     SystemClock {

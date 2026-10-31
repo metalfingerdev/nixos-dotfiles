@@ -41,6 +41,8 @@
       tonal/vibrant/muted/mono styles. A wallpaper colour stays on the wallpaper, for that image.
 - [x] Expanded is back, small: the pointer on the island's surface grows the clock into it, after the
       Dynamic Island. No keyboard. Tabs opens with a click; the top edge only reveals the clock.
+- [x] The status group (Tabs, Expanded) has a pill of its own: a segment opens its view, the pill and
+      its "tune" button the dashboard.
 - [x] Shadows after macOS: floating windows only (hypr/modules/look.lua, rules.lua), deeper in focus; the
       island casts its own (Hyprland has none for layers), deeper once it opens.
 - [x] Wide views with big controls; Network and Bluetooth laid out like the dashboard; the dashboard

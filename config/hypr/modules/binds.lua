@@ -30,9 +30,10 @@ hl.bind(mainMod .. " + Z",                hl.dsp.exec_cmd(lock))
 hl.bind(mainMod .. " + R",                session.restart)
 
 -- Quickshell island
-hl.bind(mainMod .. " + CTRL + A",         hl.dsp.exec_cmd("quickshell ipc call island togglePeek"))
+hl.bind(mainMod .. " + A",                hl.dsp.exec_cmd("quickshell ipc call island togglePeek"))
 hl.bind(mainMod .. " + SHIFT + A",        hl.dsp.exec_cmd("quickshell ipc call island toggleAutohide"))
-hl.bind(mainMod .. " + A",                hl.dsp.exec_cmd("quickshell ipc call island open tabs"))
+hl.bind(mainMod .. " + ALT + A",          hl.dsp.exec_cmd("quickshell ipc call island open tabs"))
+hl.bind(mainMod .. " + CTRL + A",         hl.dsp.exec_cmd("quickshell ipc call island open expanded"))
 
 hl.bind(mainMod .. " + B",                hl.dsp.exec_cmd("quickshell ipc call island open bluetooth"))
 hl.bind(mainMod .. " + Y",                hl.dsp.exec_cmd("quickshell ipc call island open network"))

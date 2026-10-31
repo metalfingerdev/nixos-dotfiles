@@ -3,15 +3,17 @@ import qs.modules.island
 import qs.modules.components
 import qs.modules.services
 
-// At a glance, as a connected button group (Material 3): one segment per thing that is on right
-// now, and nothing for what's off: a recording, the network, a Bluetooth device, Do not disturb,
-// the battery. With nothing on, a single "tune" segment. Each segment is a button of its own:
-// clicked(view, sceneX) with the view it stands for (the network, Bluetooth, the notifications,
-// the battery). A recording and "tune" have no view of their own: they stand for the dashboard.
-// Tab/arrows reach each segment, Enter/Space press it (sceneX -1: centred).
-Item {
+// At a glance, as a connected button group (Material 3) on a pill of its own: one segment per thing
+// that is on right now, and nothing for what's off: a recording, the network, a Bluetooth device,
+// Do not disturb, the battery. Each segment is a button: clicked(view, sceneX) with the view it
+// stands for (the network, Bluetooth, the notifications, the battery; a recording has none of its
+// own, so the dashboard). The group itself stands for the dashboard: its pill, anywhere that isn't a
+// segment, and the "tune" button at its start, which is the part big enough to aim for and the part
+// the keyboard can reach. Tab/arrows reach each button, Enter/Space press it (sceneX -1: centred).
+Rectangle {
     id: root
 
+    readonly property int pad: 4
     property bool showText: true
     property real maxText: 110
     // the most the group may take: labels share what's left after the icons, and elide
@@ -28,7 +30,7 @@ Item {
         if (Bluez.connected.length > 0) out.push("bluetooth")
         if (Notifier.dnd) out.push("dnd")
         if (Energy.present) out.push("battery")
-        return out.length > 0 ? out : ["tune"]
+        return out
     }
 
     function glyph(key) {
@@ -39,7 +41,7 @@ Item {
         case "dnd":       return "do_not_disturb_on"
         case "battery":   return Energy.glyph
         }
-        return "tune"
+        return ""
     }
     function label(key) {
         switch (key) {
@@ -71,19 +73,54 @@ Item {
         return Engine.View.Dashboard
     }
 
-    // a label's width: maxText, or an equal share of what maxWidth leaves after icons and padding
+    // the most a label may take: maxText, or if maxWidth is too tight for that, what's left after the
+    // "tune" button, the icons, the padding and the labels short enough to fit whole ("100%" stays
+    // whole; only a long name elides)
+    FontMetrics {
+        id: metrics
+        font.family: Config.font
+        font.pixelSize: Config.body
+        font.weight: Font.Medium
+    }
     readonly property real textWidth: {
-        const labelled = keys.filter(k => label(k) !== "").length
-        if (labelled === 0 || !isFinite(maxWidth)) return maxText
-        return Math.max(24, Math.min(maxText, (maxWidth - keys.length * 52 - (keys.length - 1) * 2) / labelled))
+        if (!isFinite(maxWidth)) return maxText
+        const widths = keys.map(k => Math.ceil(metrics.advanceWidth(label(k)))).filter(w => w > 0).sort((a, b) => a - b)
+        let left = maxWidth - (2 * pad + segmentHeight + keys.length * (50 + 2))
+        for (let i = 0; i < widths.length; i++) {
+            const share = left / (widths.length - i)
+            if (widths[i] > share) return Math.max(24, Math.min(maxText, share))
+            left -= widths[i]
+        }
+        return maxText
     }
 
-    implicitWidth: row.implicitWidth
-    implicitHeight: segmentHeight
+    implicitWidth: row.implicitWidth + 2 * pad
+    implicitHeight: segmentHeight + 2 * pad
+    radius: height / 2
+    color: Config.state(Config.container, Config.text, back.containsMouse, back.pressed)
+    Behavior on color { ColorAnimation { duration: 120 } }
+
+    // the group's own pill: under the buttons, so it only sees what misses them
+    MouseArea {
+        id: back
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: mouse => root.clicked(Engine.View.Dashboard, back.mapToItem(null, mouse.x, mouse.y).x)
+    }
 
     Row {
         id: row
+        x: root.pad
+        y: root.pad
         spacing: 2
+
+        Pill {
+            implicitHeight: root.segmentHeight
+            kind: "text"
+            icon: Config.symbol.dashboard
+            onClicked: x => root.clicked(Engine.View.Dashboard, x)
+        }
 
         Repeater {
             model: root.keys
@@ -105,7 +142,7 @@ Item {
                 bottomLeftRadius: first ? height / 2 : 6
                 topRightRadius: last ? height / 2 : 6
                 bottomRightRadius: last ? height / 2 : 6
-                color: Config.state(Config.container, Config.text, area.containsMouse, area.pressed || ring)
+                color: Config.state(Config.high, Config.text, area.containsMouse, area.pressed || ring)
                 Behavior on color { ColorAnimation { duration: 120 } }
 
                 activeFocusOnTab: true

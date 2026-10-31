@@ -14,7 +14,7 @@ import qs.modules.services
 //   overview       the workspaces view
 //   tabs           one icon per view, each opens it
 //   status         what's on, one button each: the network, Bluetooth, Do not disturb and the battery
-//                  open their own views; a recording, or nothing on, the dashboard
+//                  open their own views; a recording, or the group around them, the dashboard
 //   clock          the time and date: opens the calendar
 //   notifications  the bell, with the unread count on it
 // Keys: arrows/Tab move between buttons, Enter presses, 1-9 switch workspace, each button's letter

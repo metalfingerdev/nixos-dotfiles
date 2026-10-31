@@ -14,7 +14,7 @@ Compact (rest) ──pointer on the island──► Expanded (only while it's th
       │                                         │
       └───────────────── click ─────────────────┴──► Tabs (the hub) ──► any view
                                                        back, workspaces, one tab per view,
-                                                       status (each segment opens its view), clock
+                                                       status (each segment opens its view, the group the dashboard), clock
 
 Backspace, the mouse's back button, ← ──► the view that was open before
 Escape, a click outside, a timer      ──► home (the clock)
