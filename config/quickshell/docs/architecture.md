@@ -130,6 +130,11 @@ the overlay window has really lost the keyboard (`Engine.hasKeyboard`, from its 
 after `releaseMs` (200) if that never comes. For the same reason the overview's arrows, digits and wheel
 only move a selection; Enter goes there through `closeThen`, like a click.
 
+A view that stays open can still switch workspace (the buttons in Tabs, a keybind). Then nothing can be
+done before the release, so `Desktops.keyboardHeld` handles it after: if the workspace changed while the
+island was pinned, the release arms a 300 ms window in which a move away from it is put back. A dispatch
+through `Desktops` in that window (a `closeThen` action, say) cancels it.
+
 A `HoverHandler` on the overlay's root item reports `Engine.hover(on)` while the pointer is inside the
 **proxy** rect, the same final rect the input mask uses, not the moving surface, so what counts as on
 the island doesn't shift while it animates. It's on the root item

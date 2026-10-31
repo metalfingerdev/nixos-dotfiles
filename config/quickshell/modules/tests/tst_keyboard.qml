@@ -102,6 +102,28 @@ Item {
         }
     }
 
+    // a row of pictures (shaped like Theme's strip and Wallpapers' grid): the list moves its selection
+    Component {
+        id: picker
+        Item {
+            property alias list: list
+            ListView {
+                id: list
+                width: 400
+                height: 50
+                orientation: ListView.Horizontal
+                focus: true
+                model: 3
+                delegate: Item {
+                    required property int index
+                    width: 50
+                    height: 50
+                    function activate() { harness.pressed.push(index) }
+                }
+            }
+        }
+    }
+
     TestCase {
         name: "keyboard"
         when: windowShown
@@ -143,6 +165,17 @@ Item {
             keyClick(Qt.Key_Enter)
             compare(harness.pressed.map(p => p[0]).join(""), "abc")
             compare(harness.pressed.map(p => p[1]), [-1, -1, -1], "the keyboard sends no x: centred")
+        }
+
+        // a list's current delegate holds the active focus, so activate() belongs on the delegate
+        function test_enter_activates_a_lists_current_delegate() {
+            load(picker)
+            const list = slot.item.list
+            compare(list.Window.activeFocusItem, list.currentItem)
+            keyClick(Qt.Key_Right)
+            keyClick(Qt.Key_Return)
+            compare(list.currentIndex, 1)
+            compare(harness.pressed, [1])
         }
 
         function test_only_a_mouse_click_sends_x() {

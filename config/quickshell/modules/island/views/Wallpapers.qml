@@ -81,17 +81,20 @@ Item {
                 // the grid moves its own selection with the arrows (off its edge it lets them go,
                 // and ViewLoader moves focus out); report every key, so the countdown restarts
                 Keys.onPressed: event => { Engine.key(); event.accepted = false }
-                function activate() { Wallpaper.set(Wallpaper.files[currentIndex]) }
 
                 delegate: Item {
                     id: cell
                     required property string modelData
                     required property int index
 
+                    // the current delegate holds the active focus, not the grid, so Enter lands here
+                    function activate() { thumb.activate() }
+
                     width: grid.cellWidth
                     height: grid.cellHeight
 
                     WallpaperThumb {
+                        id: thumb
                         anchors { fill: parent; margins: root.gap / 2 }
                         path: cell.modelData
                         picked: grid.activeFocus && cell.GridView.isCurrentItem

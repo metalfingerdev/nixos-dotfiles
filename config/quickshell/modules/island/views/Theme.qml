@@ -126,6 +126,7 @@ Item {
             boundsBehavior: Flickable.StopAtBounds
             model: Wallpaper.files
             currentIndex: Math.max(0, Wallpaper.currentIndex)
+            highlightMoveDuration: 0                     // follow the selection at once, not at 400 px/s
             focus: true                                  // the keyboard starts here
             activeFocusOnTab: true
             Component.onCompleted: positionViewAtIndex(currentIndex, ListView.Center)
@@ -133,7 +134,6 @@ Item {
             // the row moves its own selection with Left/Right (off its ends it lets them go, and
             // ViewLoader moves focus out); report every key, so the countdown restarts
             Keys.onPressed: event => { Engine.key(); event.accepted = false }
-            function activate() { Wallpaper.set(Wallpaper.files[currentIndex]) }
 
             WheelHandler {
                 target: null
@@ -144,6 +144,7 @@ Item {
                 }
             }
 
+            // the current delegate holds the active focus, not the row, so Enter activates the thumb
             delegate: WallpaperThumb {
                 required property string modelData
                 required property int index

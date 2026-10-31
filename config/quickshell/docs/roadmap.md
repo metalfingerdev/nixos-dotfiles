@@ -19,6 +19,8 @@
       keyboard: `Engine.closeThen` acts after. Its arrows, digits and wheel now move a selection (Enter goes
       there, Escape stays put) instead of switching while the island holds the keyboard, which bounced
       back the same way on close. The open special workspace is outlined.
+- [x] A workspace switched to from an open view (Tabs) stays when the island closes (`Desktops.keyboardHeld`).
+      Enter applies a wallpaper in Wallpapers and Theme, and Theme's strip no longer crawls after the selection.
 - [x] No springs: the morph and the workspace buttons ease on `Motion` (`Config.curve` / `motionMs`), which
       never overshoots, so a notch revealed from auto-hide no longer dips a pixel below the top edge and
       settles back. Hyprland's windows use the same curve (`Glide`), and its spring curves are gone.

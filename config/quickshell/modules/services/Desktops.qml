@@ -42,7 +42,28 @@ Singleton {
         if (on) refresh()
     }
 
-    function dispatch(lua, classic) { Hyprland.dispatch(Hyprland.usingLua ? lua : classic) }
+    function dispatch(lua, classic) {
+        keep = -1
+        Hyprland.dispatch(Hyprland.usingLua ? lua : classic)
+    }
+
+    // When the island lets go of the keyboard, Hyprland goes back to the workspace of the window it
+    // still thinks is focused (docs/architecture.md, Keyboard and hover). A switch made while the
+    // island held it (a workspace button, a digit, the wheel, a keybind) is meant to stay, so for a
+    // moment after the release the workspace is put back if it moves. Anything dispatched from here
+    // in that moment is newer than the switch and wins.
+    property int heldFrom: -1
+    property int keep: -1
+    function keyboardHeld(on) {
+        if (on) { heldFrom = activeId; keep = -1 }
+        else if (activeId > 0 && activeId !== heldFrom) { keep = activeId; keepTimer.restart() }
+    }
+    onActiveIdChanged: if (keep > 0 && activeId > 0 && activeId !== keep) focus(keep)
+    Timer {
+        id: keepTimer
+        interval: 300
+        onTriggered: root.keep = -1
+    }
 
     function focus(id) {
         const ws = Number(id)

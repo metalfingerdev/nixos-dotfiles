@@ -11,6 +11,7 @@ ClippingRectangle {
     readonly property bool applied: path !== "" && path === Wallpaper.current
     readonly property bool ringed: picked && Config.focusVisible
     signal clicked()
+    function activate() { clicked() }
 
     radius: Config.innerRadius
     color: Config.container

@@ -85,5 +85,7 @@ Scope {
         target: Engine
         function onViewChanged()  { Qt.callLater(root.settle) }
         function onPhaseChanged() { Qt.callLater(root.settle) }     // popups -> center keeps the view
+        // Pinned is when the island holds the keyboard. This fires before the release reaches Hyprland.
+        function onPinnedChanged() { Desktops.keyboardHeld(Engine.pinned) }
     }
 }
