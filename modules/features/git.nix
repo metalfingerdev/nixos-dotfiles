@@ -9,6 +9,9 @@
   # Identity is set per user.
   flake.modules.homeManager.git = { pkgs, ... }: {
     programs.git.enable = true;
+    # GitHub is reached over SSH (see ssh.nix); there is no HTTPS credential helper, so rewrite
+    # https remote URLs to SSH instead of failing on a password prompt.
+    programs.git.settings.url."git@github.com:".insteadOf = "https://github.com/";
     home.packages = [ pkgs.gh ];
   };
 }
