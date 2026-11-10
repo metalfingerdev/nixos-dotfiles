@@ -61,6 +61,7 @@
             "*.copilotmd" = "vscode.markdown.preview.editor";
             "{git,gitlens,chat-editing-snapshot-text-model,copilot,git-graph,git-graph-3}:/**/*.qrc" = "default";
             "*.qrc" = "qt-core.qrcEditor";
+            "*.md" = "vscode.markdown.preview.editor";
           };
           "qt-core.showWelcomePageOnActivation" = false;
 
