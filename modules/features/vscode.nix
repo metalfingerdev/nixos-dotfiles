@@ -86,6 +86,18 @@
           "chat.mcp.gallery.enabled" = true;
           "git.confirmSync" = false;
 
+          "json.schemaDownload.trustedDomains" = {
+            "https://developer.microsoft.com/json-schemas/" = true;
+            "https://json-schema.org/" = true;
+            "https://json.schemastore.org/" = true;
+            "https://openapi.vercel.sh" = true;
+            "https://raw.githubusercontent.com/devcontainers/spec/" = true;
+            "https://raw.githubusercontent.com/microsoft/vscode/" = true;
+            "https://schemastore.azurewebsites.net/" = true;
+            "https://spec.openapis.org/" = true;
+            "https://www.schemastore.org/" = true;
+          };
+
           "nix.enableLanguageServer" = true;
           "nix.serverPath" = "nil";
           "nix.serverSettings".nil.formatting.command = [ "nixpkgs-fmt" ];
