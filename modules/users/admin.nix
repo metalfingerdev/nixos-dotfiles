@@ -18,6 +18,6 @@
     };
 
     programs.fastfetch.settings.logo.source =
-      "${config.home.homeDirectory}/Pictures/marin_kitagawa.gif";
+      "${config.home.homeDirectory}/Pictures/marin-kitagawa.gif";
   };
 }
