@@ -9,7 +9,6 @@
 
     environment.systemPackages = with pkgs; [
       libmtp
-      jmtpfs     # CLI tool to mount MTP Kindles to a folder
       udiskie    # Lightweight automounter tray/daemon for Hyprland
       calibre    # Best tool for converting EPUB -> AZW3 and sending to Kindle
     ];
