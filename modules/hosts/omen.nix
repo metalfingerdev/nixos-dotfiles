@@ -18,6 +18,7 @@
       secure-boot
       home-manager
       git
+      usb
       nix-ld
       kitty
       firefox
