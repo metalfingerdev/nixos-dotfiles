@@ -1,4 +1,4 @@
 [opener]
 edit = [
-  { run = 'vim "$@"', block = true, desc = "Vim" },
+  { run = 'nvim %s', block = true, desc = "Neovim" },
 ]
