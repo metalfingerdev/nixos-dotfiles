@@ -44,6 +44,7 @@
         kitty
         neovim
         yazi
+        lazygit
         fastfetch
         utils
         theme
