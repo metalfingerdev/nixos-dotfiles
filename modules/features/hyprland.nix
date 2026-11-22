@@ -24,6 +24,8 @@
           rev = "v0.1.0";
           hash = "sha256-XZMkZtcP4V1ps5HkIswUCID2rcsppcYd4wKgglsdVWM=";
         };
+        # Rotated subsurfaces (Firefox's PiP video) were clamped to the unrotated tile and cut short.
+        patches = [ ./hypr-window-rotate-subsurface.patch ];
         buildInputs = [ pkgs.lua5_4 ];
         makeFlags = [ "PREFIX=$(out)" "VERSION=0.1.0" ];
         meta.description = "Rotate individual Hyprland windows in 90 degree steps";
