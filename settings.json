@@ -1,7 +1,7 @@
 {
   "version": 1,
   "user": { "name": "admin", "fullName": "" },
-  "host": { "name": "omen-nihil" },
+  "host": { "name": "nihil" },
   "language": "en",
   "locale": "en_US.UTF-8",
   "timeZone": "Asia/Kolkata",
