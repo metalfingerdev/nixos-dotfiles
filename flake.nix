@@ -16,6 +16,9 @@
       url = "github:nix-community/lanzaboote";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # No follows: Nihil builds from its own pinned nixpkgs (nixos-26.05).
+    nihil.url = "github:poligle/Nihil-Shell";
   };
 
   outputs = inputs:
