@@ -4,6 +4,12 @@
   # `username=admin` unquoted, and shellcheck fails the build (SC2209: `admin` is a command name).
   stylix.targets.kde.enable = false;
 
+  # From omen's admin module, which can't be imported: its fastfetch logo clashes with Nihil's.
+  programs.git.settings.user = {
+    name = "metalfingerdev";
+    email = "prajwalpal@protonmail.com";
+  };
+
   # omen links these folders whole into the read-only store, and Nihil puts its own files inside
   # them. Home Manager keeps such a link while the new generation still has files under it, then
   # fails writing into the store. Dropping omen's links first is safe: omen relinks them on boot.
