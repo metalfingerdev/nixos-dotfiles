@@ -11,13 +11,14 @@ Commands assume the repo is at `~/nixos-dotfiles`. Inside it, `.#omen` works in 
 |---------|--------------|
 | `sudo nixos-rebuild switch --flake ~/nixos-dotfiles#omen` | Build, activate now, and make it the boot default (alias `rebuild`) |
 | `sudo nixos-rebuild boot --flake ~/nixos-dotfiles#omen` | Build and make it the boot default, but keep running the current system until reboot (alias `boot`) |
-| `sudo nixos-rebuild test --flake ~/nixos-dotfiles#omen` | Activate now but don't add a boot entry: a reboot brings back the old system |
+| `sudo nixos-rebuild test --flake ~/nixos-dotfiles#omen` | Activate now but don't add a boot entry: a reboot brings back the old system (alias `try`) |
 | `nixos-rebuild build --flake ~/nixos-dotfiles#omen` | Just build, leaving a `./result` link (alias `build`) |
 
 Use `boot` and reboot for changes to the kernel, bootloader, display manager or Hyprland itself.
 `switch` is fine for packages, apps and dotfiles.
 
-Always include `#omen`.
+Without `#name`, `nixos-rebuild` builds the system named after the hostname (`omen` here, `home` on
+the gaming PC). The aliases rely on that, so they work on both machines.
 
 ## Rolling back
 
@@ -46,9 +47,24 @@ commit), and rebuild. Commit `flake.lock` once you're happy, so the repo records
 
 To see what you're pinned to: `nix flake metadata ~/nixos-dotfiles`.
 
+## Automatic updates
+
+Both hosts import `auto-upgrade` (`modules/system/auto-upgrade`): every night at 04:00, NixOS fetches
+the latest commit **pushed to GitHub**, builds the host matching its hostname, and makes it the default
+for the next boot. If the machine was off, it runs at the next startup.
+
+- It builds exactly the pushed `flake.lock`, so it never updates nixpkgs on its own. Package versions
+  move when you `nix flake update` and push.
+- On omen it builds what's pushed, not what's on disk. A change you've only applied locally (rebuilt
+  but not pushed) gets replaced by the pushed version at the next reboot. Push what you want to keep.
+- A bad push is installed too, but only at the next boot, and the previous generation stays in the
+  boot menu.
+- What each run did: `journalctl -u nixos-upgrade`. Run one now: `sudo systemctl start nixos-upgrade`.
+
 ## Cleaning up
 
-Old generations keep their packages in the store. To remove them:
+Old generations keep their packages in the store. The `clean` alias runs the first and third commands
+below; to do it by hand:
 
 ```sh
 sudo nix-collect-garbage --delete-older-than 14d    # system generations older than 14 days

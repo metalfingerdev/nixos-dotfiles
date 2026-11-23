@@ -1,7 +1,7 @@
 { ... }:
 {
   flake.modules.nixos.omen = {
-    imports = [ ../../../hardware-configuration.nix ];
+    imports = [ ./_hardware.nix ];
 
     nixpkgs.hostPlatform = "x86_64-linux";
     networking.hostName = "omen";

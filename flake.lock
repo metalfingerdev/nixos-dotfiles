@@ -15,22 +15,6 @@
         "type": "github"
       }
     },
-    "fastfetch": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1795417425,
-        "narHash": "sha256-Vn1f5df0I+xL9AuOrNfJOZuXNOsmeYM2mPmQAkaUgMQ=",
-        "ref": "refs/heads/main",
-        "rev": "8467818c390da126f68078154a6f399893f840f2",
-        "revCount": 3,
-        "type": "git",
-        "url": "file:///home/admin/nixos-dotfiles/config/fastfetch"
-      },
-      "original": {
-        "type": "git",
-        "url": "file:///home/admin/nixos-dotfiles/config/fastfetch"
-      }
-    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -240,7 +224,6 @@
     },
     "root": {
       "inputs": {
-        "fastfetch": "fastfetch",
         "flake-parts": "flake-parts",
         "home-manager": "home-manager",
         "hypr": "hypr",

@@ -42,13 +42,14 @@ Each file publishes modules under a name:
 
 ## From host to feature
 
-The host imports five names:
+The host imports six names:
 
 ```nix
 # modules/hosts/omen/default.nix
 flake.nixosConfigurations.omen = inputs.nixpkgs.lib.nixosSystem {
   modules = with self.modules.nixos; [
     omen                # this machine: hardware, hostname, stateVersion
+    auto-upgrade        # nightly rebuild from the latest push
     desktop             # everything for a working desktop
     terminal            # from bundles/
     development
@@ -62,6 +63,7 @@ Each of those imports more names, down to single features:
 ```
 omen
 ├── omen                            hosts/omen/omen.nix
+├── auto-upgrade                    system/auto-upgrade
 ├── desktop                         system/desktop
 │   ├── core                        system/core
 │   │   ├── user                      account, git identity
@@ -74,7 +76,7 @@ omen
 │   ├── session                       ly, keyring, polkit, printing
 │   ├── hyprland, awww, quickshell
 │   ├── audio, network, bluetooth, power, usb
-│   └── theme                 system/theme
+│   └── theme                       system/theme
 │       └── cursor, gtk, fonts
 ├── terminal                        bundles/terminal
 │   └── kitty, shell, yazi, fastfetch, utils
@@ -83,6 +85,9 @@ omen
 └── apps                            bundles/apps
     └── firefox, libreoffice, vlc, stremio, bittorrent
 ```
+
+The gaming PC's host, `modules/hosts/home/default.nix`, picks from the same names:
+`[ home auto-upgrade desktop gaming kitty shell yazi utils ]`.
 
 A group is just a module that imports others:
 
@@ -107,7 +112,7 @@ A group is just a module that imports others:
 | `modules/hosts/<host>/` | `default.nix` (the `nixosConfigurations` entry and its list) and `<host>.nix` (what only that machine has, as the module `<host>`) |
 | `modules/system/core/` | what every machine needs, split into `user.nix`, `boot.nix`, `nix-settings.nix`, `locale.nix`, with `default.nix` grouping them as `core` |
 | `modules/system/desktop/` | `desktop`: core plus everything for the graphical session |
-| `modules/system/<name>/` | one system service each: audio, network, bluetooth, power, usb, ssh, session, nix-ld, home-manager |
+| `modules/system/<name>/` | one system service each: audio, network, bluetooth, power, usb, ssh, session, nix-ld, home-manager, auto-upgrade |
 | `modules/system/theme/` | the marin look, split into cursor, gtk and fonts |
 | `modules/bundles/<name>/` | bundles of features: terminal, development, apps, gaming |
 | `modules/features/<name>/` | one app or tool each, with any small files it needs beside it (e.g. the Hyprland plugin patch) |
@@ -166,7 +171,8 @@ flake.modules.nixos.music = { pkgs, ... }: {
 ## Removing something
 
 Take its name out of whichever list includes it and rebuild. Keep the file if you might want it back:
-`steam` (in the unused `gaming` bundle) and `luarocks` (in no bundle) sit there for exactly this reason.
+`luarocks` (in no bundle) sits there for exactly this reason, and omen leaves out the `gaming` bundle that
+`home` uses.
 
 ## Dotfiles in a feature
 

@@ -3,7 +3,7 @@
   flake.modules.nixos.stremio.home-manager.sharedModules = [ self.modules.homeManager.stremio ];
 
   # Local streaming server (127.0.0.1:11470) that the web player at web.stremio.com connects to.
-  # stremio-service is unfree (server.js), so this relies on allowUnfree from the `base` feature.
+  # stremio-service is unfree (server.js), so this relies on allowUnfree from `nix` (system/core/nix-settings.nix).
   flake.modules.homeManager.stremio = { pkgs, lib, ... }: {
     home.packages = [ pkgs.stremio-service ];
 

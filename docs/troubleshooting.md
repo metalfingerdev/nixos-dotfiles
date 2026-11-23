@@ -69,7 +69,8 @@ program in nixpkgs instead (`nix search nixpkgs <name>`).
 
 ## The media keys do nothing
 
-`playerctl` isn't installed. Add `pkgs.playerctl` to `modules/features/utils/default.nix` and rebuild.
+Next, previous and play/pause go through `playerctl`, which only reaches apps that support MPRIS.
+`playerctl -l` lists the players it can see; if yours isn't there, that app doesn't support it.
 
 ## Running out of disk
 

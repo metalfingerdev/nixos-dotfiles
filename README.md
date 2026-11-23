@@ -21,18 +21,20 @@ sudo nixos-rebuild boot --flake ~/nixos-dotfiles#omen
 nixos-rebuild build --flake ~/nixos-dotfiles#omen
 ```
 
-The bash aliases `rebuild`, `boot` and `build` run exactly these.
+The bash aliases `rebuild`, `boot`, `build` and `try` (`nixos-rebuild test`) run these without the
+`#omen`: with no name, `nixos-rebuild` picks the system named after the machine's hostname, so the same
+aliases work on every host.
 
 ## What's where
 
 ```
 flake.nix                    inputs (nixpkgs, home-manager, lanzaboote, my dotfile repos) and import-tree
 flake.lock                   the exact version of every input
-hardware-configuration.nix   generated for omen's disks and hardware
 config/                      my dotfiles, each its own git repo (ignored here, pulled in as inputs)
 modules/
   parts.nix                  flake-parts setup
-  hosts/omen/                the machine: the names it imports, and what only it has
+  hosts/omen/                the laptop: the names it imports, what only it has, its _hardware.nix
+  hosts/home/                a gaming-only machine (desktop + Steam); _hardware.nix is a placeholder
   system/core/               what every machine needs: my account, Secure Boot, Nix settings, locale
   system/desktop/            core plus the whole graphical session
   system/<name>/             one system service each (audio, network, bluetooth, ssh, ...)

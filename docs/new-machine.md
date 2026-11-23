@@ -16,8 +16,8 @@
 
    ```sh
    cd ~/nixos-dotfiles
-   nixos-generate-config --show-hardware-config > hardware-configuration.nix
-   git add hardware-configuration.nix
+   nixos-generate-config --show-hardware-config > modules/hosts/omen/_hardware.nix
+   git add modules/hosts/omen/_hardware.nix
    ```
 
 4. Secure Boot keys won't exist yet, so follow [Secure Boot: setting it up from scratch](secure-boot.md#setting-it-up-from-scratch):
@@ -36,11 +36,14 @@
 7. Clone the dotfile repos into `config/` if you want to edit them
    ([Dotfiles: on a fresh machine](dotfiles.md#on-a-fresh-machine)).
 
-Before step 5, restore `config/fastfetch` and `config/vscode` from your backup: they aren't on GitHub.
-The build needs fastfetch, and VS Code reads its settings from `config/vscode`
-([Dotfiles: the local-only fastfetch repo](dotfiles.md#the-local-only-fastfetch-repo)).
+Restore `config/fastfetch` and `config/vscode` from your backup: they aren't on GitHub. The build works
+without them, but fastfetch's logo and VS Code's settings come from there
+([Dotfiles: local-only repos](dotfiles.md#local-only-repos)).
 
 ## Adding a second computer
+
+`modules/hosts/home/` is already set up this way for a gaming PC; only its `_hardware.nix` (a
+placeholder for now) and GPU drivers are left.
 
 Each machine gets its own host folder and its own name in `flake.nix`'s outputs.
 
@@ -66,7 +69,7 @@ Each machine gets its own host folder and its own name in `flake.nix`'s outputs.
 Everything in `system/`, `bundles/` and `features/` is shared: both hosts pick from the same modules by
 name.
 
-You can do the same for omen itself, moving `hardware-configuration.nix` into
-`modules/hosts/omen/_hardware.nix`, so each host keeps its own hardware file.
+Each host keeps its own hardware file in its own folder, so one machine can never pick up another's
+disks by accident.
 
 [← Secure Boot](secure-boot.md) · [Next: Troubleshooting →](troubleshooting.md)

@@ -2,8 +2,9 @@
 
 [Docs index](README.md)
 
-The configs for Hyprland, kitty, Neovim, Quickshell, yazi and fastfetch are each their own repo. All but
-fastfetch are public on GitHub; fastfetch (with the Marin logo) stays on this machine only.
+The configs for Hyprland, kitty, Neovim, Quickshell and yazi are each their own public repo, pulled in
+as flake inputs. fastfetch and VS Code's settings are [local-only repos](#local-only-repos), linked live
+instead.
 
 | Repo | Deployed to | Used by feature |
 |------|-------------|-----------------|
@@ -12,7 +13,8 @@ fastfetch are public on GitHub; fastfetch (with the Marin logo) stays on this ma
 | [metalfingerdev/nvim](https://github.com/metalfingerdev/nvim) | `~/.config/nvim` | `neovim` |
 | [metalfingerdev/quickshell](https://github.com/metalfingerdev/quickshell) | `~/.config/quickshell` | `quickshell` |
 | [metalfingerdev/yazi](https://github.com/metalfingerdev/yazi) | `~/.config/yazi` | `yazi` |
-| `config/fastfetch` (local only) | `~/.config/fastfetch` (`config.jsonc`, `logo.gif`) | `fastfetch` |
+| `config/fastfetch` (local only, [linked live](#local-only-repos)) | `~/.config/fastfetch/config.jsonc` and `logo.gif` | `fastfetch` |
+| `config/vscode` (local only, [linked live](#local-only-repos)) | `~/.config/Code/User/settings.json` | `vscode` |
 
 ## How they get in
 
@@ -76,29 +78,22 @@ cd ~/nixos-dotfiles
 for n in hypr kitty nvim quickshell yazi; do git clone git@github.com:metalfingerdev/$n.git config/$n; done
 ```
 
-## The local-only fastfetch repo
+## Local-only repos
 
-fastfetch's input is `git+file:///home/admin/nixos-dotfiles/config/fastfetch`, so it never leaves this
-machine. Two consequences:
+`config/fastfetch` (the fastfetch config and the Marin logo) and `config/vscode` (VS Code's
+`settings.json`) never leave this machine. They aren't flake inputs: Home Manager links the files in
+`~/.config` straight to them (`mkOutOfStoreSymlink`) instead of to a copy in the Nix store. So:
 
-- Its loop skips the push: commit in `config/fastfetch`, then `nix flake update fastfetch` and rebuild.
-- A fresh clone of this repo can't build until `config/fastfetch` is there. Keep a backup of that folder
-  (it's a normal git repo: copy it, or push it to a private remote of your own) and restore it to the
-  same path before the first build.
+- an edit applies **instantly**, with no rebuild, commit or `nix flake update`. That includes changes VS
+  Code makes from its settings UI, which a read-only store copy used to block;
+- commit in those repos whenever you want to keep a version;
+- the build never reads them, so the flake builds anywhere (and omen's auto-upgrade from GitHub works)
+  even without them. If one is missing, its links point at nothing: fastfetch falls back to its
+  defaults, VS Code to default settings.
 
-## VS Code settings
+Keep both folders in your backups: they exist nowhere else.
 
-`~/.config/Code/User/settings.json` is a link straight to `config/vscode/settings.json`, a local-only
-repo, instead of a copy in the Nix store. VS Code reads and writes that file directly, so:
-
-- a change in VS Code's settings UI, or an edit to the file, applies **instantly**, with no rebuild;
-- the file stays editable (a store copy is read-only, which is why VS Code couldn't save settings
-  before);
-- commit in `config/vscode` whenever you want to keep a version.
-
-Extensions are still installed by Nix (`modules/features/vscode`). If `config/vscode/settings.json` is
-missing, the link points at nothing and VS Code starts with default settings, so keep `config/vscode` in
-your backup with `config/fastfetch`.
+Extensions are still installed by Nix (`modules/features/vscode`).
 
 ## Adding another config repo
 

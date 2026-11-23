@@ -125,8 +125,8 @@ Super is the Windows key.
 ### Hardware keys
 
 Volume up/down/mute and mic mute (through `wpctl`) and brightness up/down (`brightnessctl`) work, even on
-the lock screen. Next, previous and play/pause need `playerctl`, which isn't installed yet (see
-[Known gaps](whats-installed.md#known-gaps)).
+the lock screen, and so do next, previous and play/pause (`playerctl`), for any player that supports
+MPRIS: most media players and browsers.
 
 All of these are defined in `modules/binds.lua` and `modules/plugins.lua` in the hypr repo.
 
