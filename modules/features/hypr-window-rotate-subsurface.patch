@@ -1,0 +1,21 @@
+diff --git a/src/main.cpp b/src/main.cpp
+index b0f69b2..a9896e5 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -200,8 +200,15 @@ static CBox hkGetTexBox(CSurfacePassElement* thisptr) {
+     if (D.mainSurface)
+         return CBox{ORIGIN + D.localPos, SIZE};
+ 
+-    // subsurfaces: place them in the unrotated client frame, then rotate that placement
++    // subsurfaces: place them in the unrotated client frame, then rotate that placement.
++    // Hyprland clamps a subsurface to the window size (squishOversized), so it has to see the client frame's
++    // swapped size, or a subsurface as wide as the client (Firefox's video) is cut to a square.
++    auto& DATA = thisptr->m_data;
++    if (Q % 2 == 1)
++        std::swap(DATA.w, DATA.h);
+     CBox box = ((origGetTexBox)g_getTexBoxHook->m_original)(thisptr);
++    if (Q % 2 == 1)
++        std::swap(DATA.w, DATA.h);
+     box.translate(frameOffset(SIZE, Q));
+     return rotateBoxAround(box, CENTER, Q);
+ }
