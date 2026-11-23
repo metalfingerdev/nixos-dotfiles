@@ -9,5 +9,15 @@
 
     # HP BIOS warning suppress
     boot.blacklistedKernelModules = [ "hp_bioscfg" ];
+
+    # Hybrid graphics: the Radeon runs the desktop, and the GeForce stays powered off until an app is
+    # started with `nvidia-offload`. Bus IDs from lspci (01:00.0 and 06:00.0, in decimal).
+    hardware.nvidia.prime = {
+      offload.enable = true;
+      offload.enableOffloadCmd = true;
+      amdgpuBusId = "PCI:6:0:0";
+      nvidiaBusId = "PCI:1:0:0";
+    };
+    hardware.nvidia.powerManagement.finegrained = true;
   };
 }

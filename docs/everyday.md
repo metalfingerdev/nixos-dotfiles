@@ -91,10 +91,9 @@ generation in the boot menu, `git restore flake.lock`, and `boot` again.
 
 - The VS Code marketplace extensions (`qt-core`, `qt-qml`, `bun-vscode`) are pinned by version and hash
   in `modules/features/vscode/default.nix`. Bump them the same way as the plugin, with `lib.fakeHash`.
-- Once everything works, `clean` drops generations older than 14 days and rewrites the boot menu.
+- Once everything works, `clean` deletes every older generation and rewrites the boot menu.
 
-**4. The gaming PC** has no git, so it builds straight from what you pushed. On it, run
-`sudo nixos-rebuild boot --flake github:metalfingerdev/nixos-dotfiles` and reboot.
+**4. The gaming PC** gets what you pushed with `git pull && rebuild` in `~/nixos-dotfiles` there.
 
 ### Everything at once
 
@@ -108,19 +107,17 @@ at a time.
 
 ## Cleaning up
 
-Old generations keep their packages in the store. Every week NixOS deletes the system's generations older
-than 14 days (`nix.gc`, in `core`), and the next rebuild drops them from the boot
-menu. To do it now, the `clean` alias runs the first and third commands below; by hand:
+Old generations keep their packages in the store until you delete them.
+
+The `clean` alias deletes every old generation (`sudo nix-collect-garbage -d`) and rewrites the boot
+menu (the second command below). That leaves no rollback, so run it once the system is known good. To
+keep the last 14 days instead, by hand:
 
 ```sh
 sudo nix-collect-garbage --delete-older-than 14d    # system generations older than 14 days
-nix-collect-garbage --delete-older-than 14d         # your own profile's too
 sudo /nix/var/nix/profiles/system/bin/switch-to-configuration boot   # rewrite the boot menu without them
 nix store optimise                                  # hard-link identical files (frees space)
 ```
-
-`sudo nix-collect-garbage -d` deletes every old generation, leaving only the current one: no rollback
-afterwards, so use it only when the current system is known good.
 
 How big is the system? `nix path-info -Sh /run/current-system`.
 

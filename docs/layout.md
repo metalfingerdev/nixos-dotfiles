@@ -66,7 +66,7 @@ Each of those imports more names, down to single features:
 omen
 ├── omen                            hosts/omen/omen.nix
 ├── secure-boot                     system/secure-boot
-├── amdgpu, nvidia                  drivers/ (placeholders)
+├── amdgpu, nvidia                  drivers/
 ├── desktop                         system/desktop
 │   ├── core                        system/core
 │   │   ├── user                      account, git identity
@@ -120,7 +120,7 @@ A group is just a module that imports others:
 | `modules/system/theme/` | the marin look, split into cursor, gtk and fonts |
 | `modules/bundles/<name>/` | bundles of features: terminal, development, apps, gaming |
 | `modules/features/<name>/` | one app or tool each, with any small files it needs beside it (e.g. the Hyprland plugin patch) |
-| `modules/drivers/<name>/` | GPU drivers, one per vendor: amdgpu, nvidia (placeholders for now) |
+| `modules/drivers/<name>/` | GPU drivers, one per vendor: amdgpu, nvidia |
 
 What each one does: [What's installed](whats-installed.md).
 

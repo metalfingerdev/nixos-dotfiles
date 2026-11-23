@@ -23,6 +23,8 @@ Everything below is for `omen`.
 
 `modules/hosts/omen/omen.nix`: its own `_hardware.nix` (next to it), `x86_64-linux`, hostname
 `omen`, `stateVersion` 26.05, and blacklists `hp_bioscfg` to silence an HP BIOS warning.
+It also sets up hybrid graphics (PRIME offload): the desktop runs on the Radeon iGPU, and the GeForce
+stays powered off until you start an app on it with `nvidia-offload <app>`.
 
 ## secure-boot
 
@@ -32,9 +34,12 @@ Everything below is for `omen`.
 
 ## Drivers
 
-`modules/drivers/`: `amdgpu` and `nvidia`, both empty placeholders for now. omen imports both, for
-its Radeon iGPU and GeForce GTX 1650. AMD GPUs already work through the kernel's amdgpu and Mesa; until
-`nvidia` is filled in, the GeForce runs on nouveau.
+`modules/drivers/`, one per GPU vendor. omen imports both, for its Radeon iGPU and GeForce GTX 1650.
+
+| Module | What it sets |
+|--------|--------------|
+| `amdgpu` | Mesa, and the driver loaded in the initrd so the console and login screen start at native resolution |
+| `nvidia` | NVIDIA's driver in place of nouveau, with its open kernel module (set `hardware.nvidia.open = false` in the host for cards older than Turing) and video memory kept across suspend |
 
 ## desktop
 
@@ -42,13 +47,13 @@ its Radeon iGPU and GeForce GTX 1650. AMD GPUs already work through the kernel's
 
 ### core
 
-`modules/system/core/`, plus `vim` (full) and `wget`.
+`modules/system/core/`, plus `vim` (full), `wget` and `git`.
 
 | Module | File | What it sets |
 |--------|------|--------------|
 | `user` | `core/user.nix` | The `admin` account (groups `wheel`, `networkmanager`), Home Manager `stateVersion`, git name and email |
 | `bootloader` | `core/boot.nix` | systemd-boot with the 10 newest generations in its menu, unless the host adds [`secure-boot`](#secure-boot) |
-| `nix` | `core/nix-settings.nix` | Allows unfree packages, turns on flakes and the `nix` command, and deletes generations older than 14 days every week |
+| `nix` | `core/nix-settings.nix` | Allows unfree packages, turns on flakes and the `nix` command |
 | `locale` | `core/locale.nix` | Time zone `Asia/Kolkata` |
 | `home-manager` | `system/home-manager/` | Loads Home Manager into NixOS, sharing the system's package set, installing user packages into the user profile, and backing up clashing files as `.backup` |
 | `ssh` | `system/ssh/` | Writes `~/.ssh/config` for GitHub (`~/.ssh/id_ed25519_github`) as a real file, not a symlink, so ssh accepts its permissions. The SSH server is `sshd`, which no host uses |
@@ -98,7 +103,7 @@ How the desktop pieces work together: [The desktop](desktop.md).
 
 | Module | What it sets |
 |--------|--------------|
-| `git` | git system-wide, plus `gh`, and rewrites `https://github.com/` to SSH so pushes use your key |
+| `git` | Your git config (rewriting `https://github.com/` to SSH so pushes use your key) and `gh`; git itself comes from `core` |
 | `lazygit` | lazygit |
 | `neovim` | Neovim with `~/.config/nvim` from the nvim repo, plus `ripgrep`, `nil` (Nix language server), `nixpkgs-fmt`, Node and gcc for plugins |
 | `vscode` | VS Code (FHS build, so marketplace extensions with binaries work), direnv with nix-direnv, extensions for Nix, Python, Svelte, ESLint, Prettier, Tailwind, Qt/QML, Bun and Claude Code. Settings live in `config/vscode/settings.json`, linked live (see [Dotfiles](dotfiles.md#live-linked-repos)) |

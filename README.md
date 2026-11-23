@@ -41,7 +41,7 @@ modules/
   system/theme/              the marin look: cursor, GTK, fonts
   bundles/<name>/            bundles of features: terminal, development, apps, gaming
   features/<name>/           apps and tools, one folder each
-  drivers/<name>/            GPU drivers, one per vendor (placeholders for now)
+  drivers/<name>/            GPU drivers, one per vendor
 docs/                        the guide
 ```
 
