@@ -1,6 +1,7 @@
-{ ... }:
+{ self, ... }:
 {
   flake.modules.nixos.git = { ... }: {
+    home-manager.sharedModules = [ self.modules.homeManager.git ];
     programs.git.enable = true;
   };
 

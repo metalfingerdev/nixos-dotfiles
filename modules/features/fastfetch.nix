@@ -1,9 +1,11 @@
-{ ... }:
+{ self, ... }:
 {
+  flake.modules.nixos.fastfetch.home-manager.sharedModules = [ self.modules.homeManager.fastfetch ];
+
   flake.modules.homeManager.fastfetch = { ... }: {
     programs.fastfetch = {
       enable = true;
-      # logo.source is set per user
+      # logo.source comes from theme.nix
       settings.logo = {
         type = "kitty-icat";
         width = 60;

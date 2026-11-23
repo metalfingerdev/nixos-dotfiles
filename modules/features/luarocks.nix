@@ -1,5 +1,7 @@
-{ ... }:
+{ self, ... }:
 {
+  flake.modules.nixos.luarocks.home-manager.sharedModules = [ self.modules.homeManager.luarocks ];
+
   flake.modules.homeManager.luarocks = { pkgs, ... }: 
     let
       # Combines Lua 5.4 with the Luarocks management layer

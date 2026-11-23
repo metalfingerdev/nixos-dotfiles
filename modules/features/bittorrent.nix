@@ -1,4 +1,4 @@
-{ ... }:
+{ self, ... }:
 let
   # qBittorrent randomizes its port on first run, which wouldn't match the firewall rule below.
   port = 51413;
@@ -6,6 +6,7 @@ in
 {
   # Without inbound peer connections, torrents with few seeders stall and seeding barely works.
   flake.modules.nixos.bittorrent = { ... }: {
+    home-manager.sharedModules = [ self.modules.homeManager.bittorrent ];
     networking.firewall.allowedTCPPorts = [ port ];
     networking.firewall.allowedUDPPorts = [ port ];
   };

@@ -1,5 +1,7 @@
-{ ... }:
+{ self, ... }:
 {
+  flake.modules.nixos.webdev.home-manager.sharedModules = [ self.modules.homeManager.webdev ];
+
   flake.modules.homeManager.webdev = { pkgs, ... }: {
     home.packages = with pkgs; [
       # Runtimes and package managers

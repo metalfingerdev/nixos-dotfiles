@@ -1,5 +1,7 @@
-{ ... }:
+{ self, ... }:
 {
+  flake.modules.nixos.vscode.home-manager.sharedModules = [ self.modules.homeManager.vscode ];
+
   flake.modules.homeManager.vscode = { pkgs, ... }: {
     # vscode.nix-direnv integration needs direnv on PATH
     programs.direnv = {

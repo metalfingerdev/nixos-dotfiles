@@ -17,8 +17,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # No follows: Nihil builds from its own pinned nixpkgs (nixos-26.05).
-    nihil.url = "github:poligle/Nihil-Shell";
+    # Dotfiles, each its own repo (checked out in config/, ignored here). Only their files are used.
+    hypr = { url = "github:metalfingerdev/hypr"; flake = false; };
+    kitty = { url = "github:metalfingerdev/kitty"; flake = false; };
+    nvim = { url = "github:metalfingerdev/nvim"; flake = false; };
+    quickshell = { url = "github:metalfingerdev/quickshell"; flake = false; };
+    yazi = { url = "github:metalfingerdev/yazi"; flake = false; };
   };
 
   outputs = inputs:

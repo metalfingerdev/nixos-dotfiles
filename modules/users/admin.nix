@@ -1,23 +1,18 @@
 { ... }:
 {
-  flake.modules.nixos.admin = { ... }: {
+  flake.modules.nixos.admin = {
     users.users.admin = {
       isNormalUser = true;
       description = "admin";
       extraGroups = [ "networkmanager" "wheel" ];
-      openssh.authorizedKeys.keys = [
-      ];
-    };
-  };
-
-  # home.username / home.homeDirectory are set by the home-manager NixOS module
-  flake.modules.homeManager.admin = { config, ... }: {
-    programs.git.settings.user = {
-      name = "metalfingerdev";
-      email = "prajwalpal@protonmail.com";
     };
 
-    programs.fastfetch.settings.logo.source =
-      "${config.home.homeDirectory}/Pictures/marin-kitagawa.gif";
+    home-manager.users.admin = {
+      home.stateVersion = "26.05";
+      programs.git.settings.user = {
+        name = "metalfingerdev";
+        email = "prajwalpal@protonmail.com";
+      };
+    };
   };
 }

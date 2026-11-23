@@ -1,5 +1,7 @@
-{ ... }:
+{ inputs, self, ... }:
 {
+  flake.modules.nixos.quickshell.home-manager.sharedModules = [ self.modules.homeManager.quickshell ];
+
   flake.modules.homeManager.quickshell = { pkgs, ... }:
     let
       # WebP and friends are Qt image plugins, which nixpkgs' quickshell doesn't carry. Added by a
@@ -17,7 +19,7 @@
       };
     in
     {
-      home.file.".config/quickshell".source = ../../config/quickshell;
+      home.file.".config/quickshell".source = inputs.quickshell;
       home.packages = [
         quickshell
         # the dashboard's Night light and Screen record tiles (they hide when these are missing)
