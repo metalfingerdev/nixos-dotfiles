@@ -1,11 +1,11 @@
 { inputs, self, ... }:
 let
-  # Every boot entry titled "NixOS", as with plain systemd-boot: the generation only shows when two
-  # entries clash. Lanzaboote otherwise puts the full label and generation in every title.
+  # A generation alone in the boot menu is titled just "NixOS"; with more, each keeps lanzaboote's
+  # full label and generation so they can be told apart.
   title = self.lib.optionalPatch {
     name = "lanzaboote's boot entry title";
     patch = ./lanzaboote-title.patch;
-    file = "${inputs.lanzaboote}/rust/tool/shared/src/os_release.rs";
+    file = "${inputs.lanzaboote}/rust/tool/systemd/src/install.rs";
   };
 in
 {

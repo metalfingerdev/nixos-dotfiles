@@ -1,25 +1,109 @@
---- a/shared/src/os_release.rs
-+++ b/shared/src/os_release.rs
-@@ -30,19 +30,9 @@
-             generation.spec.lanzaboote_extension.sort_key.clone(),
+--- a/systemd/src/install.rs
++++ b/systemd/src/install.rs
+@@ -228,14 +228,20 @@
+             ));
+         }
+ 
++        let alone = generations
++            .iter()
++            .map(|generation| 1 + generation.specialisations.len())
++            .sum::<usize>()
++            == 1;
++
+         for generation in generations {
+             // The kernels and initrds are content-addressed.
+             // Thus, this cannot overwrite files of old generation with different content.
+-            self.install_generation(&generation)
++            self.install_generation(&generation, alone)
+                 .with_context(|| format!("Failed to install generation {}", generation.version))?;
+ 
+             for specialisation in generation.specialisations.values() {
+-                self.install_generation(specialisation)
++                self.install_generation(specialisation, alone)
+                     .context("Failed to install specialisation.")?;
+             }
+         }
+@@ -254,11 +260,11 @@
+     /// The kernel and initrd are content-addressed, and the stub name identifies the generation.
+     /// Hence, this function cannot overwrite files of other generations with different contents.
+     /// All installed files are added as garbage collector roots.
+-    fn install_generation(&mut self, generation: &Generation) -> Result<()> {
++    fn install_generation(&mut self, generation: &Generation, alone: bool) -> Result<()> {
+         log::debug!("Installing generation {}", generation.version_tag());
+ 
+         // If the generation is already properly installed, don't overwrite it.
+-        if self.register_installed_generation(generation)? {
++        if self.register_installed_generation(generation, alone)? {
+             return Ok(());
+         }
+ 
+@@ -313,8 +319,12 @@
+             .context("Failed to install the initrd.")?;
+ 
+         // Assemble, sign and install the Lanzaboote stub.
+-        let os_release = OsRelease::from_generation(generation)
++        let mut os_release = OsRelease::from_generation(generation)
+             .context("Failed to build OsRelease from generation.")?;
++        // An entry alone in the menu has nothing to be told apart from, so it's just "NixOS".
++        if alone {
++            os_release.0.insert("PRETTY_NAME".into(), "NixOS".into());
++        }
+ 
+         let os_release_contents = os_release.to_string();
+ 
+@@ -344,7 +354,7 @@
+         }
+ 
+         let stub_target = self.esp_paths.linux.join(
+-            stub_name(generation, &self.signer, self.bootcounting_initial_tries)
++            stub_name(generation, &self.signer, self.bootcounting_initial_tries, alone)
+                 .context("Get stub name")?,
          );
+         self.gc_roots.extend([&stub_target]);
+@@ -358,7 +368,7 @@
+     ///
+     /// The bool indicates whether the generation was properly installed,
+     /// if this function returns Ok(false) the generation should be (re-)installed.
+-    fn register_installed_generation(&mut self, generation: &Generation) -> Result<bool> {
++    fn register_installed_generation(&mut self, generation: &Generation, alone: bool) -> Result<bool> {
+         // A boot loader entry file name may contain a plus (+) followed by a number.
+         // This may optionally be followed by a minus (-) followed by a second number.
+         // The dot (.) and file name suffix (conf or efi) must immediately follow.
+@@ -367,7 +377,7 @@
+         // See https://uapi-group.org/specifications/specs/boot_loader_specification/#boot-counting
+         let pattern = format!(
+             r"^{}(\+\d+(-\d+)?)?\.efi$",
+-            regex::escape(&stub_prefix(generation, &self.signer)?)
++            regex::escape(&stub_prefix(generation, &self.signer, alone)?)
+         );
+         let regex =
+             Regex::new(&pattern).context("Failed to construct regex to read stubs from ESP")?;
+@@ -652,8 +662,9 @@
+     generation: &Generation,
+     signer: &S,
+     bootcounting_tries: u32,
++    alone: bool,
+ ) -> Result<PathBuf> {
+-    stub_prefix(generation, signer).map(|prefix| {
++    stub_prefix(generation, signer, alone).map(|prefix| {
+         PathBuf::from(if bootcounting_tries > 0 {
+             format!("{}+{}.efi", prefix, bootcounting_tries)
+         } else {
+@@ -662,7 +673,7 @@
+     })
+ }
  
--        // systemd-boot will only show VERSION_ID when PRETTY_NAME is not unique. This is
--        // confusing to users. Make sure that our PRETTY_NAME is unique, so we get a consistent
--        // user experience.
--        //
--        // See #220.
--        map.insert(
--            "PRETTY_NAME".into(),
--            format!(
--                "{} ({})",
--                generation.spec.bootspec.bootspec.label,
--                generation.describe()
--            ),
--        );
-+        // Every entry is titled just "NixOS". systemd-boot adds VERSION_ID (the generation) only
-+        // when titles clash, so a single installed generation shows as plain "NixOS".
-+        map.insert("PRETTY_NAME".into(), "NixOS".into());
- 
-         map.insert("VERSION_ID".into(), generation.describe());
- 
+-fn stub_prefix<S: Signer>(generation: &Generation, signer: &S) -> Result<String> {
++fn stub_prefix<S: Signer>(generation: &Generation, signer: &S, alone: bool) -> Result<String> {
+     let bootspec = &generation.spec.bootspec.bootspec;
+     let public_key = signer.get_public_key()?;
+     let stub_inputs = [
+@@ -672,6 +683,8 @@
+         // If the key is rotated, the signed stubs must be re-generated.
+         // So we make their path depend on the public key used for signature.
+         ("public_key", &public_key),
++        // The title changes when an entry stops or starts being alone, so its stub is remade.
++        ("alone", if alone { b"1" } else { b"0" }),
+     ];
+     let stub_input_hash = Base32Unpadded::encode_string(&Sha256::digest(
+         serde_json::to_string(&stub_inputs).unwrap(),
