@@ -40,7 +40,7 @@ make it the default for the next boot ([details](everyday.md#automatic-updates))
 | Module | File | What it sets |
 |--------|------|--------------|
 | `user` | `core/user.nix` | The `admin` account (groups `wheel`, `networkmanager`), Home Manager `stateVersion`, git name and email |
-| `bootloader` | `core/boot.nix` | Secure Boot via lanzaboote, keys in `/var/lib/sbctl` ([details](secure-boot.md)) |
+| `bootloader` | `core/boot.nix` | Secure Boot via lanzaboote, keys in `/var/lib/sbctl`, and `sbctl` to manage and check them ([details](secure-boot.md)) |
 | `nix` | `core/nix-settings.nix` | Allows unfree packages, turns on flakes and the `nix` command |
 | `locale` | `core/locale.nix` | Time zone `Asia/Kolkata`, US keyboard |
 | `home-manager` | `system/home-manager/` | Loads Home Manager into NixOS, sharing the system's package set, installing user packages into the user profile, and backing up clashing files as `.backup` |

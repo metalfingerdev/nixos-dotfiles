@@ -74,11 +74,10 @@ generation in the boot menu, `git restore flake.lock`, and `boot` again.
 
 1. **`nixpkgs`**: the big one; use `boot` and reboot, since it usually brings a new kernel and
    Hyprland. Then:
-   - Check Hyprland's version:
-     `nix eval .#nixosConfigurations.omen.config.programs.hyprland.package.version`. If it's no longer
-     0.56.x, bump the window-rotate plugin in `modules/features/hyprland/default.nix` to the tag that
-     matches (its comment says so): change `rev`, set `hash = lib.fakeHash;` (and add `lib` to that
-     module's arguments), `build`, and paste the hash the error prints.
+   - If Hyprland moved to a new minor version, `build` stops with "hypr-window-rotate is built for
+     Hyprland 0.57.x, but nixpkgs has …". Bump the plugin in `modules/features/hyprland/default.nix`
+     to the matching tag from github.com/dox187/hypr-window-rotate/tags: change `rev`, `version`,
+     `VERSION` and `rotateFor`, set `hash = lib.fakeHash;`, `build`, and paste the hash the error prints.
    - `sudo sbctl verify`: everything signed except files ending in `bzImage.efi`.
 2. **`home-manager`**: `rebuild` is enough.
 3. **`lanzaboote`**: `boot`, then **`sudo sbctl verify` before rebooting**.

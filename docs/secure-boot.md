@@ -54,7 +54,7 @@ leave it unbootable.
    ```
 
    (take `lib` in the module's arguments: `{ lib, ... }: { ... }`), so plain systemd-boot is used.
-2. Make the keys: `sudo nix run nixpkgs#sbctl -- create-keys` (they go to `/var/lib/sbctl`).
+2. Make the keys: `sudo sbctl create-keys` (they go to `/var/lib/sbctl`).
 3. Remove those two lines again, rebuild with `boot`, and run `sudo sbctl verify`. Everything should
    be signed except files ending in `bzImage.efi`, which lanzaboote's guide says are expected to show
    as unsigned.
