@@ -32,20 +32,80 @@ out the matching commit of this repo and rebuild.
 
 ## Updating
 
-Nothing updates on its own; `flake.lock` holds every input at a fixed commit.
+Nothing updates on its own; `flake.lock` holds every input at a fixed commit. To see what you're pinned
+to: `nix flake metadata ~/nixos-dotfiles`.
+
+| Input | What updating it changes |
+|-------|--------------------------|
+| `nixpkgs` | Every package, the kernel, Hyprland (nixos-unstable) |
+| `home-manager` | How your dotfiles and user programs are set up |
+| `lanzaboote` | Secure Boot signing |
+| `flake-parts`, `import-tree` | How the repo is assembled; nothing on the system by themselves |
+| `hypr`, `kitty`, `nvim`, `quickshell`, `yazi` | Your [dotfile repos](dotfiles.md) on GitHub |
+
+`config/fastfetch` and `config/vscode` are linked live, so they never need updating.
+
+### One input at a time
+
+Updating inputs one by one means that if something breaks, you know which one did it.
+
+**0. Start clean.**
 
 ```sh
 cd ~/nixos-dotfiles
-nix flake update nixpkgs            # newer packages (nixos-unstable)
-nix flake update home-manager       # newer Home Manager
-nix flake update                    # every input at once, including the dotfile repos
-sudo nixos-rebuild boot --flake .#omen && reboot
+git status        # nothing uncommitted
+git pull
 ```
 
-If the result is broken, boot the previous generation, run `git restore flake.lock` (or revert the
-commit), and rebuild. Commit `flake.lock` once you're happy, so the repo records what you're running.
+**1. The loop, for each input:**
 
-To see what you're pinned to: `nix flake metadata ~/nixos-dotfiles`.
+```sh
+nix flake update nixpkgs                               # one input, by name
+build                                                  # build without applying
+nix store diff-closures /run/current-system ./result   # what changed
+boot && reboot                                         # or `rebuild` for small changes
+```
+
+Once it works, `git commit -am "update nixpkgs" && git push`. Push only what works: both machines'
+[automatic updates](#automatic-updates) build whatever is pushed. If it's broken, pick the previous
+generation in the boot menu, `git restore flake.lock`, and `boot` again.
+
+**2. In this order:**
+
+1. **`nixpkgs`**: the big one; use `boot` and reboot, since it usually brings a new kernel and
+   Hyprland. Then:
+   - Check Hyprland's version:
+     `nix eval .#nixosConfigurations.omen.config.programs.hyprland.package.version`. If it's no longer
+     0.56.x, bump the window-rotate plugin in `modules/features/hyprland/default.nix` to the tag that
+     matches (its comment says so): change `rev`, set `hash = lib.fakeHash;` (and add `lib` to that
+     module's arguments), `build`, and paste the hash the error prints.
+   - `sudo sbctl verify`: everything signed except files ending in `bzImage.efi`.
+2. **`home-manager`**: `rebuild` is enough.
+3. **`lanzaboote`**: `boot`, then **`sudo sbctl verify` before rebooting**.
+4. **`flake-parts`**, then **`import-tree`**: just `build`. If `diff-closures` prints nothing, nothing
+   changed: commit the lock and move on.
+5. **Your dotfile repos**, only after you've pushed changes to them:
+   `nix flake update hypr quickshell` (whichever you changed), `rebuild`, then Super + R for Hyprland
+   and the island.
+
+**3. Optional:**
+
+- The VS Code marketplace extensions (`qt-core`, `qt-qml`, `bun-vscode`) are pinned by version and hash
+  in `modules/features/vscode/default.nix`. Bump them the same way as the plugin, with `lib.fakeHash`.
+- Once everything works, `clean` drops generations older than 14 days and rewrites the boot menu.
+
+**4. The gaming PC** updates itself at 04:00 from what you pushed. To do it right away there:
+`git pull && rebuild`.
+
+### Everything at once
+
+```sh
+nix flake update            # every input
+boot && reboot
+```
+
+Faster, but if something breaks you won't know which input did it: then restore `flake.lock` and go one
+at a time.
 
 ## Automatic updates
 
