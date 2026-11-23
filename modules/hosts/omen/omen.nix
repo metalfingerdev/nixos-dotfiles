@@ -7,6 +7,11 @@
     networking.hostName = "omen";
     system.stateVersion = "26.05";
 
+    # The EFI partition is 196 MB, shared with Windows 11's boot manager, and every kernel + initrd
+    # takes ~45 MB of it. Lanzaboote writes a new one before deleting old ones, so keep only the newest
+    # (plus the running one, which it always keeps as the fallback).
+    boot.lanzaboote.configurationLimit = 1;
+
     # HP BIOS warning suppress
     boot.blacklistedKernelModules = [ "hp_bioscfg" ];
 

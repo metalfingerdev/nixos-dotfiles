@@ -10,7 +10,7 @@
     boot.lanzaboote = {
       enable = true;
       pkiBundle = "/var/lib/sbctl";
-      configurationLimit = 10;
+      configurationLimit = lib.mkDefault 10;
     };
     # Makes and enrolls the keys, and checks what lanzaboote signed (sbctl verify).
     environment.systemPackages = [ pkgs.sbctl ];

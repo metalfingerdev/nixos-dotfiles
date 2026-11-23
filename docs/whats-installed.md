@@ -29,7 +29,7 @@ stays powered off until you start an app on it with `nvidia-offload <app>`.
 ## secure-boot
 
 `modules/system/secure-boot/`: Secure Boot via lanzaboote in place of systemd-boot, keys in
-`/var/lib/sbctl`, the 10 newest generations in the boot menu, and `sbctl` to manage and check the keys
+`/var/lib/sbctl`, the 10 newest generations in the boot menu (on omen just the newest plus the running one: its 196 MB EFI partition is shared with Windows 11), and `sbctl` to manage and check the keys
 ([details](secure-boot.md)).
 
 ## Drivers
@@ -38,7 +38,7 @@ stays powered off until you start an app on it with `nvidia-offload <app>`.
 
 | Module | What it sets |
 |--------|--------------|
-| `amdgpu` | Mesa, and the driver loaded in the initrd so the console and login screen start at native resolution |
+| `amdgpu` | Mesa; the kernel's amdgpu driver needs nothing more |
 | `nvidia` | NVIDIA's driver in place of nouveau, with its open kernel module (set `hardware.nvidia.open = false` in the host for cards older than Turing) and video memory kept across suspend |
 
 ## desktop

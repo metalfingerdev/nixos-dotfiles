@@ -1,6 +1,6 @@
 # nixos-dotfiles
 
-My NixOS setup for **omen**, an HP Omen laptop: a Hyprland desktop with a Quickshell "island" bar,
+My NixOS setup for **omen**, an HP Omen laptop that dual-boots Windows 11: a Hyprland desktop with a Quickshell "island" bar,
 the *marin* theme, Secure Boot through lanzaboote, and Home Manager for my user, **admin**.
 
 It is a [flake](https://nixos.wiki/wiki/Flakes) built on the

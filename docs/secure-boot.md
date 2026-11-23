@@ -16,8 +16,10 @@ host list; a host without it boots plain systemd-boot (`bootloader`, part of `co
   boot.
 - systemd-boot's own installer is switched off (`mkForce false`); lanzaboote writes the boot menu
   instead.
-- The menu keeps the 10 newest generations (`configurationLimit`), so old generations can't fill the
-  EFI partition.
+- The menu keeps the newest generation plus the running one (`configurationLimit`): omen's EFI
+  partition is only 196 MB, Windows 11's boot manager lives there too, and each kernel and initrd takes
+  about 45 MB of it. Lanzaboote only ever deletes its own files (`EFI/nixos`, `EFI/Linux/nixos-*`).
+- systemd-boot finds Windows on the same partition and lists it as **Windows Boot Manager**.
 
 ## Checking it
 
@@ -56,7 +58,7 @@ leave it unbootable.
    as unsigned.
 4. Reboot into the firmware settings, clear the Secure Boot keys / enable **Setup Mode**, then boot back
    in.
-5. Enroll: `sudo sbctl enroll-keys --microsoft` (keeps Microsoft's keys so firmware updates and
+5. Enroll: `sudo sbctl enroll-keys --microsoft` (keeps Microsoft's keys so Windows 11, firmware updates and
    option ROMs still load).
 6. Reboot, turn Secure Boot on in the firmware, and confirm with `bootctl status`.
 
