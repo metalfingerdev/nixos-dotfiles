@@ -37,7 +37,7 @@ modules/
   system/desktop/            core plus the whole graphical session
   system/<name>/             one system service each (audio, network, bluetooth, ssh, ...)
   system/theme/              the marin look: cursor, GTK, fonts
-  attrs/<name>/              bundles of features: terminal, development, apps, gaming
+  bundles/<name>/            bundles of features: terminal, development, apps, gaming
   features/<name>/           apps and tools, one folder each
 docs/                        the guide
 ```

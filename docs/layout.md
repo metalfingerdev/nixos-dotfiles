@@ -50,7 +50,7 @@ flake.nixosConfigurations.omen = inputs.nixpkgs.lib.nixosSystem {
   modules = with self.modules.nixos; [
     omen                # this machine: hardware, hostname, stateVersion
     desktop             # everything for a working desktop
-    terminal            # bundles from attrs/
+    terminal            # from bundles/
     development
     apps
   ];
@@ -76,18 +76,18 @@ omen
 │   ├── audio, network, bluetooth, power, usb
 │   └── theme                 system/theme
 │       └── cursor, gtk, fonts
-├── terminal                        attrs/terminal
+├── terminal                        bundles/terminal
 │   └── kitty, shell, yazi, fastfetch, utils
-├── development                     attrs/development
+├── development                     bundles/development
 │   └── git, lazygit, neovim, vscode, claude-code, python3, webdev
-└── apps                            attrs/apps
+└── apps                            bundles/apps
     └── firefox, libreoffice, vlc, stremio, bittorrent
 ```
 
 A group is just a module that imports others:
 
 ```nix
-# modules/attrs/development/default.nix
+# modules/bundles/development/default.nix
 { self, ... }:
 {
   flake.modules.nixos.development.imports = with self.modules.nixos; [
@@ -109,7 +109,7 @@ A group is just a module that imports others:
 | `modules/system/desktop/` | `desktop`: core plus everything for the graphical session |
 | `modules/system/<name>/` | one system service each: audio, network, bluetooth, power, usb, ssh, session, nix-ld, home-manager |
 | `modules/system/theme/` | the marin look, split into cursor, gtk and fonts |
-| `modules/attrs/<name>/` | bundles of features: terminal, development, apps, gaming |
+| `modules/bundles/<name>/` | bundles of features: terminal, development, apps, gaming |
 | `modules/features/<name>/` | one app or tool each, with any small files it needs beside it (e.g. the Hyprland plugin patch) |
 
 What each one does: [What's installed](whats-installed.md).
@@ -142,7 +142,7 @@ What each one does: [What's installed](whats-installed.md).
    ```
 
 2. `git add` the new folder. A flake can't see untracked files.
-3. Add the name to a bundle in `modules/attrs/` (or to `system/desktop` if it's part of the desktop),
+3. Add the name to a bundle in `modules/bundles/` (or to `system/desktop` if it's part of the desktop),
    or straight to the host's list.
 4. `rebuild`.
 
@@ -151,7 +151,7 @@ module instead, since one file can only define `flake.modules.nixos.<name>` once
 
 ## Adding a bundle
 
-Create `modules/attrs/<name>/default.nix` with an `imports` list, like `development` above. It can also
+Create `modules/bundles/<name>/default.nix` with an `imports` list, like `development` above. It can also
 add packages of its own:
 
 ```nix

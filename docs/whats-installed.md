@@ -56,7 +56,7 @@ How the desktop pieces work together: [The desktop](desktop.md).
 
 ## terminal
 
-`modules/attrs/terminal/`
+`modules/bundles/terminal/`
 
 | Module | What it sets |
 |--------|--------------|
@@ -68,21 +68,21 @@ How the desktop pieces work together: [The desktop](desktop.md).
 
 ## development
 
-`modules/attrs/development/`
+`modules/bundles/development/`
 
 | Module | What it sets |
 |--------|--------------|
 | `git` | git system-wide, plus `gh`, and rewrites `https://github.com/` to SSH so pushes use your key |
 | `lazygit` | lazygit |
 | `neovim` | Neovim with `~/.config/nvim` from the nvim repo, plus `ripgrep`, `nil` (Nix language server), `nixpkgs-fmt`, Node and gcc for plugins |
-| `vscode` | VS Code (FHS build, so marketplace extensions with binaries work), direnv with nix-direnv, extensions for Nix, Python, Svelte, ESLint, Prettier, Tailwind, Qt/QML, Bun and Claude Code, and your editor settings |
+| `vscode` | VS Code (FHS build, so marketplace extensions with binaries work), direnv with nix-direnv, extensions for Nix, Python, Svelte, ESLint, Prettier, Tailwind, Qt/QML, Bun and Claude Code. Settings live in `config/vscode/settings.json`, linked live (see [Dotfiles](dotfiles.md#vs-code-settings)) |
 | `claude-code` | The Claude Code CLI |
 | `python3` | Python 3 with pandas and numpy |
 | `webdev` | Node, pnpm, Bun, TypeScript and its language server, HTML/CSS/JSON/ESLint servers, Svelte language server, Prettier; global installs go to `~/.local/share/pnpm` and `~/.npm-global` (both on `PATH`) |
 
 ## apps
 
-`modules/attrs/apps/`
+`modules/bundles/apps/`
 
 | Module | What it sets |
 |--------|--------------|
@@ -96,7 +96,7 @@ How the desktop pieces work together: [The desktop](desktop.md).
 
 | Module | Where | What it would add | To turn it on |
 |--------|-------|-------------------|---------------|
-| `gaming` | `attrs/gaming/` | The `steam` feature: Steam with its 32-bit graphics and runtime | Add `gaming` to the host's list |
+| `gaming` | `bundles/gaming/` | The `steam` feature: Steam with its 32-bit graphics and runtime | Add `gaming` to the host's list |
 | `luarocks` | `features/luarocks/` | Lua 5.4 with luarocks, gcc, make and pkg-config, with `~/.luarocks` on the Lua and shell paths | Add it to `development` |
 
 ## Known gaps

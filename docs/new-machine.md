@@ -36,7 +36,8 @@
 7. Clone the dotfile repos into `config/` if you want to edit them
    ([Dotfiles: on a fresh machine](dotfiles.md#on-a-fresh-machine)).
 
-Before step 5, restore `config/fastfetch` from your backup: it isn't on GitHub, and the build needs it
+Before step 5, restore `config/fastfetch` and `config/vscode` from your backup: they aren't on GitHub.
+The build needs fastfetch, and VS Code reads its settings from `config/vscode`
 ([Dotfiles: the local-only fastfetch repo](dotfiles.md#the-local-only-fastfetch-repo)).
 
 ## Adding a second computer
@@ -62,7 +63,7 @@ Each machine gets its own host folder and its own name in `flake.nix`'s outputs.
    should have.
 4. `git add modules/hosts/laptop2` and build it with `--flake ~/nixos-dotfiles#laptop2`.
 
-Everything in `system/`, `attrs/` and `features/` is shared: both hosts pick from the same modules by
+Everything in `system/`, `bundles/` and `features/` is shared: both hosts pick from the same modules by
 name.
 
 You can do the same for omen itself, moving `hardware-configuration.nix` into

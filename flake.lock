@@ -18,11 +18,11 @@
     "fastfetch": {
       "flake": false,
       "locked": {
-        "lastModified": 1795416589,
-        "narHash": "sha256-uGCmtwT6NjJfuPZmq3ywSCeR86LbUwyMDpHmHBW2TcY=",
+        "lastModified": 1795417425,
+        "narHash": "sha256-Vn1f5df0I+xL9AuOrNfJOZuXNOsmeYM2mPmQAkaUgMQ=",
         "ref": "refs/heads/main",
-        "rev": "54e472fef20ae6251d83c1434197ba223dacb4c8",
-        "revCount": 2,
+        "rev": "8467818c390da126f68078154a6f399893f840f2",
+        "revCount": 3,
         "type": "git",
         "url": "file:///home/admin/nixos-dotfiles/config/fastfetch"
       },

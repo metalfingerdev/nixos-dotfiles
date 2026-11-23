@@ -86,6 +86,20 @@ machine. Two consequences:
   (it's a normal git repo: copy it, or push it to a private remote of your own) and restore it to the
   same path before the first build.
 
+## VS Code settings
+
+`~/.config/Code/User/settings.json` is a link straight to `config/vscode/settings.json`, a local-only
+repo, instead of a copy in the Nix store. VS Code reads and writes that file directly, so:
+
+- a change in VS Code's settings UI, or an edit to the file, applies **instantly**, with no rebuild;
+- the file stays editable (a store copy is read-only, which is why VS Code couldn't save settings
+  before);
+- commit in `config/vscode` whenever you want to keep a version.
+
+Extensions are still installed by Nix (`modules/features/vscode`). If `config/vscode/settings.json` is
+missing, the link points at nothing and VS Code starts with default settings, so keep `config/vscode` in
+your backup with `config/fastfetch`.
+
 ## Adding another config repo
 
 1. Create the repo on GitHub and push the config to it (its files at the top level).
