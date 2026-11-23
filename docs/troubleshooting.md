@@ -6,7 +6,7 @@
 
 ```
 error: attribute 'foo' missing
-error: path '/nix/store/…-source/modules/features/foo.nix' does not exist
+error: path '/nix/store/…-source/modules/features/foo/default.nix' does not exist
 ```
 
 The flake only sees files git tracks. `git add` the new file (it doesn't need to be committed), then
@@ -64,12 +64,12 @@ git config: `programs.git.config.safe.directory = [ "/home/admin/nixos-dotfiles"
 ## A downloaded program says "No such file or directory" or a library is missing
 
 Prebuilt Linux binaries expect libraries NixOS doesn't put in `/lib`. `nix-ld` covers the common ones;
-add the missing library to `programs.nix-ld.libraries` in `modules/system/nix-ld.nix`, or look for the
+add the missing library to `programs.nix-ld.libraries` in `modules/system/nix-ld/default.nix`, or look for the
 program in nixpkgs instead (`nix search nixpkgs <name>`).
 
 ## The media keys do nothing
 
-`playerctl` isn't installed. Add `pkgs.playerctl` to `modules/features/utils.nix` and rebuild.
+`playerctl` isn't installed. Add `pkgs.playerctl` to `modules/features/utils/default.nix` and rebuild.
 
 ## Running out of disk
 

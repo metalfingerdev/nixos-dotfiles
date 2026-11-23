@@ -5,7 +5,7 @@
   flake.modules.homeManager.fastfetch = { ... }: {
     programs.fastfetch = {
       enable = true;
-      # logo.source comes from theme.nix
+      # logo.source comes from system/theme/marin.nix
       settings.logo = {
         type = "kitty-icat";
         width = 60;

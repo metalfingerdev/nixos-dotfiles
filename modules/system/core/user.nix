@@ -1,6 +1,6 @@
 { ... }:
 {
-  flake.modules.nixos.admin = {
+  flake.modules.nixos.user = {
     users.users.admin = {
       isNormalUser = true;
       description = "admin";

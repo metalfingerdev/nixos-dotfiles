@@ -39,7 +39,7 @@ Its full docs are in the [quickshell repo](https://github.com/metalfingerdev/qui
 - Icons: Adwaita
 - fastfetch: the Marin Kitagawa logo (Super + Shift + Return opens a terminal running it)
 
-These come from `modules/system/theme.nix`. Colours set inside the config files (`look.lua` in hypr,
+These come from `modules/system/theme/`. Colours set inside the config files (`look.lua` in hypr,
 `kitty.conf`, the island's theme) stay with those files.
 
 ## Keybinds

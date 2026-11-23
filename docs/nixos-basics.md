@@ -63,7 +63,7 @@ here, so one `nixos-rebuild` applies both.
 
 ## Unfree software
 
-`nixpkgs.config.allowUnfree = true` is set in `system/base.nix`, so VS Code, Steam, Stremio and other
+`nixpkgs.config.allowUnfree = true` is set in `system/core/nix-settings.nix`, so VS Code, Steam, Stremio and other
 non-free packages build.
 
 ## Getting the most out of it
@@ -82,7 +82,7 @@ picks them up through the direnv extension. Different projects can need differen
 versions without clashing.
 
 **Prebuilt binaries.** Programs downloaded as plain Linux binaries normally fail on NixOS, because
-there is no `/lib` with the usual libraries. `nix-ld` (`system/nix-ld.nix`) provides a loader for them;
+there is no `/lib` with the usual libraries. `nix-ld` (`system/nix-ld/`) provides a loader for them;
 if one complains about a missing library, add that library to `programs.nix-ld.libraries` there.
 
 **See what a change does before applying it.** Build without switching, then compare:

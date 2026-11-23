@@ -3,7 +3,8 @@
 [Docs index](README.md)
 
 omen boots with UEFI Secure Boot on, using [lanzaboote](https://github.com/nix-community/lanzaboote)
-instead of plain systemd-boot. It's set up in `modules/hosts/omen/configuration.nix`.
+instead of plain systemd-boot. It's set up in `modules/system/core/boot.nix` (`bootloader`), part of
+`core`.
 
 ## How it works
 
@@ -45,11 +46,16 @@ firmware trusts.
 For a reinstall or a new machine. Follow the order: enrolling keys before the system is signed would
 leave it unbootable.
 
-1. Install and boot NixOS **without** lanzaboote first: comment out the `lanzaboote` import and the
-   `boot.lanzaboote` / `systemd-boot` lines in the host's `configuration.nix`, so plain systemd-boot is
-   used.
+1. Install and boot NixOS **without** lanzaboote first. In the host's own module (`modules/hosts/<host>/<host>.nix`), add
+
+   ```nix
+   boot.lanzaboote.enable = lib.mkForce false;
+   boot.loader.systemd-boot.enable = lib.mkOverride 40 true;   # beats core's mkForce false
+   ```
+
+   (take `lib` in the module's arguments: `{ lib, ... }: { ... }`), so plain systemd-boot is used.
 2. Make the keys: `sudo nix run nixpkgs#sbctl -- create-keys` (they go to `/var/lib/sbctl`).
-3. Put the lanzaboote lines back, rebuild with `boot`, and run `sudo sbctl verify`. Everything should
+3. Remove those two lines again, rebuild with `boot`, and run `sudo sbctl verify`. Everything should
    be signed except files ending in `bzImage.efi`, which lanzaboote's guide says are expected to show
    as unsigned.
 4. Reboot into the firmware settings, clear the Secure Boot keys / enable **Setup Mode**, then boot back

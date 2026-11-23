@@ -3,9 +3,10 @@
 My NixOS setup for **omen**, an HP Omen laptop: a Hyprland desktop with a Quickshell "island" bar,
 the *marin* theme, Secure Boot through lanzaboote, and Home Manager for my user, **admin**.
 
-It is a [flake](https://nixos.wiki/wiki/Flakes) laid out in the
-[dendritic pattern](docs/layout.md): every `.nix` file under `modules/` is loaded automatically and
-adds one named piece, and the host picks the pieces it wants by name.
+It is a [flake](https://nixos.wiki/wiki/Flakes) built on the
+[dendritic pattern](docs/layout.md) and laid out like voidarc's: every `.nix` file under `modules/` is
+loaded automatically and adds one named piece, pieces are grouped into bigger ones, and the host picks
+a handful of them by name.
 
 ## Quick start
 
@@ -31,10 +32,13 @@ hardware-configuration.nix   generated for omen's disks and hardware
 config/                      my dotfiles, each its own git repo (ignored here, pulled in as inputs)
 modules/
   parts.nix                  flake-parts setup
-  hosts/omen/                the machine: what it imports, its hardware, boot, time zone, keyboard
-  users/admin.nix            my account and git identity
-  system/                    system services and the theme
-  features/                  apps and tools, one file each
+  hosts/omen/                the machine: the names it imports, and what only it has
+  system/core/               what every machine needs: my account, Secure Boot, Nix settings, locale
+  system/desktop/            core plus the whole graphical session
+  system/<name>/             one system service each (audio, network, bluetooth, ssh, ...)
+  system/theme/        the marin look: cursor, GTK, fonts, the Marin fastfetch logo
+  attrs/<name>/              bundles of features: terminal, development, apps, gaming
+  features/<name>/           apps and tools, one folder each
 docs/                        the guide
 ```
 

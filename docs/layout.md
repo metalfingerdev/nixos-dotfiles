@@ -2,9 +2,11 @@
 
 [Docs index](README.md)
 
-This flake follows the **dendritic pattern**. Every file is a small
-[flake-parts](https://flake.parts) module that adds named NixOS (and Home Manager) modules, and the host
-lists the names it wants. Files never import each other by path.
+This flake follows the **dendritic pattern**, laid out like
+[voidarc's config](https://git.voidarc.co.uk/voidarc/nixos). Every file is a small
+[flake-parts](https://flake.parts) module that publishes named NixOS (and Home Manager) modules. Small
+modules are grouped into bigger ones, and the host imports a handful of names. Files never import each
+other by path.
 
 ## How a file becomes a module
 
@@ -21,7 +23,7 @@ starting with `_` (e.g. `_notes.nix` or `_old/`). Folders are only for you to fi
 Each file publishes modules under a name:
 
 ```nix
-# modules/features/vlc.nix
+# modules/features/vlc/default.nix
 { self, ... }:
 {
   flake.modules.nixos.vlc.home-manager.sharedModules = [ self.modules.homeManager.vlc ];
@@ -34,45 +36,87 @@ Each file publishes modules under a name:
 
 - `flake.modules.nixos.<name>` is a NixOS module.
 - `flake.modules.homeManager.<name>` is a Home Manager module.
-- The first line makes the NixOS module bring its Home Manager part along: importing `vlc` on the
+- The first line makes the NixOS module bring its Home Manager part along, so importing `vlc` on the
   system side is all it takes. Every feature with a Home Manager part does this, so a feature is always
   one name.
 
-## The host picks the modules
+## From host to feature
 
-`modules/hosts/omen/default.nix` builds the system from a list of names:
+The host imports five names:
 
 ```nix
+# modules/hosts/omen/default.nix
 flake.nixosConfigurations.omen = inputs.nixpkgs.lib.nixosSystem {
   modules = with self.modules.nixos; [
-    omen
-    admin
-    base home-manager ssh usb nix-ld session audio networking bluetooth power theme
-    hyprland awww quickshell kitty shell yazi fastfetch utils git lazygit neovim vscode
-    claude-code python3 webdev firefox libreoffice vlc stremio bittorrent
+    omen                # this machine: hardware, hostname, stateVersion
+    desktop             # everything for a working desktop
+    terminal            # bundles from attrs/
+    development
+    apps
   ];
 };
 ```
 
-That list is the one place that decides what's on the machine. Remove a name and its feature is gone at
-the next rebuild; add one and it's there.
+Each of those imports more names, down to single features:
+
+```
+omen
+├── omen                            hosts/omen/omen.nix
+├── desktop                         system/desktop
+│   ├── core                        system/core
+│   │   ├── user                      account, git identity
+│   │   ├── bootloader                lanzaboote (Secure Boot)
+│   │   ├── nix                       flakes, unfree packages
+│   │   ├── locale                    time zone, keyboard
+│   │   ├── home-manager
+│   │   ├── ssh
+│   │   └── nix-ld
+│   ├── session                       ly, keyring, polkit, printing
+│   ├── hyprland, awww, quickshell
+│   ├── audio, network, bluetooth, power, usb
+│   └── theme                 system/theme
+│       └── cursor, gtk, fonts, marin
+├── terminal                        attrs/terminal
+│   └── kitty, shell, yazi, fastfetch, utils
+├── development                     attrs/development
+│   └── git, lazygit, neovim, vscode, claude-code, python3, webdev
+└── apps                            attrs/apps
+    └── firefox, libreoffice, vlc, stremio, bittorrent
+```
+
+A group is just a module that imports others:
+
+```nix
+# modules/attrs/development/default.nix
+{ self, ... }:
+{
+  flake.modules.nixos.development.imports = with self.modules.nixos; [
+    git
+    lazygit
+    neovim
+    ...
+  ];
+}
+```
 
 ## The folders
 
 | Folder | Holds |
 |--------|-------|
 | `modules/parts.nix` | flake-parts setup: enables `flake.modules`, sets the system to `x86_64-linux` |
-| `modules/hosts/omen/default.nix` | `nixosConfigurations.omen` and the list of modules |
-| `modules/hosts/omen/configuration.nix` | the `omen` module: hardware config, lanzaboote, hostname, time zone, keyboard, `stateVersion` |
-| `modules/users/admin.nix` | the `admin` module: the account, `home.stateVersion`, git name and email |
-| `modules/system/` | system services (audio, network, bluetooth, power, ssh, usb, login session), Nix settings, Home Manager setup, the theme |
-| `modules/features/` | apps and tools, one per file |
+| `modules/hosts/<host>/` | `default.nix` (the `nixosConfigurations` entry and its list) and `<host>.nix` (what only that machine has, as the module `<host>`) |
+| `modules/system/core/` | what every machine needs, split into `user.nix`, `boot.nix`, `nix-settings.nix`, `locale.nix`, with `default.nix` grouping them as `core` |
+| `modules/system/desktop/` | `desktop`: core plus everything for the graphical session |
+| `modules/system/<name>/` | one system service each: audio, network, bluetooth, power, usb, ssh, session, nix-ld, home-manager |
+| `modules/system/theme/` | the marin look, split into cursor, gtk, fonts and the Marin fastfetch logo |
+| `modules/attrs/<name>/` | bundles of features: terminal, development, apps, gaming |
+| `modules/features/<name>/` | one app or tool each, with any small files it needs beside it (e.g. the Hyprland plugin patch) |
 
 What each one does: [What's installed](whats-installed.md).
 
 ## Adding a feature
 
-1. Create `modules/features/<name>.nix`. For a user-level app (most of them):
+1. Create `modules/features/<name>/default.nix`. For a user-level app (most of them):
 
    ```nix
    { self, ... }:
@@ -97,17 +141,32 @@ What each one does: [What's installed](whats-installed.md).
    }
    ```
 
-2. `git add modules/features/<name>.nix`. A flake can't see untracked files.
-3. Add the name to the list in `modules/hosts/omen/default.nix`.
+2. `git add` the new folder. A flake can't see untracked files.
+3. Add the name to a bundle in `modules/attrs/` (or to `system/desktop` if it's part of the desktop),
+   or straight to the host's list.
 4. `rebuild`.
 
 A feature with both parts (like `kitty` or `bittorrent`) puts the `sharedModules` line inside its NixOS
 module instead, since one file can only define `flake.modules.nixos.<name>` once.
 
-## Removing a feature
+## Adding a bundle
 
-Take its name out of the host's list and rebuild. Keep the file if you might want it back: `steam` and
-`luarocks` sit in `features/` unused for exactly this reason.
+Create `modules/attrs/<name>/default.nix` with an `imports` list, like `development` above. It can also
+add packages of its own:
+
+```nix
+flake.modules.nixos.music = { pkgs, ... }: {
+  imports = with self.modules.nixos; [ spotify ];
+  environment.systemPackages = [ pkgs.cava ];
+};
+```
+
+`git add` it and put its name in the host's list.
+
+## Removing something
+
+Take its name out of whichever list includes it and rebuild. Keep the file if you might want it back:
+`steam` (in the unused `gaming` bundle) and `luarocks` (in no bundle) sit there for exactly this reason.
 
 ## Dotfiles in a feature
 
@@ -127,12 +186,12 @@ See [Dotfiles](dotfiles.md) for how those inputs work.
 
 ## Adding a user
 
-Create `modules/users/<name>.nix` defining `flake.modules.nixos.<name>` with the account and its
-`home-manager.users.<name>` settings (copy `admin.nix`), `git add` it, and add the name to the host's
-list.
+Users live in `modules/system/core/user.nix` (`user`), which `core` imports. For a second account, add a
+file next to it (e.g. `core/guest.nix` defining `flake.modules.nixos.guest`), `git add` it, and add it to
+`core`'s list.
 
 Every feature's Home Manager part goes to **every** Home Manager user (`sharedModules`). For a second
-user who should get different apps, that user's own module would import those Home Manager modules
+user who should get different apps, that user's module would import those Home Manager modules
 directly instead.
 
 ## Adding a host

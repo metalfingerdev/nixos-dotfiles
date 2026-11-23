@@ -30,7 +30,7 @@
    reboot
    ```
 
-   The `--option` is only needed this once; after this build `base` turns flakes on for good.
+   The `--option` is only needed this once; after this build `core` turns flakes on for good.
 6. Set your password with `passwd` if the account is new, and get your GitHub SSH key back to
    `~/.ssh/id_ed25519_github` (the `ssh` module points GitHub at it).
 7. Clone the dotfile repos into `config/` if you want to edit them
@@ -48,15 +48,18 @@ Each machine gets its own host folder and its own name in `flake.nix`'s outputs.
    nixos-generate-config --show-hardware-config > modules/hosts/laptop2/_hardware.nix
    ```
 
-2. Copy `modules/hosts/omen/` to `modules/hosts/laptop2/` and edit:
-   - in `configuration.nix`, rename `flake.modules.nixos.omen` to `laptop2`, import `./_hardware.nix`
-     instead of `../../../hardware-configuration.nix`, and set its hostname. Drop the `hp_bioscfg`
-     blacklist (it's for HP firmware) and the lanzaboote lines until its keys exist;
-   - in `default.nix`, rename `nixosConfigurations.omen` to `laptop2`, use `laptop2` instead of `omen` in
-     the list, and keep only the features it should have.
-3. `git add modules/hosts/laptop2` and build it with `--flake ~/nixos-dotfiles#laptop2`.
+2. Create `modules/hosts/laptop2/laptop2.nix` defining `flake.modules.nixos.laptop2` (module names
+   are shared across the whole flake, so each host's module is named after the host). In it, import
+   `./_hardware.nix` and set `nixpkgs.hostPlatform`, `networking.hostName` and `system.stateVersion`
+   (copy `modules/hosts/omen/omen.nix`, minus the HP-only `hp_bioscfg` line). Until its Secure Boot keys
+   exist, also turn lanzaboote off there
+   ([Secure Boot: setting it up from scratch](secure-boot.md#setting-it-up-from-scratch)).
+3. Create `modules/hosts/laptop2/default.nix` with `flake.nixosConfigurations.laptop2` importing
+   `laptop2` plus whichever of `desktop`, `terminal`, `development`, `apps`, `gaming` it
+   should have.
+4. `git add modules/hosts/laptop2` and build it with `--flake ~/nixos-dotfiles#laptop2`.
 
-Everything in `system/`, `features/` and `users/` is shared: both hosts pick from the same modules by
+Everything in `system/`, `attrs/` and `features/` is shared: both hosts pick from the same modules by
 name.
 
 You can do the same for omen itself, moving `hardware-configuration.nix` into
