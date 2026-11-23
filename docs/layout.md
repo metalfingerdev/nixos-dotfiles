@@ -42,7 +42,7 @@ Each file publishes modules under a name:
 
 ## From host to feature
 
-The host imports nine names:
+The host imports eleven names:
 
 ```nix
 # modules/hosts/omen/default.nix
@@ -52,11 +52,13 @@ flake.nixosConfigurations.omen = inputs.nixpkgs.lib.nixosSystem {
     secure-boot         # lanzaboote instead of plain systemd-boot
     amdgpu              # GPU drivers, from drivers/
     nvidia
+    swap                # zram, and a swapfile to hibernate into
     desktop             # everything for a working desktop
     terminal            # from bundles/
     development
     apps
     editing
+    ai
   ];
 };
 ```
@@ -68,6 +70,7 @@ omen
 ├── omen                            hosts/omen/omen.nix
 ├── secure-boot                     system/secure-boot
 ├── amdgpu, nvidia                  drivers/
+├── swap                            system/swap
 ├── desktop                         system/desktop
 │   ├── core                        system/core
 │   │   ├── user                      account, git identity
@@ -88,8 +91,10 @@ omen
 │   └── git, lazygit, neovim, vscode, claude-code, python3, webdev
 ├── apps                            bundles/apps
 │   └── firefox, libreoffice, vlc, stremio, bittorrent, calibre
-└── editing                         bundles/editing
-    └── audacity, kdenlive
+├── editing                         bundles/editing
+│   └── audacity, kdenlive
+└── ai                              bundles/ai
+    └── ollama, open-webui, searxng, crush
 ```
 
 The gaming PC's host, `modules/hosts/home/default.nix`, picks from the same names:
@@ -120,9 +125,9 @@ A group is just a module that imports others:
 | `modules/hosts/<host>/` | `default.nix` (the `nixosConfigurations` entry and its list) and `<host>.nix` (what only that machine has, as the module `<host>`) |
 | `modules/system/core/` | what every machine needs, split into `user.nix`, `boot.nix`, `nix-settings.nix`, `locale.nix`, with `default.nix` grouping them as `core` |
 | `modules/system/desktop/` | `desktop`: core plus everything for the graphical session |
-| `modules/system/<name>/` | one system service each: audio, network, bluetooth, power, usb, ssh, sshd, secure-boot, session, nix-ld, home-manager, auto-upgrade |
+| `modules/system/<name>/` | one system service each: audio, network, bluetooth, power, usb, ssh, sshd, secure-boot, session, nix-ld, home-manager, auto-upgrade, swap |
 | `modules/system/theme/` | the marin look, split into cursor, gtk and fonts |
-| `modules/bundles/<name>/` | bundles of features: terminal, development, apps, editing, gaming |
+| `modules/bundles/<name>/` | bundles of features: terminal, development, apps, editing, gaming, ai |
 | `modules/features/<name>/` | one app or tool each, with any small files it needs beside it (e.g. the Hyprland plugin patch) |
 | `modules/drivers/<name>/` | GPU drivers, one per vendor: amdgpu, nvidia |
 
