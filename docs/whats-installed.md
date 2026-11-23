@@ -124,6 +124,15 @@ How the desktop pieces work together: [The desktop](desktop.md).
 | `bittorrent` | qBittorrent, its listening port 51413 opened in the firewall (TCP and UDP), and a first-run config using that port |
 | `calibre` | Calibre, for converting e-books and sending them to a Kindle |
 
+## editing
+
+`modules/bundles/editing/`
+
+| Module | What it sets |
+|--------|--------------|
+| `audacity` | Audacity, for recording and editing audio |
+| `kdenlive` | Kdenlive, for editing video |
+
 ## Not used on omen
 
 | Module | Where | What it would add | To turn it on |

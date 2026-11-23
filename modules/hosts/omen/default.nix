@@ -10,6 +10,7 @@
       terminal
       development
       apps
+      editing
     ];
   };
 }

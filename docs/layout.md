@@ -42,7 +42,7 @@ Each file publishes modules under a name:
 
 ## From host to feature
 
-The host imports eight names:
+The host imports nine names:
 
 ```nix
 # modules/hosts/omen/default.nix
@@ -56,6 +56,7 @@ flake.nixosConfigurations.omen = inputs.nixpkgs.lib.nixosSystem {
     terminal            # from bundles/
     development
     apps
+    editing
   ];
 };
 ```
@@ -85,8 +86,10 @@ omen
 │   └── kitty, shell, yazi, fastfetch, utils
 ├── development                     bundles/development
 │   └── git, lazygit, neovim, vscode, claude-code, python3, webdev
-└── apps                            bundles/apps
-    └── firefox, libreoffice, vlc, stremio, bittorrent, calibre
+├── apps                            bundles/apps
+│   └── firefox, libreoffice, vlc, stremio, bittorrent, calibre
+└── editing                         bundles/editing
+    └── audacity, kdenlive
 ```
 
 The gaming PC's host, `modules/hosts/home/default.nix`, picks from the same names:
@@ -118,7 +121,7 @@ A group is just a module that imports others:
 | `modules/system/desktop/` | `desktop`: core plus everything for the graphical session |
 | `modules/system/<name>/` | one system service each: audio, network, bluetooth, power, usb, ssh, sshd, secure-boot, session, nix-ld, home-manager, auto-upgrade |
 | `modules/system/theme/` | the marin look, split into cursor, gtk and fonts |
-| `modules/bundles/<name>/` | bundles of features: terminal, development, apps, gaming |
+| `modules/bundles/<name>/` | bundles of features: terminal, development, apps, editing, gaming |
 | `modules/features/<name>/` | one app or tool each, with any small files it needs beside it (e.g. the Hyprland plugin patch) |
 | `modules/drivers/<name>/` | GPU drivers, one per vendor: amdgpu, nvidia |
 

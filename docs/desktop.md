@@ -51,7 +51,7 @@ Super is the Windows key.
 
 | Keys | Action |
 |------|--------|
-| Super + Return | Terminal (kitty) |
+| Super + Return | Terminal (kitty), floating and centred at 1080x720 |
 | Super + Shift + Return | Terminal running fastfetch |
 | Super + E | yazi file manager in a terminal |
 | Super + D | Launcher |
@@ -83,8 +83,8 @@ Super is the Windows key.
 | Super + 1…0 | Go to workspace 1–10 |
 | Super + Shift + 1…0 | Move window to workspace 1–10 |
 | Super + scroll | Next / previous workspace |
-| Super + S | Show / hide the scratchpad |
-| Super + Shift + S | Move window to the scratchpad |
+| Super + Caps Lock | Show / hide the scratchpad |
+| Super + Shift + Caps Lock | Move window to the scratchpad |
 
 ### Island
 
