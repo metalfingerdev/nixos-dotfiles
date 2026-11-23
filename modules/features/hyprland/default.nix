@@ -4,7 +4,6 @@
     # config/hypr/modules/autostart.lua starts awww-daemon and quickshell.
     imports = with self.modules.nixos; [ awww quickshell ];
     home-manager.sharedModules = [ self.modules.homeManager.hyprland ];
-    programs.hyprlock.enable = true;
     programs.hyprland = {
       enable = true;
       xwayland.enable = true;

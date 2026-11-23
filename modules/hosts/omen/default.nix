@@ -6,11 +6,13 @@
       secure-boot
       amdgpu # Radeon Vega (Cezanne) iGPU
       nvidia # GeForce GTX 1650 Mobile
+      swap
       desktop
       terminal
       development
       apps
       editing
+      ai
     ];
   };
 }

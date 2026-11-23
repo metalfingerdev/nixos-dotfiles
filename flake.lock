@@ -72,11 +72,11 @@
     "hypr": {
       "flake": false,
       "locked": {
-        "lastModified": 1795461722,
-        "narHash": "sha256-Gl53IjNxrb4+rJXQ4CiTcbqiCpQrs+ICfHto1NmIc9Q=",
+        "lastModified": 1795471015,
+        "narHash": "sha256-JxGdBWpTKWo5AukqEh0NDHlWe4p8OlYMMy+ML+IcHP4=",
         "owner": "metalfingerdev",
         "repo": "hypr",
-        "rev": "652638dbcc2b35db03b262c27998a5652385498f",
+        "rev": "d0f9d6dedca6ffa10072890cbd7a661befda9bb8",
         "type": "github"
       },
       "original": {
@@ -209,11 +209,11 @@
     "quickshell": {
       "flake": false,
       "locked": {
-        "lastModified": 1795461719,
-        "narHash": "sha256-uK4xJ4UW4LYMS8XyATpl9Sj3fHV+rwY/R0rlRH+66CY=",
+        "lastModified": 1795471015,
+        "narHash": "sha256-wH0cCfbCtxQGLdutUTlPGA51EKbvcIUY7g8w2I3Qo3A=",
         "owner": "metalfingerdev",
         "repo": "quickshell",
-        "rev": "b16c0c94879769104801efa85ecea569dadae1fd",
+        "rev": "bc91b1174c309fa5c1187314c2e9820612c4901f",
         "type": "github"
       },
       "original": {

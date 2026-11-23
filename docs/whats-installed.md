@@ -64,7 +64,7 @@ stays powered off until you start an app on it with `nvidia-offload <app>`.
 | Module | Folder | What it sets |
 |--------|--------|--------------|
 | `session` | `system/session/` | The **ly** login screen, GNOME Keyring (unlocked at login), polkit, touchpad support (libinput), printing (CUPS) |
-| `hyprland` | `features/hyprland/` | Hyprland with XWayland, started through UWSM, bringing in `awww` and `quickshell`, which its config starts; hyprlock; deploys `~/.config/hypr` from the [hypr repo](dotfiles.md); builds and installs the `hypr-window-rotate` plugin (with a patch so rotated picture-in-picture video isn't cut off) |
+| `hyprland` | `features/hyprland/` | Hyprland with XWayland, started through UWSM, bringing in `awww` and `quickshell`, which its config starts; deploys `~/.config/hypr` from the [hypr repo](dotfiles.md); builds and installs the `hypr-window-rotate` plugin (with a patch so rotated picture-in-picture video isn't cut off) |
 | `awww` | `features/awww/` | The `awww` wallpaper daemon |
 | `quickshell` | `features/quickshell/` | Quickshell (with extra image formats), the island config from the [quickshell repo](dotfiles.md), `hyprsunset` (night light) and `wf-recorder` (screen recording) |
 | `audio` | `system/audio/` | PipeWire with PulseAudio and ALSA compatibility (incl. 32-bit) and WirePlumber, rtkit; `pavucontrol` and `pulsemixer` |
