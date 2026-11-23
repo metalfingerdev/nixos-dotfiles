@@ -53,7 +53,6 @@ How the desktop pieces work together: [The desktop](desktop.md).
 | `cursor` | `cursor.nix` | The macOS cursor, 24 px, for GTK, X11 apps and Hyprland (hyprcursor) |
 | `gtk` | `gtk.nix` | GTK settings and the Adwaita icon theme |
 | `fonts` | `fonts.nix` | JetBrains Mono, Inter and Material Symbols, with fontconfig |
-| `marin` | `marin.nix` | The Marin Kitagawa fastfetch logo, from `~/Pictures/marin-kitagawa.gif` |
 
 ## terminal
 
@@ -64,7 +63,7 @@ How the desktop pieces work together: [The desktop](desktop.md).
 | `kitty` | The kitty terminal, with `~/.config/kitty` from the kitty repo |
 | `shell` | Bash with aliases: `rebuild`, `boot`, `build` (see [Everyday use](everyday.md)), `btw`, `daulat` |
 | `yazi` | The yazi file manager, opening text in Neovim, config from the yazi repo |
-| `fastfetch` | fastfetch with a full module list; the logo comes from `marin` |
+| `fastfetch` | fastfetch, with its config and the Marin Kitagawa logo (`logo.gif`) from the local-only `config/fastfetch` repo |
 | `utils` | `brightnessctl`, `libnotify` (`notify-send`), `grimblast` (screenshots), `usbutils`, Thunar, `p7zip`, `btop`, `file`, `jq` |
 
 ## development

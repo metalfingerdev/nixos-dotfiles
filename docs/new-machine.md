@@ -36,6 +36,9 @@
 7. Clone the dotfile repos into `config/` if you want to edit them
    ([Dotfiles: on a fresh machine](dotfiles.md#on-a-fresh-machine)).
 
+Before step 5, restore `config/fastfetch` from your backup: it isn't on GitHub, and the build needs it
+([Dotfiles: the local-only fastfetch repo](dotfiles.md#the-local-only-fastfetch-repo)).
+
 ## Adding a second computer
 
 Each machine gets its own host folder and its own name in `flake.nix`'s outputs.

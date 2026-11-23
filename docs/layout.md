@@ -75,7 +75,7 @@ omen
 │   ├── hyprland, awww, quickshell
 │   ├── audio, network, bluetooth, power, usb
 │   └── theme                 system/theme
-│       └── cursor, gtk, fonts, marin
+│       └── cursor, gtk, fonts
 ├── terminal                        attrs/terminal
 │   └── kitty, shell, yazi, fastfetch, utils
 ├── development                     attrs/development
@@ -108,7 +108,7 @@ A group is just a module that imports others:
 | `modules/system/core/` | what every machine needs, split into `user.nix`, `boot.nix`, `nix-settings.nix`, `locale.nix`, with `default.nix` grouping them as `core` |
 | `modules/system/desktop/` | `desktop`: core plus everything for the graphical session |
 | `modules/system/<name>/` | one system service each: audio, network, bluetooth, power, usb, ssh, session, nix-ld, home-manager |
-| `modules/system/theme/` | the marin look, split into cursor, gtk, fonts and the Marin fastfetch logo |
+| `modules/system/theme/` | the marin look, split into cursor, gtk and fonts |
 | `modules/attrs/<name>/` | bundles of features: terminal, development, apps, gaming |
 | `modules/features/<name>/` | one app or tool each, with any small files it needs beside it (e.g. the Hyprland plugin patch) |
 

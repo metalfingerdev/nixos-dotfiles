@@ -23,6 +23,8 @@
     nvim = { url = "github:metalfingerdev/nvim"; flake = false; };
     quickshell = { url = "github:metalfingerdev/quickshell"; flake = false; };
     yazi = { url = "github:metalfingerdev/yazi"; flake = false; };
+    # Local only, not on GitHub: builds need this machine's config/fastfetch.
+    fastfetch = { url = "git+file:///home/admin/nixos-dotfiles/config/fastfetch"; flake = false; };
   };
 
   outputs = inputs:

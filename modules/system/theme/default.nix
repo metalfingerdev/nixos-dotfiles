@@ -5,6 +5,5 @@
     cursor
     gtk
     fonts
-    marin
   ];
 }

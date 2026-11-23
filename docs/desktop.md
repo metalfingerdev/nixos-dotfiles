@@ -39,8 +39,9 @@ Its full docs are in the [quickshell repo](https://github.com/metalfingerdev/qui
 - Icons: Adwaita
 - fastfetch: the Marin Kitagawa logo (Super + Shift + Return opens a terminal running it)
 
-These come from `modules/system/theme/`. Colours set inside the config files (`look.lua` in hypr,
-`kitty.conf`, the island's theme) stay with those files.
+The cursor, fonts and icons come from `modules/system/theme/`. Everything else is set inside the config
+repos: the fastfetch logo and layout in the fastfetch repo, colours in `look.lua` (hypr), `kitty.conf`
+and the island's theme.
 
 ## Keybinds
 

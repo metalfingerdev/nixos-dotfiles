@@ -2,7 +2,8 @@
 
 [Docs index](README.md)
 
-The configs for Hyprland, kitty, Neovim, Quickshell and yazi are each their own public repo:
+The configs for Hyprland, kitty, Neovim, Quickshell, yazi and fastfetch are each their own repo. All but
+fastfetch are public on GitHub; fastfetch (with the Marin logo) stays on this machine only.
 
 | Repo | Deployed to | Used by feature |
 |------|-------------|-----------------|
@@ -11,6 +12,7 @@ The configs for Hyprland, kitty, Neovim, Quickshell and yazi are each their own 
 | [metalfingerdev/nvim](https://github.com/metalfingerdev/nvim) | `~/.config/nvim` | `neovim` |
 | [metalfingerdev/quickshell](https://github.com/metalfingerdev/quickshell) | `~/.config/quickshell` | `quickshell` |
 | [metalfingerdev/yazi](https://github.com/metalfingerdev/yazi) | `~/.config/yazi` | `yazi` |
+| `config/fastfetch` (local only) | `~/.config/fastfetch` (`config.jsonc`, `logo.gif`) | `fastfetch` |
 
 ## How they get in
 
@@ -73,6 +75,16 @@ them back in:
 cd ~/nixos-dotfiles
 for n in hypr kitty nvim quickshell yazi; do git clone git@github.com:metalfingerdev/$n.git config/$n; done
 ```
+
+## The local-only fastfetch repo
+
+fastfetch's input is `git+file:///home/admin/nixos-dotfiles/config/fastfetch`, so it never leaves this
+machine. Two consequences:
+
+- Its loop skips the push: commit in `config/fastfetch`, then `nix flake update fastfetch` and rebuild.
+- A fresh clone of this repo can't build until `config/fastfetch` is there. Keep a backup of that folder
+  (it's a normal git repo: copy it, or push it to a private remote of your own) and restore it to the
+  same path before the first build.
 
 ## Adding another config repo
 
