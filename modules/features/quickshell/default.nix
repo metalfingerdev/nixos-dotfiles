@@ -20,6 +20,10 @@
     in
     {
       home.file.".config/quickshell".source = inputs.quickshell;
+      # The launcher's Emoji filter reads Unicode's list (services/Emoji.qml). As a file of its own:
+      # in home.packages it never showed up, since the profile links only some of share/
+      # (environment.pathsToLink), and unicode/ isn't one of them.
+      xdg.dataFile."unicode/emoji/emoji-test.txt".source = "${pkgs.unicode-emoji}/share/unicode/emoji/emoji-test.txt";
       home.packages = [
         quickshell
         # the dashboard's Night light and Screen record tiles (they hide when these are missing)
@@ -32,9 +36,7 @@
         pkgs.sound-theme-freedesktop
         # the Colours view's eyedropper: an accent from anywhere on the screen (Toggles.pickColour)
         pkgs.hyprpicker
-        # the launcher's Emoji filter (Unicode's emoji-test.txt), and what types an emoji or a copy
-        # into the window you were in (Toggles.typeText, ClipHistory.paste)
-        pkgs.unicode-emoji
+        # what types an emoji or a copy into the window you were in (Toggles.typeText, ClipHistory.paste)
         pkgs.wtype
       ];
 
