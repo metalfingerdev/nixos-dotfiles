@@ -32,6 +32,10 @@
         pkgs.sound-theme-freedesktop
         # the Colours view's eyedropper: an accent from anywhere on the screen (Toggles.pickColour)
         pkgs.hyprpicker
+        # the launcher's Emoji filter (Unicode's emoji-test.txt), and what types an emoji or a copy
+        # into the window you were in (Toggles.typeText, ClipHistory.paste)
+        pkgs.unicode-emoji
+        pkgs.wtype
       ];
 
       # The shell is the lock screen, the idle timer (dim, lock, suspend) and the notification
