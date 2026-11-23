@@ -78,7 +78,7 @@ generation in the boot menu, `git restore flake.lock`, and `boot` again.
      Hyprland 0.57.x, but nixpkgs has …". Bump the plugin in `modules/features/hyprland/default.nix`
      to the matching tag from github.com/dox187/hypr-window-rotate/tags: change `rev`, `version`,
      `VERSION` and `rotateFor`, set `hash = lib.fakeHash;`, `build`, and paste the hash the error prints.
-   - `sudo sbctl verify`: everything signed except files ending in `bzImage.efi`.
+   - `sudo sbctl verify`: the NixOS files signed ([which ones](secure-boot.md#checking-it)).
 2. **`home-manager`**: `rebuild` is enough.
 3. **`lanzaboote`**: `boot`, then **`sudo sbctl verify` before rebooting**.
 4. **`flake-parts`**, then **`import-tree`**: just `build`. If `diff-closures` prints nothing, nothing

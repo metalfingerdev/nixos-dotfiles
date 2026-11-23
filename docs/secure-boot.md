@@ -16,7 +16,8 @@ host list; a host without it boots plain systemd-boot (`bootloader`, part of `co
   boot.
 - systemd-boot's own installer is switched off (`mkForce false`); lanzaboote writes the boot menu
   instead.
-- The menu keeps the newest generation plus the running one (`configurationLimit`): omen's EFI
+- The menu keeps the newest generation plus the running one (`configurationLimit = 2`; the running one
+  counts toward the limit, so 1 would leave every new build out of the menu): omen's EFI
   partition is only 196 MB, Windows 11's boot manager lives there too, and each kernel and initrd takes
   about 45 MB of it. Lanzaboote only ever deletes its own files (`EFI/nixos`, `EFI/Linux/nixos-*`).
 - systemd-boot finds Windows on the same partition and lists it as **Windows Boot Manager**.
@@ -29,9 +30,12 @@ sudo sbctl verify     # every file on the EFI partition should say "is signed"
 bootctl status        # "Secure Boot: enabled (user)"
 ```
 
-Run `sudo sbctl verify` after anything that touches booting (a kernel or lanzaboote update). Files
-ending in `bzImage.efi` show as unsigned and that's expected. If anything else does, don't reboot:
-rebuild again with `boot` and check once more.
+Run `sudo sbctl verify` after anything that touches booting (a kernel or lanzaboote update). What must
+say "is signed": `EFI/Linux/nixos-generation-*.efi`, `EFI/systemd/systemd-bootx64.efi` and
+`EFI/Boot/bootx64.efi`. Expected as unsigned: `EFI/nixos/kernel-*.efi` (the signed generation image
+checks it by hash) and everything under `EFI/Microsoft` and `EFI/HP` (signed by their makers, not by
+your keys, which is all sbctl checks for). If anything else shows as unsigned, don't reboot: rebuild
+again with `boot` and check once more.
 
 ## If a boot is refused
 
@@ -53,9 +57,8 @@ leave it unbootable.
 1. Install and boot NixOS **without** lanzaboote first: leave `secure-boot` out of the host's list
    (`modules/hosts/<host>/default.nix`), so plain systemd-boot is used.
 2. Make the keys: `sudo sbctl create-keys` (they go to `/var/lib/sbctl`).
-3. Add `secure-boot` to the list, rebuild with `boot`, and run `sudo sbctl verify`. Everything should
-   be signed except files ending in `bzImage.efi`, which lanzaboote's guide says are expected to show
-   as unsigned.
+3. Add `secure-boot` to the list, rebuild with `boot`, and run `sudo sbctl verify`. The NixOS files
+   should be signed, as in [Checking it](#checking-it).
 4. Reboot into the firmware settings, clear the Secure Boot keys / enable **Setup Mode**, then boot back
    in.
 5. Enroll: `sudo sbctl enroll-keys --microsoft` (keeps Microsoft's keys so Windows 11, firmware updates and
