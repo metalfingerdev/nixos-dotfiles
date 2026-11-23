@@ -45,6 +45,16 @@ same thing without a reboot.
 
 See [Secure Boot: if a boot is refused](secure-boot.md#if-a-boot-is-refused).
 
+## "warning: … no longer matches the updated source, so it's built without it"
+
+Two packages are patched here: lanzaboote's tool (`modules/system/secure-boot/lanzaboote-title.patch`,
+so boot entries read just "NixOS") and the window-rotate plugin
+(`modules/features/hyprland/hypr-window-rotate-subsurface.patch`, so rotated picture-in-picture video
+isn't cut off). An update that changes the code a patch edits doesn't fail the rebuild: that package
+is built without the patch and the rebuild prints this warning. Everything still works, minus that
+one fix. To get it back, remake the patch against the new source (same change, new surrounding
+code) and rebuild.
+
 ## An update broke something
 
 ```sh

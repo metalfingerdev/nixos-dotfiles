@@ -74,10 +74,11 @@ generation in the boot menu, `git restore flake.lock`, and `boot` again.
 
 1. **`nixpkgs`**: the big one; use `boot` and reboot, since it usually brings a new kernel and
    Hyprland. Then:
-   - If Hyprland moved to a new minor version, `build` stops with "hypr-window-rotate is built for
-     Hyprland 0.57.x, but nixpkgs has …". Bump the plugin in `modules/features/hyprland/default.nix`
-     to the matching tag from github.com/dox187/hypr-window-rotate/tags: change `rev`, `version`,
-     `VERSION` and `rotateFor`, set `hash = lib.fakeHash;`, `build`, and paste the hash the error prints.
+   - If Hyprland moved to a new minor version, the rebuild still works but warns "hypr-window-rotate
+     … is for Hyprland 0.57, but nixpkgs has …": the plugin is left out, so windows don't rotate until
+     you bump it. In `modules/features/hyprland/default.nix`, set `version` to the matching tag from
+     github.com/dox187/hypr-window-rotate/tags (without the `v`) and `hash = lib.fakeHash;`, `build`,
+     and paste the hash the error prints.
    - `sudo sbctl verify`: the NixOS files signed ([which ones](secure-boot.md#checking-it)).
 2. **`home-manager`**: `rebuild` is enough.
 3. **`lanzaboote`**: `boot`, then **`sudo sbctl verify` before rebooting**.

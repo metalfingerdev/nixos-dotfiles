@@ -72,11 +72,11 @@
     "hypr": {
       "flake": false,
       "locked": {
-        "lastModified": 1795443261,
-        "narHash": "sha256-BnUw/Pv8Gk3EvLmQ09el0gYmLhmvWTCiAYMoT8qUJUU=",
+        "lastModified": 1795446446,
+        "narHash": "sha256-8h5JJ+DXO8YZ8Hto9OEcCWG9z6jhJ8aIJJccP4Aj01c=",
         "owner": "metalfingerdev",
         "repo": "hypr",
-        "rev": "ea50ed2ff4566efbeb25c288099fdf265d45b21f",
+        "rev": "47d8c15e7c323273fb72442011ebf030f29f9b2e",
         "type": "github"
       },
       "original": {

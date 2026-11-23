@@ -1,0 +1,25 @@
+--- a/shared/src/os_release.rs
++++ b/shared/src/os_release.rs
+@@ -30,19 +30,9 @@
+             generation.spec.lanzaboote_extension.sort_key.clone(),
+         );
+ 
+-        // systemd-boot will only show VERSION_ID when PRETTY_NAME is not unique. This is
+-        // confusing to users. Make sure that our PRETTY_NAME is unique, so we get a consistent
+-        // user experience.
+-        //
+-        // See #220.
+-        map.insert(
+-            "PRETTY_NAME".into(),
+-            format!(
+-                "{} ({})",
+-                generation.spec.bootspec.bootspec.label,
+-                generation.describe()
+-            ),
+-        );
++        // Every entry is titled just "NixOS". systemd-boot adds VERSION_ID (the generation) only
++        // when titles clash, so a single installed generation shows as plain "NixOS".
++        map.insert("PRETTY_NAME".into(), "NixOS".into());
+ 
+         map.insert("VERSION_ID".into(), generation.describe());
+ 

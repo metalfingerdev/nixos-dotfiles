@@ -116,6 +116,7 @@ A group is just a module that imports others:
 | Folder | Holds |
 |--------|-------|
 | `modules/parts.nix` | flake-parts setup: enables `flake.modules`, sets the system to `x86_64-linux` |
+| `modules/lib/` | helpers for the other modules, under `self.lib`: `optionalPatch` applies a patch only while it still matches |
 | `modules/hosts/<host>/` | `default.nix` (the `nixosConfigurations` entry and its list) and `<host>.nix` (what only that machine has, as the module `<host>`) |
 | `modules/system/core/` | what every machine needs, split into `user.nix`, `boot.nix`, `nix-settings.nix`, `locale.nix`, with `default.nix` grouping them as `core` |
 | `modules/system/desktop/` | `desktop`: core plus everything for the graphical session |
