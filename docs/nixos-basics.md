@@ -98,7 +98,7 @@ nix store diff-closures /run/current-system ./result
 nix eval ~/nixos-dotfiles#nixosConfigurations.omen.config.networking.hostName
 nix repl
 # then:  :lf ~/nixos-dotfiles
-#        nixosConfigurations.omen.config.services.openssh.settings
+#        nixosConfigurations.omen.config.hardware.bluetooth.settings
 ```
 
 **Keep the repo committed.** Commit before risky changes. If an update or edit goes wrong, roll back the

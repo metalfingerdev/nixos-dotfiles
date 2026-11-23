@@ -42,14 +42,16 @@ Each file publishes modules under a name:
 
 ## From host to feature
 
-The host imports six names:
+The host imports eight names:
 
 ```nix
 # modules/hosts/omen/default.nix
 flake.nixosConfigurations.omen = inputs.nixpkgs.lib.nixosSystem {
   modules = with self.modules.nixos; [
     omen                # this machine: hardware, hostname, stateVersion
-    auto-upgrade        # nightly rebuild from the latest push
+    secure-boot         # lanzaboote instead of plain systemd-boot
+    amdgpu              # GPU drivers, from drivers/
+    nvidia
     desktop             # everything for a working desktop
     terminal            # from bundles/
     development
@@ -63,18 +65,19 @@ Each of those imports more names, down to single features:
 ```
 omen
 ├── omen                            hosts/omen/omen.nix
-├── auto-upgrade                    system/auto-upgrade
+├── secure-boot                     system/secure-boot
+├── amdgpu, nvidia                  drivers/ (placeholders)
 ├── desktop                         system/desktop
 │   ├── core                        system/core
 │   │   ├── user                      account, git identity
-│   │   ├── bootloader                lanzaboote (Secure Boot)
+│   │   ├── bootloader                systemd-boot
 │   │   ├── nix                       flakes, unfree packages
-│   │   ├── locale                    time zone, keyboard
+│   │   ├── locale                    time zone
 │   │   ├── home-manager
-│   │   ├── ssh
+│   │   ├── ssh                       GitHub in ~/.ssh/config
 │   │   └── nix-ld
 │   ├── session                       ly, keyring, polkit, printing
-│   ├── hyprland, awww, quickshell
+│   ├── hyprland                      with awww and quickshell
 │   ├── audio, network, bluetooth, power, usb
 │   └── theme                       system/theme
 │       └── cursor, gtk, fonts
@@ -83,11 +86,12 @@ omen
 ├── development                     bundles/development
 │   └── git, lazygit, neovim, vscode, claude-code, python3, webdev
 └── apps                            bundles/apps
-    └── firefox, libreoffice, vlc, stremio, bittorrent
+    └── firefox, libreoffice, vlc, stremio, bittorrent, calibre
 ```
 
 The gaming PC's host, `modules/hosts/home/default.nix`, picks from the same names:
-`[ home auto-upgrade desktop gaming kitty shell yazi utils ]`.
+`[ home desktop gaming kitty shell yazi utils ]`. It leaves out `secure-boot`, so it boots
+plain systemd-boot.
 
 A group is just a module that imports others:
 
@@ -112,10 +116,11 @@ A group is just a module that imports others:
 | `modules/hosts/<host>/` | `default.nix` (the `nixosConfigurations` entry and its list) and `<host>.nix` (what only that machine has, as the module `<host>`) |
 | `modules/system/core/` | what every machine needs, split into `user.nix`, `boot.nix`, `nix-settings.nix`, `locale.nix`, with `default.nix` grouping them as `core` |
 | `modules/system/desktop/` | `desktop`: core plus everything for the graphical session |
-| `modules/system/<name>/` | one system service each: audio, network, bluetooth, power, usb, ssh, session, nix-ld, home-manager, auto-upgrade |
+| `modules/system/<name>/` | one system service each: audio, network, bluetooth, power, usb, ssh, sshd, secure-boot, session, nix-ld, home-manager, auto-upgrade |
 | `modules/system/theme/` | the marin look, split into cursor, gtk and fonts |
 | `modules/bundles/<name>/` | bundles of features: terminal, development, apps, gaming |
 | `modules/features/<name>/` | one app or tool each, with any small files it needs beside it (e.g. the Hyprland plugin patch) |
+| `modules/drivers/<name>/` | GPU drivers, one per vendor: amdgpu, nvidia (placeholders for now) |
 
 What each one does: [What's installed](whats-installed.md).
 
@@ -171,7 +176,7 @@ flake.modules.nixos.music = { pkgs, ... }: {
 ## Removing something
 
 Take its name out of whichever list includes it and rebuild. Keep the file if you might want it back:
-`luarocks` (in no bundle) sits there for exactly this reason, and omen leaves out the `gaming` bundle that
+`luarocks`, `sshd` and `auto-upgrade` (in no list) sit there for exactly this reason, and omen leaves out the `gaming` bundle that
 `home` uses.
 
 ## Dotfiles in a feature

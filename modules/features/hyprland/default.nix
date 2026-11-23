@@ -1,7 +1,8 @@
 { inputs, self, ... }:
 {
   flake.modules.nixos.hyprland = { ... }: {
-    # config/hypr/modules/autostart.lua starts awww-daemon and quickshell: import those too.
+    # config/hypr/modules/autostart.lua starts awww-daemon and quickshell.
+    imports = with self.modules.nixos; [ awww quickshell ];
     home-manager.sharedModules = [ self.modules.homeManager.hyprland ];
     programs.hyprlock.enable = true;
     programs.hyprland = {
@@ -41,6 +42,5 @@
       # A fixed path, because the Lua config is plain files and can't see store paths.
       home.file.".local/lib/hyprland/plugins/hypr-window-rotate.so".source =
         "${windowRotate}/lib/hyprland/plugins/hypr-window-rotate.so";
-      home.packages = [ pkgs.hyprlock ];
     };
 }

@@ -1,16 +1,12 @@
-{ inputs, ... }:
+{ ... }:
 {
-  # Secure Boot: lanzaboote signs each generation with the keys in /var/lib/sbctl.
-  flake.modules.nixos.bootloader = { lib, pkgs, ... }: {
-    imports = [ inputs.lanzaboote.nixosModules.lanzaboote ];
-
-    boot.loader.systemd-boot.enable = lib.mkForce false;
-    boot.loader.efi.canTouchEfiVariables = true;
-    boot.lanzaboote = {
+  # Plain systemd-boot. Hosts with Secure Boot keys add `secure-boot`, which replaces it with lanzaboote.
+  flake.modules.nixos.bootloader = {
+    boot.loader.systemd-boot = {
       enable = true;
-      pkiBundle = "/var/lib/sbctl";
+      # Every entry keeps its own kernel and initrd on /boot, which old generations would fill.
+      configurationLimit = 10;
     };
-    # Makes and enrolls the keys, and checks what lanzaboote signed (sbctl verify).
-    environment.systemPackages = [ pkgs.sbctl ];
+    boot.loader.efi.canTouchEfiVariables = true;
   };
 }

@@ -21,7 +21,7 @@
    ```
 
 4. Secure Boot keys won't exist yet, so follow [Secure Boot: setting it up from scratch](secure-boot.md#setting-it-up-from-scratch):
-   build without lanzaboote first.
+   build without `secure-boot` first.
 5. Build:
 
    ```sh
@@ -36,14 +36,14 @@
 7. Clone the dotfile repos into `config/` if you want to edit them
    ([Dotfiles: on a fresh machine](dotfiles.md#on-a-fresh-machine)).
 
-Restore `config/fastfetch` and `config/vscode` from your backup: they aren't on GitHub. The build works
-without them, but fastfetch's logo and VS Code's settings come from there
-([Dotfiles: local-only repos](dotfiles.md#local-only-repos)).
+Clone `config/fastfetch` and `config/vscode` even if you won't edit them. The build works without them,
+but fastfetch's logo and VS Code's settings are linked from there
+([Dotfiles: live-linked repos](dotfiles.md#live-linked-repos)).
 
 ## Adding a second computer
 
 `modules/hosts/home/` is already set up this way for a gaming PC; only its `_hardware.nix` (a
-placeholder for now) and GPU drivers are left.
+placeholder for now) and its GPU driver (`amdgpu` or `nvidia`, from `modules/drivers/`) are left.
 
 Each machine gets its own host folder and its own name in `flake.nix`'s outputs.
 
@@ -58,12 +58,11 @@ Each machine gets its own host folder and its own name in `flake.nix`'s outputs.
 2. Create `modules/hosts/laptop2/laptop2.nix` defining `flake.modules.nixos.laptop2` (module names
    are shared across the whole flake, so each host's module is named after the host). In it, import
    `./_hardware.nix` and set `nixpkgs.hostPlatform`, `networking.hostName` and `system.stateVersion`
-   (copy `modules/hosts/omen/omen.nix`, minus the HP-only `hp_bioscfg` line). Until its Secure Boot keys
-   exist, also turn lanzaboote off there
-   ([Secure Boot: setting it up from scratch](secure-boot.md#setting-it-up-from-scratch)).
+   (copy `modules/hosts/omen/omen.nix`, minus the HP-only `hp_bioscfg` line).
 3. Create `modules/hosts/laptop2/default.nix` with `flake.nixosConfigurations.laptop2` importing
    `laptop2` plus whichever of `desktop`, `terminal`, `development`, `apps`, `gaming` it
-   should have.
+   should have, and its GPU driver from `modules/drivers/`. Add `secure-boot` only once its keys exist
+   ([Secure Boot: setting it up from scratch](secure-boot.md#setting-it-up-from-scratch)).
 4. `git add modules/hosts/laptop2` and build it with `--flake ~/nixos-dotfiles#laptop2`.
 
 Everything in `system/`, `bundles/` and `features/` is shared: both hosts pick from the same modules by

@@ -3,7 +3,9 @@
   flake.nixosConfigurations.omen = inputs.nixpkgs.lib.nixosSystem {
     modules = with self.modules.nixos; [
       omen
-      auto-upgrade
+      secure-boot
+      amdgpu # Radeon Vega (Cezanne) iGPU
+      nvidia # GeForce GTX 1650 Mobile
       desktop
       terminal
       development

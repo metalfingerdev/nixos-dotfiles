@@ -4,8 +4,6 @@
     core
     session
     hyprland
-    awww
-    quickshell
     audio
     network
     bluetooth

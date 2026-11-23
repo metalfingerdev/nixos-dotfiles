@@ -35,12 +35,13 @@ modules/
   parts.nix                  flake-parts setup
   hosts/omen/                the laptop: the names it imports, what only it has, its _hardware.nix
   hosts/home/                a gaming-only machine (desktop + Steam); _hardware.nix is a placeholder
-  system/core/               what every machine needs: my account, Secure Boot, Nix settings, locale
+  system/core/               what every machine needs: my account, the bootloader, Nix settings, locale
   system/desktop/            core plus the whole graphical session
-  system/<name>/             one system service each (audio, network, bluetooth, ssh, ...)
+  system/<name>/             one system service each (audio, network, bluetooth, secure-boot, ...)
   system/theme/              the marin look: cursor, GTK, fonts
   bundles/<name>/            bundles of features: terminal, development, apps, gaming
   features/<name>/           apps and tools, one folder each
+  drivers/<name>/            GPU drivers, one per vendor (placeholders for now)
 docs/                        the guide
 ```
 

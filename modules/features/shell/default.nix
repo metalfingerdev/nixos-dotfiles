@@ -12,8 +12,9 @@
         rebuild = "sudo nixos-rebuild switch --flake ~/nixos-dotfiles";
         boot = "sudo nixos-rebuild boot --flake ~/nixos-dotfiles";
         build = "nixos-rebuild build --flake ~/nixos-dotfiles";
-        # nixos-rebuild has no clean action: drop old generations, then rewrite the boot menu without them
-        clean = "sudo nix-collect-garbage --delete-older-than 14d && sudo nixos-rebuild boot --flake ~/nixos-dotfiles";
+        # Drop old generations, then rewrite the boot menu for the newest one. Rebuilding instead would
+        # make ~/nixos-dotfiles the default, which on home is the stale copy from install.
+        clean = "sudo nix-collect-garbage --delete-older-than 14d && sudo /nix/var/nix/profiles/system/bin/switch-to-configuration boot";
       };
     };
   };

@@ -66,8 +66,8 @@ nix store diff-closures /run/current-system ./result   # what changed
 boot && reboot                                         # or `rebuild` for small changes
 ```
 
-Once it works, `git commit -am "update nixpkgs" && git push`. Push only what works: both machines'
-[automatic updates](#automatic-updates) build whatever is pushed. If it's broken, pick the previous
+Once it works, `git commit -am "update nixpkgs" && git push`. Push only what works: the gaming PC
+builds whatever is pushed. If it's broken, pick the previous
 generation in the boot menu, `git restore flake.lock`, and `boot` again.
 
 **2. In this order:**
@@ -93,8 +93,8 @@ generation in the boot menu, `git restore flake.lock`, and `boot` again.
   in `modules/features/vscode/default.nix`. Bump them the same way as the plugin, with `lib.fakeHash`.
 - Once everything works, `clean` drops generations older than 14 days and rewrites the boot menu.
 
-**4. The gaming PC** updates itself at 04:00 from what you pushed. To do it right away there:
-`git pull && rebuild`.
+**4. The gaming PC** has no git, so it builds straight from what you pushed. On it, run
+`sudo nixos-rebuild boot --flake github:metalfingerdev/nixos-dotfiles` and reboot.
 
 ### Everything at once
 
@@ -106,29 +106,16 @@ boot && reboot
 Faster, but if something breaks you won't know which input did it: then restore `flake.lock` and go one
 at a time.
 
-## Automatic updates
-
-Both hosts import `auto-upgrade` (`modules/system/auto-upgrade`): every night at 04:00, NixOS fetches
-the latest commit **pushed to GitHub**, builds the host matching its hostname, and makes it the default
-for the next boot. If the machine was off, it runs at the next startup.
-
-- It builds exactly the pushed `flake.lock`, so it never updates nixpkgs on its own. Package versions
-  move when you `nix flake update` and push.
-- On omen it builds what's pushed, not what's on disk. A change you've only applied locally (rebuilt
-  but not pushed) gets replaced by the pushed version at the next reboot. Push what you want to keep.
-- A bad push is installed too, but only at the next boot, and the previous generation stays in the
-  boot menu.
-- What each run did: `journalctl -u nixos-upgrade`. Run one now: `sudo systemctl start nixos-upgrade`.
-
 ## Cleaning up
 
-Old generations keep their packages in the store. The `clean` alias runs the first and third commands
-below; to do it by hand:
+Old generations keep their packages in the store. Every week NixOS deletes the system's generations older
+than 14 days (`nix.gc`, in `core`), and the next rebuild drops them from the boot
+menu. To do it now, the `clean` alias runs the first and third commands below; by hand:
 
 ```sh
 sudo nix-collect-garbage --delete-older-than 14d    # system generations older than 14 days
 nix-collect-garbage --delete-older-than 14d         # your own profile's too
-sudo nixos-rebuild boot --flake ~/nixos-dotfiles#omen   # rewrite the boot menu without them
+sudo /nix/var/nix/profiles/system/bin/switch-to-configuration boot   # rewrite the boot menu without them
 nix store optimise                                  # hard-link identical files (frees space)
 ```
 

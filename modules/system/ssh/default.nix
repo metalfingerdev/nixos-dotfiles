@@ -1,21 +1,6 @@
 { self, ... }:
 {
-  flake.modules.nixos.ssh = { config, lib, ... }: {
-    services.openssh = {
-      enable = true;
-      openFirewall = true;
-      settings = {
-        PasswordAuthentication = false;
-        KbdInteractiveAuthentication = false;
-        PermitRootLogin = "no";
-        AllowUsers = lib.attrNames (lib.filterAttrs (_: u: u.isNormalUser) config.users.users);
-        MaxAuthTries = 3;
-        PerSourcePenalties = "crash:3600s authfail:3600s max:86400s";
-      };
-    };
-
-    home-manager.sharedModules = [ self.modules.homeManager.ssh ];
-  };
+  flake.modules.nixos.ssh.home-manager.sharedModules = [ self.modules.homeManager.ssh ];
 
   flake.modules.homeManager.ssh = { lib, ... }: {
     programs.ssh = {
@@ -34,10 +19,14 @@
     # permissions"). Replace the symlink with a real, 600-mode copy.
     home.activation.deSymlinkSshConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
       if [ -L "$HOME/.ssh/config" ]; then
-        $DRY_RUN_CMD install -m600 $VERBOSE_ARG \
-          "$(readlink -f "$HOME/.ssh/config")" "$HOME/.ssh/config.tmp"
-        $DRY_RUN_CMD mv $VERBOSE_ARG "$HOME/.ssh/config.tmp" "$HOME/.ssh/config"
+        run install -m600 "$(readlink -f "$HOME/.ssh/config")" "$HOME/.ssh/config.tmp"
+        run mv "$HOME/.ssh/config.tmp" "$HOME/.ssh/config"
       fi
+    '';
+    # Otherwise a changed config moves that copy to config.backup, and the change after that fails
+    # because the backup already exists.
+    home.activation.dropSshConfigCopy = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+      [ -L "$HOME/.ssh/config" ] || run rm -f "$HOME/.ssh/config"
     '';
   };
 }

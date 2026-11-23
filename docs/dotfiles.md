@@ -2,9 +2,8 @@
 
 [Docs index](README.md)
 
-The configs for Hyprland, kitty, Neovim, Quickshell and yazi are each their own public repo, pulled in
-as flake inputs. fastfetch and VS Code's settings are [local-only repos](#local-only-repos), linked live
-instead.
+Each config is its own public repo. Hyprland, kitty, Neovim, Quickshell and yazi are pulled in as
+flake inputs; fastfetch and VS Code's settings are [linked live](#live-linked-repos) instead.
 
 | Repo | Deployed to | Used by feature |
 |------|-------------|-----------------|
@@ -13,8 +12,8 @@ instead.
 | [metalfingerdev/nvim](https://github.com/metalfingerdev/nvim) | `~/.config/nvim` | `neovim` |
 | [metalfingerdev/quickshell](https://github.com/metalfingerdev/quickshell) | `~/.config/quickshell` | `quickshell` |
 | [metalfingerdev/yazi](https://github.com/metalfingerdev/yazi) | `~/.config/yazi` | `yazi` |
-| `config/fastfetch` (local only, [linked live](#local-only-repos)) | `~/.config/fastfetch/config.jsonc` and `logo.gif` | `fastfetch` |
-| `config/vscode` (local only, [linked live](#local-only-repos)) | `~/.config/Code/User/settings.json` | `vscode` |
+| [metalfingerdev/fastfetch](https://github.com/metalfingerdev/fastfetch) ([linked live](#live-linked-repos)) | `~/.config/fastfetch/config.jsonc` and `logo.gif` | `fastfetch` |
+| [metalfingerdev/vscode](https://github.com/metalfingerdev/vscode) ([linked live](#live-linked-repos)) | `~/.config/Code/User/settings.json` | `vscode` |
 
 ## How they get in
 
@@ -71,27 +70,25 @@ For Quickshell there's an even faster loop: run your working copy directly with
 ## On a fresh machine
 
 The inputs come from GitHub, so a fresh clone of this repo builds without `config/`. To edit them, clone
-them back in:
+them back in (fastfetch and vscode too: their files are linked from there):
 
 ```sh
 cd ~/nixos-dotfiles
-for n in hypr kitty nvim quickshell yazi; do git clone git@github.com:metalfingerdev/$n.git config/$n; done
+for n in hypr kitty nvim quickshell yazi fastfetch vscode; do git clone git@github.com:metalfingerdev/$n.git config/$n; done
 ```
 
-## Local-only repos
+## Live-linked repos
 
 `config/fastfetch` (the fastfetch config and the Marin logo) and `config/vscode` (VS Code's
-`settings.json`) never leave this machine. They aren't flake inputs: Home Manager links the files in
+`settings.json`) aren't flake inputs: Home Manager links the files in
 `~/.config` straight to them (`mkOutOfStoreSymlink`) instead of to a copy in the Nix store. So:
 
 - an edit applies **instantly**, with no rebuild, commit or `nix flake update`. That includes changes VS
   Code makes from its settings UI, which a read-only store copy used to block;
-- commit in those repos whenever you want to keep a version;
-- the build never reads them, so the flake builds anywhere (and omen's auto-upgrade from GitHub works)
-  even without them. If one is missing, its links point at nothing: fastfetch falls back to its
+- commit and push in those repos whenever you want to keep a version;
+- the build never reads them, so the flake builds anywhere (even straight from GitHub)
+  without them. If one is missing, its links point at nothing: fastfetch falls back to its
   defaults, VS Code to default settings.
-
-Keep both folders in your backups: they exist nowhere else.
 
 Extensions are still installed by Nix (`modules/features/vscode`).
 

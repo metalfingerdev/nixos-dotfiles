@@ -10,7 +10,7 @@ order; the rest you can dip into.
 | [Repo layout](layout.md) | The dendritic structure: how files become modules, how the host picks them, adding a feature, user or host |
 | [What's installed](whats-installed.md) | Every system module and feature, what it sets up, and what's available but switched off |
 | [The desktop](desktop.md) | Logging in, the Hyprland session, the Quickshell island, the theme, and every keybind |
-| [Dotfiles](dotfiles.md) | The five config repos (hypr, kitty, nvim, quickshell, yazi): editing, testing locally, publishing |
+| [Dotfiles](dotfiles.md) | The config repos (hypr, kitty, nvim, quickshell, yazi, fastfetch, vscode): editing, testing locally, publishing |
 | [Secure Boot](secure-boot.md) | How lanzaboote signs the system, checking it, and recovering if a boot is refused |
 | [A new machine](new-machine.md) | Reinstalling omen, or adding a second computer to this flake |
 | [Troubleshooting](troubleshooting.md) | Common errors and warnings, and what to do about them |

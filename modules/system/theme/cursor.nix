@@ -3,9 +3,6 @@
   flake.modules.nixos.cursor.home-manager.sharedModules = [ self.modules.homeManager.cursor ];
 
   flake.modules.homeManager.cursor = { pkgs, ... }: {
-    home.sessionVariables = {
-      XCURSOR_THEME = "macOS";
-    };
     home.pointerCursor = {
       enable = true;
       name = "macOS";

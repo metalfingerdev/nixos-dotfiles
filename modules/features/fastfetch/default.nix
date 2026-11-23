@@ -4,7 +4,7 @@
 
   flake.modules.homeManager.fastfetch = { config, pkgs, ... }:
     let
-      # config/fastfetch is a local-only repo: linked live, so edits apply without a rebuild.
+      # Linked live from config/fastfetch (github.com/metalfingerdev/fastfetch), so edits apply without a rebuild.
       live = file: config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-dotfiles/config/fastfetch/${file}";
     in
     {

@@ -5,10 +5,7 @@
     hardware.bluetooth = {
       enable = true;
       powerOnBoot = true;
-      settings = {
-        General.FastConnectable = true;
-        Policy.AutoEnable = true;
-      };
+      settings.General.FastConnectable = true;
     };
 
     # Realtek BT adapters stutter on A2DP when the USB link autosuspends.

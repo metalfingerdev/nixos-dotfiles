@@ -6,5 +6,6 @@
     vlc
     stremio
     bittorrent
+    calibre
   ];
 }
