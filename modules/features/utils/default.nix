@@ -15,6 +15,7 @@
       btop
       file
       jq
+      gifsicle
     ];
   };
 }
