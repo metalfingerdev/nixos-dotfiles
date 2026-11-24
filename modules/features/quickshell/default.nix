@@ -17,6 +17,12 @@
           done
         '';
       };
+      # What's next in the calendars (Expanded's glance, services/Calendar.qml): iCal subscriptions,
+      # read with the Python that understands their repeats and time zones. An address is a secret,
+      # so it's added in a terminal: `island-calendar add`, then paste it.
+      calendar = pkgs.writeShellScriptBin "island-calendar" ''
+        exec ${pkgs.python3.withPackages (ps: [ ps.icalendar ps.recurring-ical-events ])}/bin/python3 -I ${./calendars.py} "$@"
+      '';
     in
     {
       home.file.".config/quickshell".source = inputs.quickshell;
@@ -26,6 +32,7 @@
       xdg.dataFile."unicode/emoji/emoji-test.txt".source = "${pkgs.unicode-emoji}/share/unicode/emoji/emoji-test.txt";
       home.packages = [
         quickshell
+        calendar
         # the dashboard's Night light and Screen record tiles (they hide when these are missing)
         pkgs.hyprsunset
         pkgs.wf-recorder
