@@ -9,6 +9,7 @@
       home-manager
       ssh
       nix-ld
+      etc-nixos
     ];
 
     environment.systemPackages = with pkgs; [
