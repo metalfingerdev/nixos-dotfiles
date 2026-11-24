@@ -3,7 +3,7 @@
   flake.modules.nixos.crush.home-manager.sharedModules = [ self.modules.homeManager.crush ];
 
   # Crush (charmbracelet): a terminal coding agent, like Claude Code, talking to the local Ollama.
-  # The launcher's `?question` and its Agent action, and Super+Alt+Return, all run `crush`.
+  # The launcher's Coding agent action and Super+Alt+Return run `crush`; `?question` is the island's Agent.
   flake.modules.homeManager.crush = { pkgs, ... }: {
     home.packages = [ pkgs.crush ];
 
@@ -17,7 +17,26 @@
           { id = "qwen3.5:2b"; name = "Qwen 3.5 2B"; context_window = 8192; default_max_tokens = 2048; }
         ];
       };
-      options.disable_metrics = true;
+      # The web, through the local SearXNG (features/searxng). Every tool's description takes room in the
+      # 8k window, so the lite descriptions, and only searching and reading a page.
+      mcp.searxng = {
+        type = "stdio";
+        command = "${pkgs.mcp-searxng}/bin/mcp-searxng";
+        env = { SEARXNG_URL = "http://127.0.0.1:8888"; SEARXNG_LITE_TOOLS = "true"; };
+        enabled_tools = [ "searxng_web_search" "web_url_read" ];
+      };
+      permissions = {
+        # reading never asks
+        allowed_tools = [ "view" "ls" "glob" "grep" ];
+        # Rebuilds and garbage collection are the user's to run (AGENTS.md): these always ask, and -y blocks them.
+        blocked_commands = [ "nixos-rebuild" "nix-collect-garbage" ];
+      };
+      options = {
+        disable_metrics = true;
+        # Its default puts a "Generated with Crush" line and a trailer in commits and PRs, and GitHub lists
+        # a trailer's name as a contributor.
+        attribution = { trailer_style = "none"; generated_with = false; };
+      };
     };
   };
 }

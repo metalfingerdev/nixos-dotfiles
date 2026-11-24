@@ -4,5 +4,6 @@
     ollama
     searxng
     crush
+    nilo-agent
   ];
 }
