@@ -12,7 +12,7 @@
     ];
 
     environment.systemPackages = with pkgs; [
-      vim-full
+      vim                 # not vim-full: that's GUI vim and every language binding (553 MiB), next to neovim
       wget
       git
     ];

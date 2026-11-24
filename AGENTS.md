@@ -38,5 +38,5 @@ nixos-rebuild build --flake .#omen                # builds, changes nothing on t
 
 ## Local AI stack (`modules/bundles/ai`)
 
-Ollama (127.0.0.1:11434, CUDA), Open WebUI (:8080), SearXNG (:8888), Crush. Everything is bound to
+Ollama (127.0.0.1:11434, CUDA), SearXNG (:8888), Crush. Everything is bound to
 localhost. With 4 GB of VRAM, models above ~3B parameters spill into RAM and slow down a lot.

@@ -2,7 +2,25 @@
 {
   flake.modules.nixos.vscode.home-manager.sharedModules = [ self.modules.homeManager.vscode ];
 
-  flake.modules.homeManager.vscode = { config, pkgs, ... }: {
+  flake.modules.homeManager.vscode = { config, pkgs, ... }:
+    let
+      # Electron's GPU process opens every GPU it finds, and holding the GeForce kept it powered on
+      # with nothing to draw (power/runtime_status "active"): its graphics libraries see only the
+      # Radeon. Apps started from its terminal inherit this, so `nvidia-offload` there gets the Radeon.
+      vscode = pkgs.symlinkJoin {
+        inherit (pkgs.vscode-fhs) pname version;
+        paths = [ pkgs.vscode-fhs ];
+        meta.mainProgram = "code";
+        nativeBuildInputs = [ pkgs.makeWrapper ];
+        postBuild = ''
+          wrapProgram $out/bin/code \
+            --set __EGL_VENDOR_LIBRARY_FILENAMES /run/opengl-driver/share/glvnd/egl_vendor.d/50_mesa.json \
+            --set __GLX_VENDOR_LIBRARY_NAME mesa \
+            --set VK_DRIVER_FILES /run/opengl-driver/share/vulkan/icd.d/radeon_icd.x86_64.json
+        '';
+      };
+    in
+    {
     # vscode.nix-direnv integration needs direnv on PATH
     programs.direnv = {
       enable = true;
@@ -11,7 +29,7 @@
 
     programs.vscode = {
       enable = true;
-      package = pkgs.vscode-fhs; # Fixes marketplace extension binary crashes
+      package = vscode; # vscode-fhs: fixes marketplace extension binary crashes
       profiles.default.extensions = (with pkgs.vscode-extensions; [
         jnoortheen.nix-ide
         mkhl.direnv

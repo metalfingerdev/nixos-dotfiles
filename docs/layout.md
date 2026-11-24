@@ -94,7 +94,7 @@ omen
 ├── editing                         bundles/editing
 │   └── audacity, kdenlive
 └── ai                              bundles/ai
-    └── ollama, open-webui, searxng, crush
+    └── ollama, searxng, crush
 ```
 
 The gaming PC's host, `modules/hosts/home/default.nix`, picks from the same names:

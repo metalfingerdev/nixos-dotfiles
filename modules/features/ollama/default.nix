@@ -11,8 +11,9 @@
       # Pulled on the first start, then kept. Add more tags here (check size against 4 GB of VRAM).
       loadModels = [
         "qwen3.5:2b"         # chat, ~3.5 GB loaded
-        "nomic-embed-text"   # embeddings, for Open WebUI's document search
       ];
+      # The list is the whole truth: a model dropped from it (or pulled by hand) is deleted.
+      syncModels = true;
       # Ollama's default is 4k below 24 GB of VRAM, and an agent's prompt (tools, files) fills that at once.
       # 8k fits the 1650's 4 GB with a 2B model; a bigger window needs more VRAM.
       environmentVariables.OLLAMA_CONTEXT_LENGTH = "8192";
