@@ -17,6 +17,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Zen, the browser (Gecko: Firefox with vertical tabs and a compact mode of its own), with its
+    # Home Manager module: modules/features/zen. nixpkgs doesn't package it.
+    zen-browser = {
+      url = "github:0xc000022070/zen-browser-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
+
     # Dotfiles, each its own repo (checked out in config/, ignored here). Only their files are used.
     hypr = { url = "github:metalfingerdev/hypr"; flake = false; };
     kitty = { url = "github:metalfingerdev/kitty"; flake = false; };

@@ -1,0 +1,18 @@
+" Tridactyl in Zen (modules/features/zen). Its own defaults are already Vim's: j/k scroll, f follows a
+" link, o opens, t opens in a new tab, d closes, H/L go back and forward, gt/gT switch tabs, / finds,
+" : is the command line. In the browser, :help lists every key and :tutor teaches them.
+"
+" Read at every start; anything changed in the browser with :set or :bind lasts until then.
+
+" Start from the defaults each time, so a line removed here is gone from the browser too.
+sanitise tridactyllocal tridactylsync
+
+" Links are followed with the home row.
+set hintchars asdfghjkl
+
+set smoothscroll true
+
+" Ctrl+I in a text field opens it in Neovim, in a kitty window; :wq puts the text back.
+set editorcmd kitty -e nvim %f
+
+colourscheme dark
