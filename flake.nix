@@ -25,6 +25,10 @@
       inputs.home-manager.follows = "home-manager";
     };
 
+    # Liquid glass on windows and the island (modules/features/hyprland). Pinned to a release tag: each
+    # is written for one Hyprland, and `main` follows the newest, so a plain update could break the build.
+    hyprglass = { url = "github:hyprnux/hyprglass/v1.2.0"; flake = false; };
+
     # Dotfiles, each its own repo (checked out in config/, ignored here). Only their files are used.
     hypr = { url = "github:metalfingerdev/hypr"; flake = false; };
     kitty = { url = "github:metalfingerdev/kitty"; flake = false; };

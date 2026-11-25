@@ -72,16 +72,33 @@
     "hypr": {
       "flake": false,
       "locked": {
-        "lastModified": 1795479735,
-        "narHash": "sha256-5A0uJZwSLEb0ltcC8iBRdR/NNTZcQYwXqUCoPYbgQ/s=",
+        "lastModified": 1795602375,
+        "narHash": "sha256-CtVYeiZ4t+pBATvCWeRumgNB2dH8237JkzEKdg1UEDA=",
         "owner": "metalfingerdev",
         "repo": "hypr",
-        "rev": "84997882dc3a090aeb0a7092cd955c3082a3e99e",
+        "rev": "02e70090aede641e1706e259d59cb00d59d4ae05",
         "type": "github"
       },
       "original": {
         "owner": "metalfingerdev",
         "repo": "hypr",
+        "type": "github"
+      }
+    },
+    "hyprglass": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794862853,
+        "narHash": "sha256-yWfeuLNVhoLYDmrFrZ8YDoHSFObwvKoplwHvTulPWTs=",
+        "owner": "hyprnux",
+        "repo": "hyprglass",
+        "rev": "56714382e7ee6a46826bc8586f6d68b662c60c8a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hyprnux",
+        "ref": "v1.2.0",
+        "repo": "hyprglass",
         "type": "github"
       }
     },
@@ -209,11 +226,11 @@
     "quickshell": {
       "flake": false,
       "locked": {
-        "lastModified": 1795596489,
-        "narHash": "sha256-xa2myDf1K6N+yCZBfPUB+Pzw/BuHKlU52/L80MIVT2U=",
+        "lastModified": 1795602371,
+        "narHash": "sha256-PWdKCqSm0P6fB1FGG+rWAiou1PHW0xI+Row5ENL/L/Y=",
         "owner": "metalfingerdev",
         "repo": "quickshell",
-        "rev": "9992d96553298a4837390e95410d08fc64cf6836",
+        "rev": "9db3105ca80a0cf3ae11f5baf02cc9b62b3ffb52",
         "type": "github"
       },
       "original": {
@@ -227,6 +244,7 @@
         "flake-parts": "flake-parts",
         "home-manager": "home-manager",
         "hypr": "hypr",
+        "hyprglass": "hyprglass",
         "import-tree": "import-tree",
         "kitty": "kitty",
         "lanzaboote": "lanzaboote",
