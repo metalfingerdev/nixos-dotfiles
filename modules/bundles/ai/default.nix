@@ -5,5 +5,6 @@
     searxng
     crush
     nilo-agent
+    agent-memory
   ];
 }
