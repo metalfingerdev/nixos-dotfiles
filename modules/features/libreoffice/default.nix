@@ -4,5 +4,6 @@
 
   flake.modules.homeManager.libreoffice = { pkgs, ... }: {
     home.packages = [ pkgs.libreoffice ];
+    xdg.mimeApps.associations.added."application/pdf" = [ "draw.desktop" "writer.desktop" ];
   };
 }

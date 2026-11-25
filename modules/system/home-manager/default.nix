@@ -9,6 +9,8 @@
       useGlobalPkgs = true;
       useUserPackages = true;
       backupFileExtension = "backup";
+      # mimeapps.list from the features' xdg.mimeApps.defaultApplications, not from whatever app set it last
+      sharedModules = [ { xdg.mimeApps.enable = true; } ];
     };
   };
 }
