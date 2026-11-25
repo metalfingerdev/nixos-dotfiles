@@ -4,7 +4,8 @@
 
   # Crush (charmbracelet): a terminal coding agent, like Claude Code, talking to the local Ollama.
   # The launcher's Coding agent action and Super+Alt+Return run `crush`; `?question` is the island's Agent.
-  flake.modules.homeManager.crush = { pkgs, ... }: {
+  flake.modules.homeManager.crush = { pkgs, ... }:
+    let policy = import ../agent-policy/_policy.nix; in {
     home.packages = [ pkgs.crush ];
 
     xdg.configFile."crush/crush.json".text = builtins.toJSON {
@@ -28,10 +29,12 @@
       permissions = {
         # reading never asks
         allowed_tools = [ "view" "ls" "glob" "grep" ];
-        # Rebuilds and garbage collection are the user's to run (AGENTS.md): these always ask, and -y blocks them.
-        blocked_commands = [ "nixos-rebuild" "nix-collect-garbage" ];
+        # One deny list for every agent (features/agent-policy): these always ask, and -y blocks them.
+        blocked_commands = policy.commands;
       };
       options = {
+        # The memory file both agents share (features/agent-memory)
+        global_context_paths = [ "~/.local/share/jarvis/memory.md" ];
         disable_metrics = true;
         # Its default puts a "Generated with Crush" line and a trailer in commits and PRs, and GitHub lists
         # a trailer's name as a contributor.
