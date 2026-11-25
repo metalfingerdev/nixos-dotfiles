@@ -1,0 +1,35 @@
+"""Characters and a rough token estimate (chars/4) of nilo-agent's system prompt plus tool schemas.
+
+usage: PYTHONDONTWRITEBYTECODE=1 python3 -I measure.py [chat|terminal|system] [--baseline CHARS] [-v]
+
+Imports agent.py without starting anything (no Ollama, no network). The prompt also counts the notes file
+and NILO.md as found on this machine (clipped to the agent's CONTEXT_CHARS), so run it the same way each time.
+"""
+import importlib.util, json, pathlib, sys, types
+
+agent = pathlib.Path(__file__).resolve().parents[3] / "modules/features/nilo-agent/agent.py"
+spec = importlib.util.spec_from_file_location("nilo_agent", agent)
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+
+args = sys.argv[1:]
+level = next((a for a in args if a in ("chat", "terminal", "system")), "chat")
+baseline = int(args[args.index("--baseline") + 1]) if "--baseline" in args else None
+
+config = {"language": "en"}
+settings = dict(m.DEFAULT_SETTINGS, access=level, model="MODEL")
+stub = types.SimpleNamespace(config=config, settings=settings, sees=lambda: False)
+tools = m.Tools(stub).schemas(settings)
+prompt = m.build_prompt(config, settings)
+schemas = json.dumps(tools, ensure_ascii=False)
+total = len(prompt) + len(schemas)
+
+print(f"level {level}: tools {[t['function']['name'] for t in tools]}")
+print(f"system prompt {len(prompt)} chars, tool schemas {len(schemas)} chars")
+print(f"total {total} chars, about {total // 4} tokens")
+if baseline is not None:
+    delta = total - baseline
+    print(f"vs baseline {baseline}: {delta:+d} chars, about {delta // 4:+d} tokens")
+if "-v" in args:
+    print(prompt)
+    print(json.dumps(tools, indent=1))

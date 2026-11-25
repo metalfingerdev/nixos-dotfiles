@@ -40,3 +40,13 @@ nixos-rebuild build --flake .#omen                # builds, changes nothing on t
 
 Ollama (127.0.0.1:11434, CUDA), SearXNG (:8888), Crush. Everything is bound to
 localhost. With 4 GB of VRAM, models above ~3B parameters spill into RAM and slow down a lot.
+
+## NixOS rules for agents
+
+- Global installs are read-only (the Nix store). Never `apt`, `pip install` or `sudo`. Need a tool once:
+  `nix shell nixpkgs#tool -c tool ...`. Python projects: `uv`.
+- Build, never switch: `nixos-rebuild build --flake .#omen`. The deny list for agents lives in
+  `modules/features/agent-policy/_policy.nix` (Crush and Claude Code read it).
+- Shared memory for Crush and Claude Code: `~/.local/share/jarvis/memory.md` (the person's file; never
+  overwritten by the flake). The island agent's notes (`~/.config/nihil/nilo.md`) are separate.
+- Project skills live in `.claude/skills/` (`add-nix-feature`, `prompt-budget`).
