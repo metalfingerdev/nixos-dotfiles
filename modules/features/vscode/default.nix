@@ -21,12 +21,7 @@
       };
     in
     {
-    # vscode.nix-direnv integration needs direnv on PATH
-    programs.direnv = {
-      enable = true;
-      nix-direnv.enable = true;
-    };
-
+    # mkhl.direnv needs direnv on PATH: features/shell provides it (programs.direnv)
     programs.vscode = {
       enable = true;
       package = vscode; # vscode-fhs: fixes marketplace extension binary crashes
