@@ -31,6 +31,9 @@ import urllib.parse
 import urllib.request
 
 PROTOCOL = 1
+# What the island may rely on beyond the base protocol: it hides a button for anything not listed, so an
+# island newer than this agent never shows a control that does nothing.
+FEATURES = ["notes"]
 MAX_ROUNDS = 16
 MAX_CALLS = 24              # tools one answer can use, in all its rounds: the rest get an error
 PAGE_CHARS = 6000
@@ -3422,8 +3425,8 @@ class Agent:
 
     def hello(self):
         models = self.catalogue()
-        self.out("hello", protocol=PROTOCOL, settings=self.view(), language=self.config.get("language", "en"),
-                 **models)
+        self.out("hello", protocol=PROTOCOL, features=FEATURES, settings=self.view(),
+                 language=self.config.get("language", "en"), **models)
         self.wake.set()
         if not models["ollama"]:
             self.set_state(ollama=False)
