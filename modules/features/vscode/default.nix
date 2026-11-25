@@ -2,7 +2,7 @@
 {
   flake.modules.nixos.vscode.home-manager.sharedModules = [ self.modules.homeManager.vscode ];
 
-  flake.modules.homeManager.vscode = { config, pkgs, ... }:
+  flake.modules.homeManager.vscode = { config, lib, pkgs, ... }:
     let
       # Electron's GPU process opens every GPU it finds, and holding the GeForce kept it powered on
       # with nothing to draw (power/runtime_status "active"): its graphics libraries see only the
@@ -21,7 +21,12 @@
       };
     in
     {
-    # mkhl.direnv needs direnv on PATH: features/shell provides it (programs.direnv)
+    # mkhl.direnv needs direnv on PATH. features/shell enables it too; mkDefault keeps this feature self-contained.
+    programs.direnv = {
+      enable = lib.mkDefault true;
+      nix-direnv.enable = lib.mkDefault true;
+    };
+
     programs.vscode = {
       enable = true;
       package = vscode; # vscode-fhs: fixes marketplace extension binary crashes

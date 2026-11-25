@@ -4,7 +4,7 @@
 
   # Crush (charmbracelet): a terminal coding agent, like Claude Code, talking to the local Ollama.
   # The launcher's Coding agent action and Super+Alt+Return run `crush`; `?question` is the island's Agent.
-  flake.modules.homeManager.crush = { pkgs, ... }:
+  flake.modules.homeManager.crush = { config, pkgs, ... }:
     let policy = import ../agent-policy/_policy.nix; in {
     home.packages = [ pkgs.crush ];
 
@@ -34,7 +34,7 @@
       };
       options = {
         # The memory file both agents share (features/agent-memory)
-        global_context_paths = [ "~/.local/share/jarvis/memory.md" ];
+        global_context_paths = [ "${config.home.homeDirectory}/.local/share/jarvis/memory.md" ];
         disable_metrics = true;
         # Its default puts a "Generated with Crush" line and a trailer in commits and PRs, and GitHub lists
         # a trailer's name as a contributor.

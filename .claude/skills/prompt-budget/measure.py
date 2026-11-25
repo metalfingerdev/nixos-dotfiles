@@ -2,10 +2,14 @@
 
 usage: PYTHONDONTWRITEBYTECODE=1 python3 -I measure.py [chat|terminal|system] [--baseline CHARS] [-v]
 
-Imports agent.py without starting anything (no Ollama, no network). The prompt also counts the notes file
-and NILO.md as found on this machine (clipped to the agent's CONTEXT_CHARS), so run it the same way each time.
+Imports agent.py without starting anything (no Ollama, no network). Runs with an empty HOME, so the notes
+file is not counted (at most CONTEXT_CHARS more in real use, spent on every question).
 """
-import importlib.util, json, pathlib, sys, types
+import importlib.util, json, os, pathlib, sys, tempfile, types
+
+# An empty HOME, so the person's notes file never counts: the number then depends on agent.py alone
+os.environ["HOME"] = tempfile.mkdtemp()
+os.environ.pop("XDG_CONFIG_HOME", None)
 
 agent = pathlib.Path(__file__).resolve().parents[3] / "modules/features/nilo-agent/agent.py"
 spec = importlib.util.spec_from_file_location("nilo_agent", agent)

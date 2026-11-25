@@ -45,7 +45,8 @@ localhost. With 4 GB of VRAM, models above ~3B parameters spill into RAM and slo
 
 - Global installs are read-only (the Nix store). Never `apt`, `pip install` or `sudo`. Need a tool once:
   `nix shell nixpkgs#tool -c tool ...`. Python projects: `uv`.
-- Build, never switch: `nixos-rebuild build --flake .#omen`. The deny list for agents lives in
+- Build, never switch: `nixos-rebuild build --flake .#omen` (Crush asks before running it: its block list
+  works on the command name). The deny list for agents lives in
   `modules/features/agent-policy/_policy.nix` (Crush and Claude Code read it).
 - Shared memory for Crush and Claude Code: `~/.local/share/jarvis/memory.md` (the person's file; never
   overwritten by the flake). The island agent's notes (`~/.config/nihil/nilo.md`) are separate.
