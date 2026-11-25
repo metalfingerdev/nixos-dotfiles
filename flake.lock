@@ -209,11 +209,11 @@
     "quickshell": {
       "flake": false,
       "locked": {
-        "lastModified": 1795523958,
-        "narHash": "sha256-AQY0qg5uLXQsftaskCWjUlZVBtFUOLUpf+Q4+85Ycjc=",
+        "lastModified": 1795585029,
+        "narHash": "sha256-yb/mQDUpfdq3U/D0Y2T0KQMPwuv6enl9P7HA8max8aM=",
         "owner": "metalfingerdev",
         "repo": "quickshell",
-        "rev": "bcf56d1c3fff0c5c1e97b934159beba717b313d8",
+        "rev": "03777bf2fba57b59d11b3bbee4dede5a54f4c9aa",
         "type": "github"
       },
       "original": {
@@ -284,11 +284,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1795509874,
-        "narHash": "sha256-rGtp5IIchBAs1SL6UCWRpSJOGNnSwQwV0beeQcd8emc=",
+        "lastModified": 1795577370,
+        "narHash": "sha256-kbm3rhM5/EX5AJEPV9Svkcdk9f1RTqfX+YWQvROKX8w=",
         "owner": "0xc000022070",
         "repo": "zen-browser-flake",
-        "rev": "21385ea8b9e0c32b0962029b0836af2b621b7800",
+        "rev": "6c4d107744ba0760c5176a3993115b9842c19249",
         "type": "github"
       },
       "original": {
