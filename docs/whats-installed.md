@@ -92,7 +92,7 @@ How the desktop pieces work together: [The desktop](desktop.md).
 | Module | What it sets |
 |--------|--------------|
 | `kitty` | The kitty terminal, with `~/.config/kitty` from the kitty repo |
-| `shell` | Bash with aliases: `rebuild`, `boot`, `build`, `try`, `clean` (see [Everyday use](everyday.md)), `btw`. They leave out `#omen`, so they build whichever host they run on |
+| `shell` | Bash with aliases: `rebuild`, `boot`, `build`, `try`, `clean` (see [Everyday use](everyday.md)), `btw`. They leave out `#omen`, so they build whichever host they run on. Also direnv with nix-direnv, fzf (Ctrl-R), zoxide (`z`), bat, ripgrep, fd, tree, sqlite, uv and shellcheck; history ignores duplicates and lines starting with a space |
 | `yazi` | The yazi file manager, opening text in Neovim, config from the yazi repo |
 | `fastfetch` | fastfetch, with `config.jsonc` and the Marin Kitagawa logo (`logo.gif`) linked live from `config/fastfetch` ([its repo](https://github.com/metalfingerdev/fastfetch)) |
 | `utils` | `brightnessctl`, `playerctl` (media keys), `libnotify` (`notify-send`), `grimblast` (screenshots), `usbutils`, Thunar, `p7zip`, `btop`, `file`, `jq`, `xclip` |
@@ -106,8 +106,9 @@ How the desktop pieces work together: [The desktop](desktop.md).
 | `git` | Your git config (rewriting `https://github.com/` to SSH so pushes use your key) and `gh`; git itself comes from `core` |
 | `lazygit` | lazygit |
 | `neovim` | Neovim with `~/.config/nvim` from the nvim repo, plus `ripgrep`, `nil` (Nix language server), `nixpkgs-fmt`, Node and gcc for plugins |
-| `vscode` | VS Code (FHS build, so marketplace extensions with binaries work), direnv with nix-direnv, extensions for Nix, Python, Svelte, ESLint, Prettier, Tailwind, Qt/QML, Bun and Claude Code. Settings live in `config/vscode/settings.json`, linked live (see [Dotfiles](dotfiles.md#live-linked-repos)) |
-| `claude-code` | The Claude Code CLI |
+| `vscode` | VS Code (FHS build, so marketplace extensions with binaries work), direnv (also enabled by `shell`), extensions for Nix, Python, Svelte, ESLint, Prettier, Tailwind, Qt/QML, Bun and Claude Code. Settings live in `config/vscode/settings.json`, linked live (see [Dotfiles](dotfiles.md#live-linked-repos)) |
+| `claude-code` | The Claude Code CLI, with the shared deny list (`agent-policy`) merged into its `settings.json`; your other settings stay yours. See [Agents](agents.md) |
+| `agent-memory` | `~/.local/share/jarvis/memory.md`, seeded once and never overwritten, read by Crush and (as `~/.claude/rules/jarvis-memory.md`) Claude Code. In the `ai` bundle |
 | `python3` | Python 3 with pandas and numpy |
 | `webdev` | Node, pnpm, Bun, TypeScript and its language server, HTML/CSS/JSON/ESLint servers, Svelte language server, Prettier; global installs go to `~/.local/share/pnpm` and `~/.npm-global` (both on `PATH`) |
 

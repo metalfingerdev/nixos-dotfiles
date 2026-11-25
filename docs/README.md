@@ -7,6 +7,7 @@ order; the rest you can dip into.
 |------|----------------|
 | [NixOS basics](nixos-basics.md) | Declarative config, generations and rollback, flakes and the lock file, Home Manager, and the habits that make NixOS pay off |
 | [Everyday use](everyday.md) | A command cheat sheet: rebuild, roll back, update, clean up, search and try packages, dev shells |
+| [Agents](agents.md) | Claude Code, Crush and the island agent: what each is for, the shared deny list and memory file |
 | [Repo layout](layout.md) | The dendritic structure: how files become modules, how the host picks them, adding a feature, user or host |
 | [What's installed](whats-installed.md) | Every system module and feature, what it sets up, and what's available but switched off |
 | [The desktop](desktop.md) | Logging in, the Hyprland session, the Quickshell island, the theme, and every keybind |
