@@ -226,11 +226,11 @@
     "quickshell": {
       "flake": false,
       "locked": {
-        "lastModified": 1795634474,
-        "narHash": "sha256-vNhu8DIup3GZcjpLqqlxv/bBhfWAeWnACcRcCyCGdcw=",
+        "lastModified": 1795636707,
+        "narHash": "sha256-LDyRa7OxoZcKjzARaaechZdmGiluxOTkox0r1TrTNnM=",
         "owner": "metalfingerdev",
         "repo": "quickshell",
-        "rev": "85d166fda66420061cce5c30031628c347e3eef2",
+        "rev": "9506719c1567cdb54539e8cb3d45efad36c7b893",
         "type": "github"
       },
       "original": {
