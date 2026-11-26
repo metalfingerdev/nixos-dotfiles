@@ -14,7 +14,7 @@ through lanzaboote, dual-boot with Windows). User: `admin` (`modules/users/admin
   `flake.modules.nixos.<n>.home-manager.sharedModules = [ self.modules.homeManager.<n> ];`
   (copy `modules/features/vlc/default.nix`).
 - `modules/users/<name>/` is one person (account, git identity); `users/changeme` and `hosts/example` are
-  the templates for a new person and machine (no ai, no claude-code, no secure-boot). CI builds `example`.
+  the templates for a new person and machine (no `agents` or `ai` bundle, no secure-boot). CI builds `example`.
 - Per-person values (account, git identity) live in the user's module, per-machine ones (time zone,
   monitors, omen's VS Code link) in the host, both as plain NixOS and Home Manager options. Never in shared
   modules.
@@ -42,7 +42,7 @@ nixos-rebuild build --flake .#omen                # builds, changes nothing on t
 - Option names change on nixos-unstable. If you are unsure an option exists, check it
   (`nix eval .#nixosConfigurations.omen.options.<path>.type`) instead of guessing.
 
-## Local AI stack (`modules/bundles/ai`)
+## Local AI stack (`modules/bundles/agents`)
 
 Ollama (127.0.0.1:11434, CUDA), SearXNG (:8888), Crush. Everything is bound to
 localhost. With 4 GB of VRAM, models above ~3B parameters spill into RAM and slow down a lot.

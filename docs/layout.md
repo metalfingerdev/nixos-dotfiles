@@ -59,8 +59,8 @@ flake.nixosConfigurations.omen = inputs.nixpkgs.lib.nixosSystem {
     development
     apps
     editing
+    agents
     ai
-    claude-code
   ];
 };
 ```
@@ -95,9 +95,10 @@ omen
 │   └── firefox, zen, libreoffice, vlc, qimgv, stremio, bittorrent, calibre
 ├── editing                         bundles/editing
 │   └── audacity, kdenlive, handbrake, gimp
-├── ai                              bundles/ai
+├── agents                          bundles/agents
 │   └── ollama, searxng, crush, nilo-agent, agent-memory
-└── claude-code                     features/claude-code
+└── ai                              bundles/ai
+    └── claude-code, antigravity
 ```
 
 The gaming PC's host, `modules/hosts/home/default.nix`, picks from the same names:
@@ -131,7 +132,7 @@ A group is just a module that imports others:
 | `modules/system/desktop/` | `desktop`: core plus everything for the graphical session |
 | `modules/system/<name>/` | one system service each: audio, network, bluetooth, power, usb, ssh, sshd, secure-boot, session, nix-ld, home-manager, auto-upgrade, swap |
 | `modules/system/theme/` | the marin look, split into cursor, gtk and fonts |
-| `modules/bundles/<name>/` | bundles of features: terminal, development, apps, editing, gaming, ai |
+| `modules/bundles/<name>/` | bundles of features: terminal, development, apps, editing, gaming, agents, ai |
 | `modules/features/<name>/` | one app or tool each, with any small files it needs beside it (e.g. the Hyprland plugin patch) |
 | `modules/drivers/<name>/` | GPU drivers, one per vendor: amdgpu, nvidia |
 

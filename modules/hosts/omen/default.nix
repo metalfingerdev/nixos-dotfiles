@@ -15,8 +15,8 @@
       development
       apps
       editing
-      ai
-      claude-code # the coding agent: mine, so not in the shared development bundle
+      agents              # the local LLM stack: Ollama, SearXNG, Crush, the island's agent
+      ai                  # Claude Code and Antigravity
     ];
   };
 }
