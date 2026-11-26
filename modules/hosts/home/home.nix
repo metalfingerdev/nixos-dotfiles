@@ -5,6 +5,7 @@
 
     nixpkgs.hostPlatform = "x86_64-linux";
     networking.hostName = "home";
+    time.timeZone = "Asia/Kolkata";
     # The NixOS release this machine is first installed with; never change it afterwards.
     system.stateVersion = "26.05";
   };

@@ -1,5 +1,6 @@
 { self, ... }:
 {
+  # The macOS cursor, for GTK, X11 apps and Hyprland (hypr's env.lua names it too).
   flake.modules.nixos.cursor.home-manager.sharedModules = [ self.modules.homeManager.cursor ];
 
   flake.modules.homeManager.cursor = { pkgs, ... }: {

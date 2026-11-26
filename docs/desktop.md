@@ -33,15 +33,17 @@ Its full docs are in the [quickshell repo](https://github.com/metalfingerdev/qui
 
 ## Look
 
-- Wallpaper: through `awww`, picked in the island's theme view (Super + T)
+- Wallpaper: through `awww`, picked in the island's theme view (Super + T). The defaults come with the island (its `assets/`);
+  Settings → Wallpaper and Settings → Lock screen set your own, and on battery saver the default GIFs
+  show their stills
 - Cursor: macOS, 24 px, for GTK, X11 apps and Hyprland
 - Fonts: JetBrains Mono (terminal), Inter, Material Symbols (island icons)
 - Icons: Adwaita
 - fastfetch: the Marin Kitagawa logo (Super + Shift + Return opens a terminal running it)
 
 The cursor, fonts and icons come from `modules/system/theme/`. Everything else is set inside the config
-repos: the fastfetch logo and layout in the fastfetch repo, colours in `look.lua` (hypr), `kitty.conf`
-and the island's theme.
+repos (colours in `look.lua` (hypr), `kitty.conf`, the island's theme and its pictures), except fastfetch,
+whose layout is `modules/features/fastfetch` and logo `assets/fastfetch/logo.gif` here.
 
 ## Keybinds
 
@@ -83,8 +85,8 @@ Super is the Windows key.
 | Super + 1…0 | Go to workspace 1–10 |
 | Super + Shift + 1…0 | Move window to workspace 1–10 |
 | Super + scroll | Next / previous workspace |
-| Super + Caps Lock | Show / hide the scratchpad |
-| Super + Shift + Caps Lock | Move window to the scratchpad |
+| Super + Escape (Caps Lock on omen, which swaps them) | Show / hide the scratchpad |
+| Super + Shift + Escape | Move window to the scratchpad |
 
 ### Island
 

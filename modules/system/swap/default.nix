@@ -11,8 +11,9 @@
 
     # A swapfile on disk to hibernate into (`systemctl hibernate`). No resume= or resume_offset needed:
     # systemd stores the file's location in an EFI variable at hibernate time and the initrd reads it.
-    # 8 GiB, not RAM-sized, because / has little room; the image is compressed, and systemd refuses
-    # to hibernate (it doesn't fail half-way) if more is in use than the file can hold.
+    # 8 GiB, not RAM-sized, because omen's / is small (raise it on a bigger disk); the image is
+    # compressed, and systemd refuses to hibernate (it doesn't fail half-way) if more is in use than the
+    # file can hold. Without this module there's nothing to hibernate into, and the island hides Hibernate.
     swapDevices = [ { device = "/var/lib/swapfile"; size = 8 * 1024; } ];
 
     # Closing the lid suspends; after an hour asleep it wakes and hibernates, so a forgotten laptop doesn't

@@ -3,7 +3,8 @@
 [Docs index](README.md)
 
 Each config is its own public repo. Hyprland, kitty, Neovim, Quickshell and yazi are pulled in as
-flake inputs; fastfetch and VS Code's settings are [linked live](#live-linked-repos) instead.
+flake inputs. VS Code's settings are optionally
+[linked live](#live-linked-vs-code-settings-optional).
 
 | Repo | Deployed to | Used by feature |
 |------|-------------|-----------------|
@@ -12,8 +13,7 @@ flake inputs; fastfetch and VS Code's settings are [linked live](#live-linked-re
 | [metalfingerdev/nvim](https://github.com/metalfingerdev/nvim) | `~/.config/nvim` | `neovim` |
 | [metalfingerdev/quickshell](https://github.com/metalfingerdev/quickshell) | `~/.config/quickshell` | `quickshell` |
 | [metalfingerdev/yazi](https://github.com/metalfingerdev/yazi) | `~/.config/yazi` | `yazi` |
-| [metalfingerdev/fastfetch](https://github.com/metalfingerdev/fastfetch) ([linked live](#live-linked-repos)) | `~/.config/fastfetch/config.jsonc` and `logo.gif` | `fastfetch` |
-| [metalfingerdev/vscode](https://github.com/metalfingerdev/vscode) ([linked live](#live-linked-repos)) | `~/.config/Code/User/settings.json` | `vscode` |
+| [metalfingerdev/vscode](https://github.com/metalfingerdev/vscode) ([optional live link](#live-linked-vs-code-settings-optional)) | `~/.config/Code/User/settings.json` | `vscode` |
 
 ## How they get in
 
@@ -38,7 +38,7 @@ GitHub. This repo ignores `config/` (`.gitignore`), so they never show up in its
 So an edit reaches the system in four steps:
 
 ```sh
-cd ~/nixos-dotfiles/config/quickshell
+cd $NIXOS_FLAKE/config/quickshell
 # edit...
 git commit -am "what changed" && git push
 
@@ -57,7 +57,7 @@ While you're iterating, point the build at your working copy for one rebuild:
 
 ```sh
 sudo nixos-rebuild switch --flake ~/nixos-dotfiles#omen \
-  --override-input quickshell path:/home/admin/nixos-dotfiles/config/quickshell
+  --override-input quickshell path:$NIXOS_FLAKE/config/quickshell
 ```
 
 That uses the files exactly as they are on disk (uncommitted edits too) and doesn't touch `flake.lock`.
@@ -65,32 +65,32 @@ Repeat `--override-input` for several repos at once. Once it's right, commit, pu
 `nix flake update` as above, or the next normal rebuild goes back to the pinned version.
 
 For Quickshell there's an even faster loop: run your working copy directly with
-`qs -p ~/nixos-dotfiles/config/quickshell` (see that repo's README).
+`qs -p $NIXOS_FLAKE/config/quickshell` (see that repo's README).
 
 ## On a fresh machine
 
 The inputs come from GitHub, so a fresh clone of this repo builds without `config/`. To edit them, clone
-them back in (fastfetch and vscode too: their files are linked from there):
+them back in (vscode too, if you link its settings live):
 
 ```sh
 cd ~/nixos-dotfiles
-for n in hypr kitty nvim quickshell yazi fastfetch vscode; do git clone git@github.com:metalfingerdev/$n.git config/$n; done
+for n in hypr kitty nvim quickshell yazi vscode; do git clone git@github.com:metalfingerdev/$n.git config/$n; done
 ```
 
-## Live-linked repos
+## Live-linked VS Code settings (optional)
 
-`config/fastfetch` (the fastfetch config and the Marin logo) and `config/vscode` (VS Code's
-`settings.json`) aren't flake inputs: Home Manager links the files in
-`~/.config` straight to them (`mkOutOfStoreSymlink`) instead of to a copy in the Nix store. So:
+omen (`modules/hosts/omen/vscode.nix`) sets `xdg.configFile."Code/User/settings.json".source` to `config/vscode/settings.json`, linking VS Code's `settings.json`
+straight to a file (`mkOutOfStoreSymlink`) instead of a store copy. Edits, including ones from VS Code's
+settings UI, apply with no rebuild, and you commit them in that repo whenever you like. Without it (as in
+`hosts/example`), the shared defaults in `modules/features/vscode/_settings.json` are copied in once, and
+from then on the file is VS Code's. If the file is missing, the link points at
+nothing and VS Code uses defaults. Extensions are installed by Nix (`modules/features/vscode`).
 
-- an edit applies **instantly**, with no rebuild, commit or `nix flake update`. That includes changes VS
-  Code makes from its settings UI, which a read-only store copy used to block;
-- commit and push in those repos whenever you want to keep a version;
-- the build never reads them, so the flake builds anywhere (even straight from GitHub)
-  without them. If one is missing, its links point at nothing: fastfetch falls back to its
-  defaults, VS Code to default settings.
+fastfetch isn't a repo: its config is in `modules/features/fastfetch` and its logo in `assets/`. A host
+can point the logo elsewhere with `programs.fastfetch.settings.logo.source`.
 
-Extensions are still installed by Nix (`modules/features/vscode`).
+The island takes one value from here, `NIXOS_FLAKE` (the quickshell repo's README, "From the environment"). hypr reads one machine's screens and keyboard from
+`~/.config/hypr-host/` (its `hyprland.lua` explains), which a host writes with `xdg.configFile`.
 
 ## Adding another config repo
 

@@ -4,8 +4,10 @@
 
   # Crush (charmbracelet): a terminal coding agent, like Claude Code, talking to the local Ollama.
   # The launcher's Coding agent action and Super+Alt+Return run `crush`; `?question` is the island's Agent.
-  flake.modules.homeManager.crush = { config, pkgs, ... }:
-    let policy = import ../agent-policy/_policy.nix; in {
+  flake.modules.homeManager.crush = { config, lib, pkgs, ... }:
+    let
+      policy = import ../agent-policy/_policy.nix { home = config.home.homeDirectory; flake = lib.replaceStrings [ config.home.homeDirectory ] [ "~" ] config.home.sessionVariables.NIXOS_FLAKE; };
+    in {
     home.packages = [ pkgs.crush ];
 
     xdg.configFile."crush/crush.json".text = builtins.toJSON {

@@ -1,5 +1,6 @@
 { self, ... }:
 {
+  # qimgv, the default viewer for every common image format.
   flake.modules.nixos.qimgv.home-manager.sharedModules = [ self.modules.homeManager.qimgv ];
 
   flake.modules.homeManager.qimgv = { pkgs, ... }: {

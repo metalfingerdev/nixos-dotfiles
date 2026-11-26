@@ -6,7 +6,7 @@
   # services/Agent.qml) runs `nilo-agent` and talks JSON lines to it. Kept at its Chat level, which the
   # island never raises: the model may search (SearXNG) and read pages, look up this computer and open
   # apps. Its other levels (files, commands, the desktop) are Crush's job.
-  flake.modules.homeManager.nilo-agent = { pkgs, lib, osConfig, ... }:
+  flake.modules.homeManager.nilo-agent = { pkgs, lib, osConfig, ... }@hm:
     let
       ollama = osConfig.services.ollama;
       config = pkgs.writeText "nilo.json" (builtins.toJSON {
@@ -20,7 +20,7 @@
         journalctl = "${osConfig.systemd.package}/bin/journalctl";
         ollamaUnit = "ollama.service";
         host = osConfig.networking.hostName;
-        flake = "~/nixos-dotfiles";
+        flake = lib.replaceStrings [ hm.config.home.homeDirectory ] [ "~" ] hm.config.home.sessionVariables.NIXOS_FLAKE;
       });
     in
     {

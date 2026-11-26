@@ -1,0 +1,41 @@
+{
+  "editor.minimap.enabled": false,
+  "workbench.startupEditor": "none",
+  "terminal.integrated.initialHint": false,
+  "git.autofetch": true,
+  "git.confirmSync": false,
+
+  // Formatters for the extensions this feature installs
+  "[javascript][javascriptreact][typescript][typescriptreact][json][html][css][scss][markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  // Prettier 3 adds trailing commas to .jsonc, which the built-in formatter doesn't
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.formatOnSave": true
+  },
+  "[svelte]": {
+    "editor.defaultFormatter": "svelte.svelte-vscode",
+    "editor.formatOnSave": true
+  },
+  "svelte.enable-ts-plugin": true,
+  "eslint.useFlatConfig": true,
+  "npm.packageManager": "pnpm",
+
+  "nix.enableLanguageServer": true,
+  "nix.serverPath": "nil",
+  "nix.serverSettings": { "nil": { "formatting": { "command": ["nixpkgs-fmt"] } } },
+
+  "workbench.editorAssociations": { "*.qrc": "qt-core.qrcEditor" },
+  "qt-core.showWelcomePageOnActivation": false,
+
+  "json.schemaDownload.trustedDomains": {
+    "https://developer.microsoft.com/json-schemas/": true,
+    "https://github.com": true,
+    "https://json-schema.org/": true,
+    "https://json.schemastore.org/": true,
+    "https://raw.githubusercontent.com/microsoft/vscode/": true,
+    "https://www.schemastore.org/": true
+  }
+}

@@ -3,23 +3,6 @@
   flake.modules.nixos.vscode.home-manager.sharedModules = [ self.modules.homeManager.vscode ];
 
   flake.modules.homeManager.vscode = { config, lib, pkgs, ... }:
-    let
-      # Electron's GPU process opens every GPU it finds, and holding the GeForce kept it powered on
-      # with nothing to draw (power/runtime_status "active"): its graphics libraries see only the
-      # Radeon. Apps started from its terminal inherit this, so `nvidia-offload` there gets the Radeon.
-      vscode = pkgs.symlinkJoin {
-        inherit (pkgs.vscode-fhs) pname version;
-        paths = [ pkgs.vscode-fhs ];
-        meta.mainProgram = "code";
-        nativeBuildInputs = [ pkgs.makeWrapper ];
-        postBuild = ''
-          wrapProgram $out/bin/code \
-            --set __EGL_VENDOR_LIBRARY_FILENAMES /run/opengl-driver/share/glvnd/egl_vendor.d/50_mesa.json \
-            --set __GLX_VENDOR_LIBRARY_NAME mesa \
-            --set VK_DRIVER_FILES /run/opengl-driver/share/vulkan/icd.d/radeon_icd.x86_64.json
-        '';
-      };
-    in
     {
     # mkhl.direnv needs direnv on PATH. features/shell enables it too; mkDefault keeps this feature self-contained.
     programs.direnv = {
@@ -27,9 +10,20 @@
       nix-direnv.enable = lib.mkDefault true;
     };
 
+    # the Nix extension's language server and formatter (_settings.json names them)
+    home.packages = [ pkgs.nil pkgs.nixpkgs-fmt ];
+
+    # Default settings, copied once and then yours: a Home Manager-managed settings.json is a read-only
+    # link, and VS Code's Settings UI fails to save into it. Skipped when a host links its own (omen).
+    home.activation.vscodeSettings = lib.mkIf (!(config.xdg.configFile ? "Code/User/settings.json"))
+      (lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+        f="${config.xdg.configHome}/Code/User/settings.json"
+        [ -e "$f" ] || [ -L "$f" ] || run install -Dm644 ${./_settings.json} "$f"
+      '');
+
     programs.vscode = {
       enable = true;
-      package = vscode; # vscode-fhs: fixes marketplace extension binary crashes
+      package = lib.mkDefault pkgs.vscode-fhs; # the FHS build: marketplace extensions with binaries crash otherwise
       profiles.default.extensions = (with pkgs.vscode-extensions; [
         jnoortheen.nix-ide
         mkhl.direnv
@@ -43,7 +37,6 @@
         bradlc.vscode-tailwindcss
         yoavbls.pretty-ts-errors
         christian-kohler.path-intellisense
-        anthropic.claude-code
       ]) ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
         # Not packaged in nixpkgs
         {
@@ -67,9 +60,5 @@
       ];
     };
 
-    # Settings are a plain file in config/vscode, linked live rather than copied into the store, so
-    # changes made in VS Code are saved there and apply instantly, with no rebuild.
-    xdg.configFile."Code/User/settings.json".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-dotfiles/config/vscode/settings.json";
   };
 }

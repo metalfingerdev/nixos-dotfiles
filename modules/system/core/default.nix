@@ -1,13 +1,12 @@
 { self, ... }:
 {
+  # What every machine needs, desktop or not. A machine's people come from modules/users/, its hardware
+  # from its host.
   flake.modules.nixos.core = { pkgs, ... }: {
     imports = with self.modules.nixos; [
-      user
       bootloader
       nix
-      locale
       home-manager
-      ssh
       nix-ld
       etc-nixos
     ];

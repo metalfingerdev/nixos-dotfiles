@@ -9,9 +9,9 @@ separate notes file, ~/.config/nihil/nilo.md.
 - (name, what I do, how I like answers: short, plain, no filler)
 
 ## This machine
-- NixOS on an HP Omen laptop, host "omen", flake in ~/nixos-dotfiles (read its AGENTS.md first).
+- NixOS, (host name), flake in (path to this repo, e.g. ~/nixos-dotfiles; read its AGENTS.md first).
 - Nothing is installed globally by hand: use `nix shell nixpkgs#tool -c ...`. I run switch myself.
 
 ## Projects
-- ~/nixos-dotfiles: this machine's configuration.
-- ~/nixos-dotfiles/config/quickshell: the island (Quickshell shell), its own git repo.
+- (path to this repo): this machine's configuration.
+- (repo path)/config/quickshell: the island (Quickshell shell), its own git repo.

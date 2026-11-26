@@ -6,6 +6,7 @@
   flake.nixosConfigurations.home = inputs.nixpkgs.lib.nixosSystem {
     modules = with self.modules.nixos; [
       home
+      admin               # me: account and git identity
       desktop
       gaming
       kitty

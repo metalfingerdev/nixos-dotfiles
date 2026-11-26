@@ -3,10 +3,10 @@
   flake.modules.nixos.usb = { pkgs, ... }: {
     home-manager.sharedModules = [ self.modules.homeManager.usb ];
 
-    # Enables automounting for standard USB mass storage (older Kindles)
+    # Mounting USB drives and SD cards (udiskie, below, does it as they are plugged in)
     services.udisks2.enable = true;
 
-    # Enables MTP support (2024+ Kindles) and userspace virtual filesystems
+    # Phones and newer Kindles over MTP, and network shares and trash in file managers (gvfs)
     services.gvfs.enable = true;
 
     environment.systemPackages = [ pkgs.libmtp ];

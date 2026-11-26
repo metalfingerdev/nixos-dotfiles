@@ -1,0 +1,8 @@
+PLACEHOLDER: no licence has been chosen for this repository yet.
+
+Until the owner picks one, all rights are reserved (GitHub's default for a repo without a licence).
+Common choices: MIT or Apache-2.0 (permissive), GPL-3.0 (copyleft), CC0 (public domain).
+Replace this file with the full text of the chosen licence (https://choosealicense.com).
+
+Not covered by any licence chosen here: the images in assets/ (see assets/README.md), and
+modules/features/nilo-agent/, which keeps its own MIT licence (modules/features/nilo-agent/LICENSE).

@@ -69,7 +69,7 @@ Then update inputs one at a time (`nix flake update nixpkgs`, …) to find the c
 
 Nix running as root (not through `sudo`, e.g. from a system service) refuses a git repo owned by
 `admin`. `sudo nixos-rebuild` is fine. If something needs it, mark the repo safe for root in the system
-git config: `programs.git.config.safe.directory = [ "/home/admin/nixos-dotfiles" ];`.
+git config: `programs.git.config.safe.directory = [ "<your flake checkout>" ];`.
 
 ## A downloaded program says "No such file or directory" or a library is missing
 

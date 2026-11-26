@@ -43,7 +43,7 @@ to: `nix flake metadata ~/nixos-dotfiles`.
 | `flake-parts`, `import-tree` | How the repo is assembled; nothing on the system by themselves |
 | `hypr`, `kitty`, `nvim`, `quickshell`, `yazi` | Your [dotfile repos](dotfiles.md) on GitHub |
 
-`config/fastfetch` and `config/vscode` are linked live, so they never need updating.
+omen's VS Code settings are linked live from `config/vscode`, so they never need updating.
 
 ### One input at a time
 

@@ -2,7 +2,7 @@
 {
   flake.modules.nixos.quickshell.home-manager.sharedModules = [ self.modules.homeManager.quickshell ];
 
-  flake.modules.homeManager.quickshell = { pkgs, ... }:
+  flake.modules.homeManager.quickshell = { config, pkgs, ... }:
     let
       # WebP and friends are Qt image plugins, which nixpkgs' quickshell doesn't carry. Added by a
       # wrapper, not an override: that would rebuild quickshell from source on every nixpkgs update.
@@ -65,6 +65,8 @@
           ExecStart = "${quickshell}/bin/quickshell --log-rules qt.qpa.wayland.textinput.warning=false";
           Restart = "on-failure";
           RestartSec = 1;
+          # user units don't get the shell's session variables (Generations.qml reads it)
+          Environment = [ "NIXOS_FLAKE=${config.home.sessionVariables.NIXOS_FLAKE}" ];
         };
         Install.WantedBy = [ "graphical-session.target" ];
       };

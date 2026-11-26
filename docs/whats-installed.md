@@ -3,11 +3,12 @@
 [Docs index](README.md)
 
 Everything `omen` gets, grouped the way `modules/hosts/omen/default.nix` pulls it in. How the groups fit
-together: [Repo layout](layout.md#from-host-to-feature).
+together: [Repo layout](layout.md#from-host-to-feature). The template host, `hosts/example`, gets
+`desktop`, `terminal`, `development` and `apps` from the same lists, and none of omen's own parts.
 
 ## The home host
 
-`modules/hosts/home/` is a second, gaming-only machine, built with `#home`. It gets `desktop`, the
+`modules/hosts/home/` is a second, gaming-only machine, built with `#home`. It gets `admin`, `desktop`, the
 `gaming` bundle (Steam), and `kitty`, `shell`, `yazi` and `utils`, but none of the dev tools or apps,
 and not `fastfetch`. Its hostname is
 `home`, and it leaves out `secure-boot`, so it boots with plain systemd-boot until it has Secure Boot keys.
@@ -22,9 +23,22 @@ Everything below is for `omen`.
 ## omen
 
 `modules/hosts/omen/omen.nix`: its own `_hardware.nix` (next to it), `x86_64-linux`, hostname
-`omen`, `stateVersion` 26.05, and blacklists `hp_bioscfg` to silence an HP BIOS warning.
+`omen`, `stateVersion` 26.05, time zone `Asia/Kolkata`, and blacklists `hp_bioscfg` to silence an HP BIOS
+warning. For `admin` on this machine only: the panel's `eDP-1` 1920x1080@144 mode (`~/.config/hypr-host/monitors.lua`), and in `omen/vscode.nix` VS Code's settings linked live to
+`config/vscode`, the Claude Code extension, and a wrapper that keeps VS Code on the Radeon so the offloaded
+GeForce can power down. Its list also
+adds `admin` (below), `claude-code` and the `ai` bundle.
 It also sets up hybrid graphics (PRIME offload): the desktop runs on the Radeon iGPU, and the GeForce
 stays powered off until you start an app on it with `nvidia-offload <app>`.
+
+## users
+
+`modules/users/`, one person each. A host lists the ones who use it.
+
+| Module | What it sets |
+|--------|--------------|
+| `admin` | My account (groups `wheel`, `networkmanager`), Home Manager `stateVersion`, git name and email, GitHub over SSH (the `ssh` module and an `insteadOf` rewrite) |
+| `changeme` | The template: the same, for whoever copies it; a build warns while it is still `changeme` |
 
 ## secure-boot
 
@@ -47,16 +61,15 @@ stays powered off until you start an app on it with `nvidia-offload <app>`.
 
 ### core
 
-`modules/system/core/`, plus `vim` (full), `wget` and `git`.
+`modules/system/core/`, plus `vim`, `wget` and `git`.
 
 | Module | File | What it sets |
 |--------|------|--------------|
-| `user` | `core/user.nix` | The `admin` account (groups `wheel`, `networkmanager`), Home Manager `stateVersion`, git name and email |
 | `bootloader` | `core/boot.nix` | systemd-boot with the 10 newest generations in its menu, unless the host adds [`secure-boot`](#secure-boot) |
 | `nix` | `core/nix-settings.nix` | Allows unfree packages, turns on flakes and the `nix` command |
-| `locale` | `core/locale.nix` | Time zone `Asia/Kolkata` |
-| `home-manager` | `system/home-manager/` | Loads Home Manager into NixOS, sharing the system's package set, installing user packages into the user profile, and backing up clashing files as `.backup` |
-| `ssh` | `system/ssh/` | Writes `~/.ssh/config` for GitHub (`~/.ssh/id_ed25519_github`) as a real file, not a symlink, so ssh accepts its permissions. The SSH server is `sshd`, which no host uses |
+| `home-manager` | `system/home-manager/` | Loads Home Manager into NixOS, sharing the system's package set, installing user packages into the user profile, and backing up clashing files as `.backup`. Sets `NIXOS_FLAKE` (where the repo is checked out, default `~/nixos-dotfiles`), which the aliases, agents and island read |
+| `etc-nixos` | `core/etc-nixos.nix` | `/etc/nixos` as a read-only copy of the flake the running system was built from |
+| `ssh` | `system/ssh/` | Not in core: my `admin` module imports it. Writes `~/.ssh/config` for GitHub (`~/.ssh/id_ed25519_github`) as a real file, not a symlink, so ssh accepts its permissions. The SSH server is `sshd`, which no host uses |
 | `nix-ld` | `system/nix-ld/` | Lets downloaded Linux binaries run, with `libstdc++`, OpenSSL, curl and ICU available to them |
 
 ### The rest of the desktop
@@ -64,9 +77,9 @@ stays powered off until you start an app on it with `nvidia-offload <app>`.
 | Module | Folder | What it sets |
 |--------|--------|--------------|
 | `session` | `system/session/` | The **ly** login screen, GNOME Keyring (unlocked at login), polkit, touchpad support (libinput), printing (CUPS) |
-| `hyprland` | `features/hyprland/` | Hyprland with XWayland, started through UWSM, bringing in `awww` and `quickshell`, which its config starts; deploys `~/.config/hypr` from the [hypr repo](dotfiles.md); builds and installs the `hypr-window-rotate` plugin (with a patch so rotated picture-in-picture video isn't cut off) |
+| `hyprland` | `features/hyprland/` | Hyprland with XWayland, started through UWSM, bringing in `awww` and `quickshell`, which its config starts; deploys `~/.config/hypr` from the [hypr repo](dotfiles.md); builds and installs the `hypr-window-rotate` plugin (with a patch so rotated picture-in-picture video isn't cut off) and the `hyprglass` liquid glass plugin, each left out with a warning when nixpkgs' Hyprland isn't the one it was written for |
 | `awww` | `features/awww/` | The `awww` wallpaper daemon |
-| `quickshell` | `features/quickshell/` | Quickshell (with extra image formats), the island config from the [quickshell repo](dotfiles.md), `hyprsunset` (night light) and `wf-recorder` (screen recording) |
+| `quickshell` | `features/quickshell/` | Quickshell (with extra image formats; the island brings its own default wallpaper, lock pictures and look) as a systemd user service that restarts on a crash, the island config from the [quickshell repo](dotfiles.md), `hyprsunset` (night light), `wf-recorder` (screen recording), the clipboard history, the colour picker and `island-calendar` |
 | `audio` | `system/audio/` | PipeWire with PulseAudio and ALSA compatibility (incl. 32-bit) and WirePlumber, rtkit; `pavucontrol` and `pulsemixer` |
 | `network` | `system/network/` | NetworkManager and the firewall |
 | `bluetooth` | `system/bluetooth/` | Bluetooth on at boot, Blueman, fast connect, and a fix that keeps Realtek USB adapters from autosuspending (which made A2DP audio stutter) |
@@ -94,7 +107,7 @@ How the desktop pieces work together: [The desktop](desktop.md).
 | `kitty` | The kitty terminal, with `~/.config/kitty` from the kitty repo |
 | `shell` | Bash with aliases: `rebuild`, `boot`, `build`, `try`, `clean` (see [Everyday use](everyday.md)), `btw`. They leave out `#omen`, so they build whichever host they run on. Also direnv with nix-direnv, fzf (Ctrl-R), zoxide (`z`), bat, ripgrep, fd, tree, sqlite, uv and shellcheck; history ignores duplicates and lines starting with a space |
 | `yazi` | The yazi file manager, opening text in Neovim, config from the yazi repo |
-| `fastfetch` | fastfetch, with `config.jsonc` and the Marin Kitagawa logo (`logo.gif`) linked live from `config/fastfetch` ([its repo](https://github.com/metalfingerdev/fastfetch)) |
+| `fastfetch` | fastfetch, its config generated by Home Manager and the Marin Kitagawa logo from `assets/fastfetch/logo.gif` |
 | `utils` | `brightnessctl`, `playerctl` (media keys), `libnotify` (`notify-send`), `grimblast` (screenshots), `usbutils`, Thunar, `p7zip`, `btop`, `file`, `jq`, `xclip` |
 
 ## development
@@ -103,12 +116,10 @@ How the desktop pieces work together: [The desktop](desktop.md).
 
 | Module | What it sets |
 |--------|--------------|
-| `git` | Your git config (rewriting `https://github.com/` to SSH so pushes use your key) and `gh`; git itself comes from `core` |
+| `git` | git's shared config and `gh`; git itself comes from `core`. Who you are, and my HTTPS-to-SSH rewrite for GitHub, are in each person's module (`modules/users/`) |
 | `lazygit` | lazygit |
 | `neovim` | Neovim with `~/.config/nvim` from the nvim repo, plus `ripgrep`, `nil` (Nix language server), `nixpkgs-fmt`, Node and gcc for plugins |
-| `vscode` | VS Code (FHS build, so marketplace extensions with binaries work), direnv (also enabled by `shell`), extensions for Nix, Python, Svelte, ESLint, Prettier, Tailwind, Qt/QML, Bun and Claude Code. Settings live in `config/vscode/settings.json`, linked live (see [Dotfiles](dotfiles.md#live-linked-repos)) |
-| `claude-code` | The Claude Code CLI, with the shared deny list (`agent-policy`) merged into its `settings.json`; your other settings stay yours. See [Agents](agents.md) |
-| `agent-memory` | `~/.local/share/jarvis/memory.md`, seeded once and never overwritten, read by Crush and (as `~/.claude/rules/jarvis-memory.md`) Claude Code. In the `ai` bundle |
+| `vscode` | VS Code (FHS build, so marketplace extensions with binaries work), direnv (also enabled by `shell`), extensions for Nix, Python, Svelte, ESLint, Prettier, Tailwind, Qt/QML and Bun. `nil` and `nixpkgs-fmt` for the Nix extension. Default settings (`features/vscode/_settings.json`: no minimap, formatters for the installed extensions, the Nix language server) are copied in once and are then yours; a host that links its own file is never seeded (omen: [Dotfiles](dotfiles.md#live-linked-vs-code-settings-optional)) |
 | `python3` | Python 3 with pandas and numpy |
 | `webdev` | Node, pnpm, Bun, TypeScript and its language server, HTML/CSS/JSON/ESLint servers, Svelte language server, Prettier; global installs go to `~/.local/share/pnpm` and `~/.npm-global` (both on `PATH`) |
 
@@ -119,9 +130,11 @@ How the desktop pieces work together: [The desktop](desktop.md).
 | Module | What it sets |
 |--------|--------------|
 | `firefox` | Firefox |
+| `zen` | Zen, alongside Firefox: vertical tabs, Vim keys (Tridactyl) |
 | `libreoffice` | LibreOffice |
 | `vlc` | VLC |
-| `stremio` | The Stremio streaming server as a user service, started with the graphical session |
+| `qimgv` | An image viewer |
+| `stremio` | The Stremio streaming server as a user service, started by hand: `systemctl --user start stremio-service` |
 | `bittorrent` | qBittorrent, its listening port 51413 opened in the firewall (TCP and UDP), and a first-run config using that port |
 | `calibre` | Calibre, for converting e-books and sending them to a Kindle |
 
@@ -133,6 +146,17 @@ How the desktop pieces work together: [The desktop](desktop.md).
 |--------|--------------|
 | `audacity` | Audacity, for recording and editing audio |
 | `kdenlive` | Kdenlive, for editing video |
+| `handbrake` | HandBrake, for converting video |
+| `gimp` | GIMP |
+
+## omen's own
+
+Personal, so not in any shared bundle; omen lists them itself.
+
+| Module | What it sets |
+|--------|--------------|
+| `claude-code` | The Claude Code CLI, with the shared deny list (`agent-policy`) merged into its `settings.json`; your other settings stay yours. See [Agents](agents.md) |
+| `ai` | The bundle: Ollama (CUDA, localhost), SearXNG, Crush, `nilo-agent` (the island's agent) and `agent-memory` (`~/.local/share/jarvis/memory.md`, seeded once, read by Crush and Claude Code). See [Agents](agents.md) |
 
 ## Not used on omen
 

@@ -1,5 +1,6 @@
 { self, ... }:
 {
+  # HandBrake, to convert video.
   flake.modules.nixos.handbrake.home-manager.sharedModules = [ self.modules.homeManager.handbrake ];
 
   flake.modules.homeManager.handbrake = { pkgs, ... }: {

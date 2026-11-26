@@ -18,11 +18,11 @@
         Restart = "on-failure";
         RestartSec = 5;
       };
-      Install.WantedBy = [ "graphical-session.target" ];
+      # No WantedBy: started by hand (`systemctl --user start stremio-service`), not with every login.
     };
 
     # stremio-service copies its .desktop into ~/.config/autostart on first run unless one exists.
-    # Own that path with a hidden entry so the systemd unit above is the only launcher.
+    # Own that path with a hidden entry, so it never starts itself at login either.
     xdg.configFile."autostart/com.stremio.service.desktop".text = ''
       [Desktop Entry]
       Type=Application

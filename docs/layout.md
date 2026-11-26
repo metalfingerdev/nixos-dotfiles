@@ -42,13 +42,14 @@ Each file publishes modules under a name:
 
 ## From host to feature
 
-The host imports eleven names:
+The host imports a dozen names:
 
 ```nix
 # modules/hosts/omen/default.nix
 flake.nixosConfigurations.omen = inputs.nixpkgs.lib.nixosSystem {
   modules = with self.modules.nixos; [
     omen                # this machine: hardware, hostname, stateVersion
+    admin               # me: account and git identity, from users/
     secure-boot         # lanzaboote instead of plain systemd-boot
     amdgpu              # GPU drivers, from drivers/
     nvidia
@@ -59,6 +60,7 @@ flake.nixosConfigurations.omen = inputs.nixpkgs.lib.nixosSystem {
     apps
     editing
     ai
+    claude-code
   ];
 };
 ```
@@ -68,37 +70,38 @@ Each of those imports more names, down to single features:
 ```
 omen
 ├── omen                            hosts/omen/omen.nix
+├── admin                           users/admin (and ssh: GitHub in ~/.ssh/config)
 ├── secure-boot                     system/secure-boot
 ├── amdgpu, nvidia                  drivers/
 ├── swap                            system/swap
 ├── desktop                         system/desktop
 │   ├── core                        system/core
-│   │   ├── user                      account, git identity
 │   │   ├── bootloader                systemd-boot
 │   │   ├── nix                       flakes, unfree packages
-│   │   ├── locale                    time zone
 │   │   ├── home-manager
-│   │   ├── ssh                       GitHub in ~/.ssh/config
-│   │   └── nix-ld
+│   │   ├── nix-ld
+│   │   └── etc-nixos                 /etc/nixos as a copy of the flake
 │   ├── session                       ly, keyring, polkit, printing
 │   ├── hyprland                      with awww and quickshell
+│   ├── wallpapers                    the default pictures
 │   ├── audio, network, bluetooth, power, usb
 │   └── theme                       system/theme
 │       └── cursor, gtk, fonts
 ├── terminal                        bundles/terminal
 │   └── kitty, shell, yazi, fastfetch, utils
 ├── development                     bundles/development
-│   └── git, lazygit, neovim, vscode, claude-code, python3, webdev
+│   └── git, lazygit, neovim, vscode, python3, webdev
 ├── apps                            bundles/apps
-│   └── firefox, libreoffice, vlc, stremio, bittorrent, calibre
+│   └── firefox, zen, libreoffice, vlc, qimgv, stremio, bittorrent, calibre
 ├── editing                         bundles/editing
-│   └── audacity, kdenlive
-└── ai                              bundles/ai
-    └── ollama, searxng, crush
+│   └── audacity, kdenlive, handbrake, gimp
+├── ai                              bundles/ai
+│   └── ollama, searxng, crush, nilo-agent, agent-memory
+└── claude-code                     features/claude-code
 ```
 
 The gaming PC's host, `modules/hosts/home/default.nix`, picks from the same names:
-`[ home desktop gaming kitty shell yazi utils ]`. It leaves out `secure-boot`, so it boots
+`[ home admin desktop gaming kitty shell yazi utils ]`. It leaves out `secure-boot`, so it boots
 plain systemd-boot.
 
 A group is just a module that imports others:
@@ -123,7 +126,8 @@ A group is just a module that imports others:
 | `modules/parts.nix` | flake-parts setup: enables `flake.modules`, sets the system to `x86_64-linux` |
 | `modules/lib/` | helpers for the other modules, under `self.lib`: `optionalPatch` applies a patch only while it still matches |
 | `modules/hosts/<host>/` | `default.nix` (the `nixosConfigurations` entry and its list) and `<host>.nix` (what only that machine has, as the module `<host>`) |
-| `modules/system/core/` | what every machine needs, split into `user.nix`, `boot.nix`, `nix-settings.nix`, `locale.nix`, with `default.nix` grouping them as `core` |
+| `modules/users/<name>/` | one person each: the account and git identity (`admin`, and the template `changeme`) |
+| `modules/system/core/` | what every machine needs, split into `boot.nix`, `nix-settings.nix`, `etc-nixos.nix`, with `default.nix` grouping them as `core` |
 | `modules/system/desktop/` | `desktop`: core plus everything for the graphical session |
 | `modules/system/<name>/` | one system service each: audio, network, bluetooth, power, usb, ssh, sshd, secure-boot, session, nix-ld, home-manager, auto-upgrade, swap |
 | `modules/system/theme/` | the marin look, split into cursor, gtk and fonts |
@@ -155,7 +159,7 @@ What each one does: [What's installed](whats-installed.md).
    {
      flake.modules.nixos.docker = {
        virtualisation.docker.enable = true;
-       users.users.admin.extraGroups = [ "docker" ];
+       users.groups.docker.members = [ "admin" ]; # or extraGroups in your user module
      };
    }
    ```
@@ -206,13 +210,42 @@ See [Dotfiles](dotfiles.md) for how those inputs work.
 
 ## Adding a user
 
-Users live in `modules/system/core/user.nix` (`user`), which `core` imports. For a second account, add a
-file next to it (e.g. `core/guest.nix` defining `flake.modules.nixos.guest`), `git add` it, and add it to
-`core`'s list.
+A person is a module in `modules/users/<name>/`: the account, Home Manager's `stateVersion` and their git
+identity. Copy `modules/users/changeme`, set `user` in it, `git add` it, and list the name in each host
+they use. The module is named after the account, so `admin`'s is `admin`.
 
 Every feature's Home Manager part goes to **every** Home Manager user (`sharedModules`). For a second
 user who should get different apps, that user's module would import those Home Manager modules
 directly instead.
+
+## Per-person and per-machine values
+
+There is no custom option layer: a host sets them with NixOS's and Home Manager's own options.
+
+- **The account and git identity**: `users.users.<name>` and `home-manager.users.<name>`
+  (`home.stateVersion`, `programs.git.settings.user`). Mine are the `admin` module (`modules/users/admin`),
+  imported by omen and home; `modules/users/changeme` is the template a new person copies. No shared
+  module needs the user's name:
+  features reach every user through `home-manager.sharedModules`.
+- **Where this repo is checked out**: `home.sessionVariables.NIXOS_FLAKE`, defaulting to
+  `~/nixos-dotfiles` (`system/home-manager`). Nix only sees a store copy of the flake, so this is the one
+  value that has to be stated. The rebuild aliases, the agents' rules and the quickshell unit read the
+  option at build time.
+- **Machine-only settings** go in the host: for everyone on it through `home-manager.sharedModules`
+  (monitors, in the example), or for one person through `home-manager.users.<name>`. A host can split
+  these into files beside it, as all of them merge into its one module (`omen/vscode.nix`): omen links its VS Code
+  settings (`xdg.configFile."Code/User/settings.json"`), adds an extension
+  (`programs.vscode.profiles.default.extensions`, lists merge) and writes its monitors
+  (`xdg.configFile."hypr-host/monitors.lua"`). `time.timeZone` is set per host.
+- **Pictures**: the island ships its defaults (the quickshell repo's `assets/`); people change them in its
+  Settings, which fall back to the defaults.
+
+## Using these modules from another flake
+
+Not yet: this repo is clone-only. `flake.modules` is already an output, so
+`inputs.<this flake>.modules.nixos.<name>` would work mechanically, but these block a clean export: the Hyprland plugins are pinned to this flake's nixpkgs (a consumer's own nixpkgs
+only degrades them with warnings); the modules assume one user; `nix` sets `allowUnfree` and Nix settings
+globally; and there's no `templates` output. Until then, copy `modules/hosts/example`.
 
 ## Adding a host
 

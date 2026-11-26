@@ -5,8 +5,9 @@
   flake.modules.nixos.ollama = { pkgs, ... }: {
     services.ollama = {
       enable = true;
-      # Built from source (no third-party CUDA cache), so only for the GTX 1650 (Turing, sm_75):
-      # the default compiles every GPU generation, which takes hours and runs out of RAM.
+      # Built from source (no third-party CUDA cache), so only for omen's GTX 1650 (Turing, sm_75): the
+      # default compiles every GPU generation, which takes hours and runs out of RAM. Another card needs
+      # its own compute capability here (developer.nvidia.com/cuda-gpus: 8.6 is "sm_86").
       package = pkgs.ollama-cuda.override { cudaArches = [ "sm_75" ]; };
       # Pulled on the first start, then kept. Add more tags here (check size against 4 GB of VRAM).
       loadModels = [

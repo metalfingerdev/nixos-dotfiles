@@ -1,5 +1,6 @@
 { self, ... }:
 {
+  # Firefox, as the default browser for links and HTML files.
   flake.modules.nixos.firefox = { ... }: {
     programs.firefox.enable = true;
     home-manager.sharedModules = [ self.modules.homeManager.firefox ];

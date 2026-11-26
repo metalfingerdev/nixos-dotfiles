@@ -4,7 +4,7 @@
   # every rebuild (older copies stay with their generations until garbage collection). Only Git-tracked
   # files are in it, so not config/ (those repos are pinned inputs) and nothing untracked.
   # It also means a bare `nixos-rebuild switch` rebuilds what is already running, never the installer's
-  # old config. Edit ~/nixos-dotfiles, not this.
+  # old config. Edit the checkout ($NIXOS_FLAKE, normally ~/nixos-dotfiles), not this.
   flake.modules.nixos.etc-nixos = {
     environment.etc."nixos".source = self.outPath;
   };

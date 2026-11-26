@@ -1,5 +1,6 @@
 { self, ... }:
 {
+  # Adwaita icons for GTK apps (Thunar, Blueman, pavucontrol).
   flake.modules.nixos.gtk.home-manager.sharedModules = [ self.modules.homeManager.gtk ];
 
   flake.modules.homeManager.gtk = { pkgs, ... }: {

@@ -2,8 +2,10 @@
 {
   flake.modules.nixos.claude-code.home-manager.sharedModules = [ self.modules.homeManager.claude-code ];
 
-  flake.modules.homeManager.claude-code = { pkgs, ... }:
-    let policy = import ../agent-policy/_policy.nix; in
+  flake.modules.homeManager.claude-code = { config, lib, pkgs, ... }:
+    let
+      policy = import ../agent-policy/_policy.nix { home = config.home.homeDirectory; flake = lib.replaceStrings [ config.home.homeDirectory ] [ "~" ] config.home.sessionVariables.NIXOS_FLAKE; };
+    in
     {
       programs.claude-code = {
         enable = true;

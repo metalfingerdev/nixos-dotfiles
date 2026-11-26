@@ -1,7 +1,7 @@
 # Notes for AI agents (Crush, opencode, aider, ...)
 
 This is a NixOS flake for **omen**, an HP Omen laptop (Radeon iGPU + GTX 1650 with 4 GB VRAM, Secure Boot
-through lanzaboote, dual-boot with Windows). User: `admin`. Read `docs/layout.md` before editing.
+through lanzaboote, dual-boot with Windows). User: `admin` (`modules/users/admin`). Read `docs/layout.md` before editing.
 
 ## Layout (the dendritic pattern)
 
@@ -13,6 +13,12 @@ through lanzaboote, dual-boot with Windows). User: `admin`. Read `docs/layout.md
 - A feature with a Home Manager part brings it along with
   `flake.modules.nixos.<n>.home-manager.sharedModules = [ self.modules.homeManager.<n> ];`
   (copy `modules/features/vlc/default.nix`).
+- `modules/users/<name>/` is one person (account, git identity); `users/changeme` and `hosts/example` are
+  the templates for a new person and machine (no ai, no claude-code, no secure-boot). CI builds `example`.
+- Per-person values (account, git identity) live in the user's module, per-machine ones (time zone,
+  monitors, omen's VS Code link) in the host, both as plain NixOS and Home Manager options. Never in shared
+  modules.
+  The checkout path is `home.sessionVariables.NIXOS_FLAKE`. Never hardcode `/home/<user>`.
 - A new feature goes in a bundle's `imports`, and a bundle in the host's `modules` list.
 - Dotfiles in `config/` are separate repos (hypr, kitty, nvim, quickshell, yazi), pulled in as flake
   inputs. Do not edit them from here.

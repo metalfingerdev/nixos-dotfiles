@@ -32,43 +32,60 @@
 
    The `--option` is only needed this once; after this build `core` turns flakes on for good.
 6. Set your password with `passwd` if the account is new, and get your GitHub SSH key back to
-   `~/.ssh/id_ed25519_github` (the `ssh` module points GitHub at it).
+   `~/.ssh/id_ed25519_github` (the `ssh` module, from `users/admin`, points GitHub at it).
 7. Clone the dotfile repos into `config/` if you want to edit them
    ([Dotfiles: on a fresh machine](dotfiles.md#on-a-fresh-machine)).
 
-Clone `config/fastfetch` and `config/vscode` even if you won't edit them. The build works without them,
-but fastfetch's logo and VS Code's settings are linked from there
-([Dotfiles: live-linked repos](dotfiles.md#live-linked-repos)).
+Only omen live-links `config/vscode`
+([Dotfiles](dotfiles.md#live-linked-vs-code-settings-optional)), so clone it only if you link
+VS Code's settings the same way.
 
-## Adding a second computer
+## A friend's machine (or any new one): start from `example`
 
-`modules/hosts/home/` is already set up this way for a gaming PC; only its `_hardware.nix` (a
-placeholder for now) and its GPU driver (`amdgpu` or `nvidia`, from `modules/drivers/`) are left.
+`modules/hosts/example/` is a template: a desktop with the terminal, development and apps bundles, and
+nothing personal (no `ai`, no `claude-code`, no Secure Boot). Dual-booting Windows? Read
+[Dual-booting](dual-boot.md) first.
 
-Each machine gets its own host folder and its own name in `flake.nix`'s outputs.
-
-1. On the new machine, generate its hardware config and put it next to the host module, with a name
-   starting with `_` so import-tree skips it (it's a NixOS module, not a flake-parts one):
+1. **You**: copy the template user and make it yours. `user` is **the account the installer made**: a
+   different name is a new account with no password, and you can't log into it. Uncomment your git
+   identity there.
 
    ```sh
-   mkdir -p modules/hosts/laptop2
+   cp -r modules/users/changeme modules/users/alice      # then set user = "alice" in it
+   ```
+
+2. **The machine**: copy the host and rename `example` everywhere in it (the folder, the module name, the
+   `nixosConfigurations` name, `networking.hostName`):
+
+   ```sh
+   cp -r modules/hosts/example modules/hosts/laptop2
    nixos-generate-config --show-hardware-config > modules/hosts/laptop2/_hardware.nix
    ```
 
-2. Create `modules/hosts/laptop2/laptop2.nix` defining `flake.modules.nixos.laptop2` (module names
-   are shared across the whole flake, so each host's module is named after the host). In it, import
-   `./_hardware.nix` and set `nixpkgs.hostPlatform`, `networking.hostName` and `system.stateVersion`
-   (copy `modules/hosts/omen/omen.nix`, minus the HP-only `hp_bioscfg` line).
-3. Create `modules/hosts/laptop2/default.nix` with `flake.nixosConfigurations.laptop2` importing
-   `laptop2` plus whichever of `desktop`, `terminal`, `development`, `apps`, `gaming` it
-   should have, and its GPU driver from `modules/drivers/`. Add `secure-boot` only once its keys exist
-   ([Secure Boot: setting it up from scratch](secure-boot.md#setting-it-up-from-scratch)).
-4. `git add modules/hosts/laptop2` and build it with `--flake ~/nixos-dotfiles#laptop2`.
+   `_hardware.nix` starts with `_` so import-tree skips it.
+3. In `modules/hosts/laptop2/`:
+   - `default.nix`: replace `changeme` with your user (`alice`), and uncomment your GPU driver
+     (`amdgpu`, `nvidia`).
+   - `laptop2.nix`: `time.timeZone`; the Windows clock, monitors and the small-ESP boot options are
+     commented examples.
+4. `git add modules/users/alice modules/hosts/laptop2` (a flake can't see untracked files). There's no list of hosts to
+   edit: import-tree finds the folder.
+5. Build, then switch:
 
-Everything in `system/`, `bundles/` and `features/` is shared: both hosts pick from the same modules by
-name.
+   ```sh
+   nixos-rebuild build --flake .#laptop2
+   sudo nixos-rebuild boot --flake .#laptop2 --option experimental-features 'nix-command flakes'
+   ```
 
-Each host keeps its own hardware file in its own folder, so one machine can never pick up another's
-disks by accident.
+6. Nothing touches `~/.ssh` or rewrites git URLs for you: that's in my own module (`users/admin`, the
+   `ssh` module and an `insteadOf`). Copy those lines into yours if you want GitHub over SSH.
+7. The island brings its own wallpaper and lock screen pictures, so they appear on first login. Add your own
+   images to `~/Pictures/Wallpapers`.
+
+Everything in `system/`, `bundles/` and `features/` is shared, so every host picks from the same names.
+Each host keeps its own hardware file in its own folder.
+
+The `ai` bundle and `claude-code` are personal and in no shared bundle: add them to the host's list
+like omen does.
 
 [← Secure Boot](secure-boot.md) · [Next: Troubleshooting →](troubleshooting.md)
