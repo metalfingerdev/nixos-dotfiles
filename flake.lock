@@ -72,11 +72,11 @@
     "hypr": {
       "flake": false,
       "locked": {
-        "lastModified": 1795717555,
-        "narHash": "sha256-xlMY834D3brazI5UtuMk4DpMeVHOYKJTBZ7uDUKt0Tk=",
+        "lastModified": 1795728185,
+        "narHash": "sha256-0yYXDNiyWQjf6WbVaVnOP2hR55FlllzMJrz8ZAmPHGE=",
         "owner": "metalfingerdev",
         "repo": "hypr",
-        "rev": "558f271f1afc9a83d894150af72bbe53d16d259e",
+        "rev": "42e8dad17f526616a5b9a012a61bb902af375ba4",
         "type": "github"
       },
       "original": {
@@ -120,11 +120,11 @@
     "kitty": {
       "flake": false,
       "locked": {
-        "lastModified": 1795705062,
-        "narHash": "sha256-/m+2/8J6oasmQgKgMgNAOHj835l3TW6Q7XNf2MmV36E=",
+        "lastModified": 1795728185,
+        "narHash": "sha256-mZ43Vz1TNLpzy3yvB1L6bsnejYxhqfbTLWhOvPuIVx8=",
         "owner": "metalfingerdev",
         "repo": "kitty",
-        "rev": "52c4d9eeac2a42fe717ad3ee1faea28d4cf7649f",
+        "rev": "49efd36e595de07c1df8067aded406097f1e7e50",
         "type": "github"
       },
       "original": {
@@ -188,11 +188,11 @@
     "nvim": {
       "flake": false,
       "locked": {
-        "lastModified": 1795705066,
-        "narHash": "sha256-DNg8JZ9jAIgSAC3Ael5JpskSJkPvZu/FwRiH+A/SFFs=",
+        "lastModified": 1795728174,
+        "narHash": "sha256-qRvzERSgterxG8Ip2aEY6FCB62jaQ7rgLZVqBhSvxbI=",
         "owner": "metalfingerdev",
         "repo": "nvim",
-        "rev": "4fdf522b26067bc17623c8d86b9f0917291d1ddd",
+        "rev": "7127765b9f5fe510f038cbf438a105d3f5fdb71a",
         "type": "github"
       },
       "original": {
@@ -226,11 +226,11 @@
     "quickshell": {
       "flake": false,
       "locked": {
-        "lastModified": 1795726154,
-        "narHash": "sha256-6HrE4OFX8KcE9/HkwnHucspQOwiMHz+EwihG8QW6m4c=",
+        "lastModified": 1795728159,
+        "narHash": "sha256-mvFRcvkjIzNRTlKeIP8Y1LERqPqZHBpHG/3I1ybFAwI=",
         "owner": "metalfingerdev",
         "repo": "quickshell",
-        "rev": "caca65a0dfd64f8759d3069ab4678f5c00879891",
+        "rev": "b0a44e783aba1c90c739da0d31f9bfd89d6c97e3",
         "type": "github"
       },
       "original": {
@@ -279,11 +279,11 @@
     "yazi": {
       "flake": false,
       "locked": {
-        "lastModified": 1794747596,
-        "narHash": "sha256-lr5sew8DLMS364E01qmgFwpWB371DRUjgADXh2RnY7o=",
+        "lastModified": 1795728185,
+        "narHash": "sha256-K82gAVX9xRWmydAuCN03XOm+e8Xqhhx0KiezqVXwX6c=",
         "owner": "metalfingerdev",
         "repo": "yazi",
-        "rev": "7ba9d39abb573db4556a259d0c2348f3ec48baf8",
+        "rev": "a028a76a47d71adedcd08900dabf64e411e6f70b",
         "type": "github"
       },
       "original": {
