@@ -15,7 +15,7 @@
       development
       apps
       editing
-      agents              # the local LLM stack: Ollama, SearXNG, Crush, the island's agent
+      agent               # the local LLM stack: Ollama, SearXNG, Crush, the island's agent
       ai                  # Claude Code and Antigravity
     ];
   };

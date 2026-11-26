@@ -27,7 +27,7 @@ Everything below is for `omen`.
 warning. For `admin` on this machine only: the panel's `eDP-1` 1920x1080@144 mode (`~/.config/hypr-host/monitors.lua`), and in `omen/vscode.nix` VS Code's settings linked live to
 `config/vscode`, the Claude Code extension, and a wrapper that keeps VS Code on the Radeon so the offloaded
 GeForce can power down. Its list also
-adds `admin` (below) and the `agents` and `ai` bundles.
+adds `admin` (below) and the `agent` and `ai` bundles.
 It also sets up hybrid graphics (PRIME offload): the desktop runs on the Radeon iGPU, and the GeForce
 stays powered off until you start an app on it with `nvidia-offload <app>`.
 
@@ -155,7 +155,7 @@ Personal, so not in any shared bundle; omen lists them itself.
 
 | Module | What it sets |
 |--------|--------------|
-| `agents` | The local LLM bundle: Ollama (CUDA, localhost), SearXNG, Crush, `nilo-agent` (the island's agent) and `agent-memory` (`~/.local/share/jarvis/memory.md`, seeded once, read by Crush and Claude Code). See [Agents](agents.md) |
+| `agent` | The local LLM bundle: Ollama (CUDA, localhost), SearXNG, Crush, `nilo-agent` (the island's agent) and `agent-memory` (`~/.local/share/jarvis/memory.md`, seeded once, read by Crush and Claude Code). See [Agents](agents.md) |
 | `ai` | Cloud coding agents: `claude-code` (the CLI, with the shared deny list from `agent-policy` merged into its `settings.json`) and `antigravity` (Google's editor and its CLI). See [Agents](agents.md) |
 
 ## Not used on omen

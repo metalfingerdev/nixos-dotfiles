@@ -43,7 +43,7 @@ VS Code's settings the same way.
 ## A friend's machine (or any new one): start from `example`
 
 `modules/hosts/example/` is a template: a desktop with the terminal, development and apps bundles, and
-nothing personal (no `agents` or `ai` bundle, no Secure Boot). Dual-booting Windows? Read
+nothing personal (no `agent` or `ai` bundle, no Secure Boot). Dual-booting Windows? Read
 [Dual-booting](dual-boot.md) first.
 
 1. **You**: copy the template user and make it yours. `user` is **the account the installer made**: a
@@ -85,7 +85,7 @@ nothing personal (no `agents` or `ai` bundle, no Secure Boot). Dual-booting Wind
 Everything in `system/`, `bundles/` and `features/` is shared, so every host picks from the same names.
 Each host keeps its own hardware file in its own folder.
 
-The `agents` bundle (local models) and the `ai` bundle (Claude Code, Antigravity) are personal: add them
+The `agent` bundle (local models) and the `ai` bundle (Claude Code, Antigravity) are personal: add them
 to the host's list like omen does.
 
 [← Secure Boot](secure-boot.md) · [Next: Troubleshooting →](troubleshooting.md)
