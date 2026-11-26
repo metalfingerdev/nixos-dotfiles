@@ -1,8 +1,7 @@
 { self, ... }:
 {
   # Adwaita icons for GTK apps (Thunar, Blueman, pavucontrol), and the fonts of system/theme/fonts.nix
-  # named where GTK keeps its own setting instead of asking fontconfig. Qt apps take the same through GTK
-  # (system/session names the desktop GNOME too, which makes Qt follow GTK's settings).
+  # named where GTK keeps its own setting instead of asking fontconfig.
   flake.modules.nixos.gtk.home-manager.sharedModules = [ self.modules.homeManager.gtk ];
 
   flake.modules.homeManager.gtk = { pkgs, ... }: {
