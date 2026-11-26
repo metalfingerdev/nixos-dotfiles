@@ -66,7 +66,12 @@
           Restart = "on-failure";
           RestartSec = 1;
           # user units don't get the shell's session variables (Generations.qml reads it)
-          Environment = [ "NIXOS_FLAKE=${config.home.sessionVariables.NIXOS_FLAKE}" ];
+          Environment = [
+            "NIXOS_FLAKE=${config.home.sessionVariables.NIXOS_FLAKE}"
+            # The session also names GNOME (system/session), and Qt would then load GTK's theme: other
+            # fonts and icons than the island is drawn for. Apps it starts (`uwsm app`) still get GNOME.
+            "XDG_CURRENT_DESKTOP=Hyprland"
+          ];
         };
         Install.WantedBy = [ "graphical-session.target" ];
       };
