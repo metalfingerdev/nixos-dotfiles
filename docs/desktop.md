@@ -98,6 +98,7 @@ Super is the Windows key.
 | Super + Tab | Workspaces overview |
 | Super + G | Dashboard |
 | Super + I | Settings |
+| Super + Shift + / | These keybinds, as a list in the island |
 | Super + B | Bluetooth |
 | Super + Y | Network |
 | Super + N | Notifications |
