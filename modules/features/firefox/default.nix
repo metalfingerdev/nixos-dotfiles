@@ -6,8 +6,10 @@
     home-manager.sharedModules = [ self.modules.homeManager.firefox ];
   };
 
-  flake.modules.homeManager.firefox = { config, lib, ... }: {
-    # The package comes from programs.firefox above; this only manages the profile.
+  flake.modules.homeManager.firefox = { lib, ... }: {
+    # The package comes from programs.firefox above; this only manages the profile. Home Manager makes
+    # a new, empty profile: if you already have one, set programs.firefox.profiles.default.path to its
+    # folder in your host (see modules/hosts/omen/omen.nix), or you start signed out.
     programs.firefox = {
       enable = true;
       package = null;
@@ -15,17 +17,17 @@
         isDefault = true;
         # userContent.css is ignored unless this pref is on.
         settings."toolkit.legacyUserProfileCustomizations.stylesheets" = true;
-        # The new tab page's default wallpaper: zero specificity and no !important, so a wallpaper the
-        # user picks in Firefox's own customise panel wins over it. The URL is relative to the stylesheet, so the picture sits
-        # next to it (home.file below). From assets/ (see assets/README.md), so it travels with the repo.
+        # The new tab page paints its wallpaper from the CSS variable --newtab-wallpaper (its own `body`
+        # rule, which beats any user stylesheet). So this sets only the variable: the page's own value,
+        # when the user picks a wallpaper in Firefox's customise panel, overrides it. The picture is read
+        # from the store (assets/README.md), so it travels with the repo.
         userContent = ''
           @-moz-document url(about:home), url(about:newtab) {
-            :where(body) { background: url("wallpaper.gif") center / cover no-repeat fixed; }
+            :root { --newtab-wallpaper: url("file://${../../../assets/firefox/marin.gif}"); }
           }
         '';
       };
     };
-    home.file."${config.programs.firefox.configPath}/${config.programs.firefox.profiles.default.path}/chrome/wallpaper.gif".source = ../../../assets/firefox/marin.gif;
 
     xdg.mimeApps.defaultApplications = lib.genAttrs [
       "x-scheme-handler/http" "x-scheme-handler/https" "x-scheme-handler/chrome"
