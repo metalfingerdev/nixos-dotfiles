@@ -73,6 +73,11 @@
           user = "greeter";
         };
       };
+      # Where the island leaves what you chose for the login screen (Settings, Lock screen): the greeter user
+      # can't open your home, so the pictures are copied here, by you, with no root. Empty or missing, the
+      # shipped pictures show.
+      systemd.tmpfiles.rules = [ "d /var/lib/island-greeter 0755 ${user} users -" ];
+
       # the keyring unlocks with the login password, as it does under ly
       security.pam.services.greetd.enableGnomeKeyring = true;
     };
