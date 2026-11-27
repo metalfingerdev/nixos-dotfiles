@@ -16,7 +16,6 @@
       shellAliases = {
         btw = "echo I use NixOS btw";
         try = "sudo nixos-rebuild test --flake ${flake}";
-        rebuild = "sudo nixos-rebuild switch --flake ${flake}";
         boot = "sudo nixos-rebuild boot --flake ${flake}";
         build = "nixos-rebuild build --flake ${flake}";
         # Delete every old generation, then rewrite the boot menu for the newest without rebuilding
@@ -34,14 +33,28 @@
     programs.zoxide.enable = true; # `z` jumps to directories by frecency
     programs.bat.enable = true;
 
-    # The command-line toolbox; `nix shell nixpkgs#<tool>` covers anything else
-    home.packages = with pkgs; [
+    # `rebuild` also tells the island's activity (Activities.qml), which shows it while it runs and says how
+    # it ended. The calls are best effort (no island running changes nothing) and the exit status is the
+    # rebuild's own. The command-line toolbox follows; `nix shell nixpkgs#<tool>` covers anything else.
+    home.packages = [
+      (pkgs.writeShellScriptBin "rebuild" ''
+        ipc() { quickshell ipc call activity "$@" > /dev/null 2>&1 || true; }
+        ipc start rebuild Rebuilding
+        if sudo nixos-rebuild switch --flake ${flake} "$@"; then
+          ipc done rebuild
+        else
+          status=$?
+          ipc failed rebuild
+          exit "$status"
+        fi
+      '')
+    ] ++ (with pkgs; [
       ripgrep
       fd
       tree
       sqlite
       uv
       shellcheck
-    ];
+    ]);
   };
 }

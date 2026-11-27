@@ -4,7 +4,7 @@
 
 ## Logging in
 
-The ly login screen starts on boot. Pick the Hyprland (UWSM) session and log in as `admin`. Your
+The ly login screen starts on boot. The island also ships a graphical login screen (`config/quickshell/greeter`), off by default: add `island-greeter` to a host's modules list to use it instead of ly (it falls back to a text greeter if Quickshell doesn't start), and remove it to go back. Pick the Hyprland (UWSM) session and log in as `admin`. Your
 login also unlocks GNOME Keyring, where apps keep saved passwords.
 
 ## What starts with the session
