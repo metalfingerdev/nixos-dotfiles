@@ -156,6 +156,22 @@
         "type": "github"
       }
     },
+    "nilo-agent": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795766687,
+        "narHash": "sha256-IhfDi1mecnSA17dGSXs3N3amR1XzrduDr/ChnXNeK1U=",
+        "owner": "metalfingerdev",
+        "repo": "nilo-agent",
+        "rev": "e05cc105c36b84eda3e63857a9be2dd10b56d5bb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "metalfingerdev",
+        "repo": "nilo-agent",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1795234589,
@@ -226,11 +242,11 @@
     "quickshell": {
       "flake": false,
       "locked": {
-        "lastModified": 1795759675,
-        "narHash": "sha256-3ZqzALmUyZZLC9d5TffBa3IgUvbgteyRoMzNsAtPi7Y=",
+        "lastModified": 1795766866,
+        "narHash": "sha256-I92+rz224hnXZIgixd/n5gB07j0YI9MecgWwojTWVRQ=",
         "owner": "metalfingerdev",
         "repo": "quickshell",
-        "rev": "4e2f18146aa028f41edb95d9c25d39ff6953ec2b",
+        "rev": "30c4ecc0a54b61b69be2ac44b6ab2a24c056ec78",
         "type": "github"
       },
       "original": {
@@ -248,6 +264,7 @@
         "import-tree": "import-tree",
         "kitty": "kitty",
         "lanzaboote": "lanzaboote",
+        "nilo-agent": "nilo-agent",
         "nixpkgs": "nixpkgs",
         "nvim": "nvim",
         "quickshell": "quickshell",

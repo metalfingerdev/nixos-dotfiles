@@ -35,6 +35,9 @@
     nvim = { url = "github:metalfingerdev/nvim"; flake = false; };
     quickshell = { url = "github:metalfingerdev/quickshell"; flake = false; };
     yazi = { url = "github:metalfingerdev/yazi"; flake = false; };
+
+    # The island agent's program and context (modules/features/nilo-agent runs it).
+    nilo-agent = { url = "github:metalfingerdev/nilo-agent"; flake = false; };
   };
 
   outputs = inputs:

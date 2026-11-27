@@ -6,10 +6,14 @@
 |---|---|---|
 | Claude Code (`claude`) | real work on the flake and the island: reads `CLAUDE.md`, which imports `AGENTS.md` | Anthropic (your login) |
 | Crush (`crush`) | quick terminal tasks with no cloud | the local Ollama (`qwen3.5:2b`, 8k window) |
-| The island's `?` agent (`nilo-agent`) | looking things up, opening apps; kept at its chat level | the local Ollama |
+| The island's `?` agent (`nilo-agent`) | looking things up and opening apps (Chat); files, git and commands in one repo (Terminal); windows, screen, keys and quick controls (System). Every change, command and desktop action asks first | the local Ollama |
 
 The local model and Claude are kept apart on purpose: nothing sends local content to the cloud. If you want
 Claude's help with something the local model wrote, paste it into Claude Code yourself.
+
+The agent is its own repo, `metalfingerdev/nilo-agent` (checked out in `config/nilo-agent`, a flake input like
+the dotfiles): a fork of Nihil-Shell's Nilo. Change it there, push, then `nix flake update nilo-agent`. Its
+access level is set in the island's conversation.
 
 ## Shared pieces
 
@@ -23,7 +27,7 @@ Claude's help with something the local model wrote, paste it into Claude Code yo
   island agent's own notes are separate (`~/.config/nihil/nilo.md`, the Notes button in the conversation).
 - Skills in `.claude/skills/` (loaded by Claude Code in this repo): `add-nix-feature`, and `prompt-budget`
   (`PYTHONDONTWRITEBYTECODE=1 python3 -I .claude/skills/prompt-budget/measure.py chat --baseline N`).
-  Chat-level baseline: 2,549 characters, about 637 tokens, for the island agent's prompt and tool schemas.
+  Chat-level baseline: 2,546 characters, about 636 tokens, for the island agent's prompt and tool schemas.
 
 ## Rules for agents
 

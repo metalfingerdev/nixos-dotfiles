@@ -11,7 +11,7 @@ import importlib.util, json, os, pathlib, sys, tempfile, types
 os.environ["HOME"] = tempfile.mkdtemp()
 os.environ.pop("XDG_CONFIG_HOME", None)
 
-agent = pathlib.Path(__file__).resolve().parents[3] / "modules/features/nilo-agent/agent.py"
+agent = pathlib.Path(__file__).resolve().parents[3] / "config/nilo-agent/agent.py"
 spec = importlib.util.spec_from_file_location("nilo_agent", agent)
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
