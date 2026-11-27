@@ -76,7 +76,7 @@ stays powered off until you start an app on it with `nvidia-offload <app>`.
 
 | Module | Folder | What it sets |
 |--------|--------|--------------|
-| `session` | `system/session/` | The **ly** login screen, GNOME Keyring (unlocked at login), polkit, touchpad support (libinput), printing (CUPS) |
+| `session` | `system/session/` | The ly login screen, GNOME Keyring (unlocked at login), polkit, touchpad support (libinput), printing (CUPS) |
 | `hyprland` | `features/hyprland/` | Hyprland with XWayland, started through UWSM, bringing in `awww` and `quickshell`, which its config starts; deploys `~/.config/hypr` from the [hypr repo](dotfiles.md); builds and installs the `hypr-window-rotate` plugin (with a patch so rotated picture-in-picture video isn't cut off) and the `hyprglass` liquid glass plugin, each left out with a warning when nixpkgs' Hyprland isn't the one it was written for |
 | `awww` | `features/awww/` | The `awww` wallpaper daemon |
 | `quickshell` | `features/quickshell/` | Quickshell (with extra image formats; the island brings its own default wallpaper, lock pictures and look) as a systemd user service that restarts on a crash, the island config from the [quickshell repo](dotfiles.md), `hyprsunset` (night light), `wf-recorder` (screen recording), the clipboard history, the colour picker and `island-calendar` |

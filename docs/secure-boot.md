@@ -20,7 +20,7 @@ host list; a host without it boots plain systemd-boot (`bootloader`, part of `co
   counts toward the limit, so 1 would leave every new build out of the menu): omen's EFI
   partition is only 196 MB, Windows 11's boot manager lives there too, and each kernel and initrd takes
   about 45 MB of it. Lanzaboote only ever deletes its own files (`EFI/nixos`, `EFI/Linux/nixos-*`).
-- systemd-boot finds Windows on the same partition and lists it as **Windows Boot Manager**.
+- systemd-boot finds Windows on the same partition and lists it as Windows Boot Manager.
 
 ## Checking it
 
@@ -49,17 +49,33 @@ A "Secure Boot violation" or a refused image at startup means something wasn't s
 Don't delete `/var/lib/sbctl`. Without those keys, new generations can't be signed with the keys the
 firmware trusts.
 
+## Small or separate ESP
+
+lanzaboote puts the boot manager, kernels and signed images all on one ESP, the one at
+`boot.loader.efi.efiSysMountPoint`. It has no XBOOTLDR support, so the separate `/boot` layout from
+[Dual-booting](dual-boot.md#the-efi-partition-and-boot) doesn't work with `secure-boot`. If Windows' ESP is too
+small (100 MB), give NixOS its own:
+
+- Make a 1 GB FAT32 partition in the free space and mount it at `/boot`. Leave Windows' ESP alone.
+- Raise `boot.lanzaboote.configurationLimit` above the 2 that omen uses. The default is 10.
+- systemd-boot only scans its own ESP, so Windows won't appear in its menu. Boot it from the firmware's
+  boot menu, or set it as the default there.
+- Keep Microsoft's keys when enrolling (`sbctl enroll-keys --microsoft`), or the firmware refuses
+  Windows' boot manager.
+
+I haven't tried this layout on real hardware.
+
 ## Setting it up from scratch
 
 For a reinstall or a new machine. Follow the order: enrolling keys before the system is signed would
 leave it unbootable.
 
-1. Install and boot NixOS **without** lanzaboote first: leave `secure-boot` out of the host's list
+1. Install and boot NixOS without lanzaboote first: leave `secure-boot` out of the host's list
    (`modules/hosts/<host>/default.nix`), so plain systemd-boot is used.
 2. Make the keys: `sudo sbctl create-keys` (they go to `/var/lib/sbctl`).
 3. Add `secure-boot` to the list, rebuild with `boot`, and run `sudo sbctl verify`. The NixOS files
    should be signed, as in [Checking it](#checking-it).
-4. Reboot into the firmware settings, clear the Secure Boot keys / enable **Setup Mode**, then boot back
+4. Reboot into the firmware settings, clear the Secure Boot keys / enable Setup Mode, then boot back
    in.
 5. Enroll: `sudo sbctl enroll-keys --microsoft` (keeps Microsoft's keys so Windows 11, firmware updates and
    option ROMs still load).

@@ -49,7 +49,7 @@ omen's VS Code settings are linked live from `config/vscode`, so they never need
 
 Updating inputs one by one means that if something breaks, you know which one did it.
 
-**0. Start clean.**
+0. Start clean.
 
 ```sh
 cd ~/nixos-dotfiles
@@ -57,7 +57,7 @@ git status        # nothing uncommitted
 git pull
 ```
 
-**1. The loop, for each input:**
+1. The loop, for each input:
 
 ```sh
 nix flake update nixpkgs                               # one input, by name
@@ -70,9 +70,9 @@ Once it works, `git commit -am "update nixpkgs" && git push`. Push only what wor
 builds whatever is pushed. If it's broken, pick the previous
 generation in the boot menu, `git restore flake.lock`, and `boot` again.
 
-**2. In this order:**
+2. In this order:
 
-1. **`nixpkgs`**: the big one; use `boot` and reboot, since it usually brings a new kernel and
+1. `nixpkgs`: the big one; use `boot` and reboot, since it usually brings a new kernel and
    Hyprland. Then:
    - If Hyprland moved to a new minor version, the rebuild still works but warns "hypr-window-rotate
      … is for Hyprland 0.57, but nixpkgs has …": the plugin is left out, so windows don't rotate until
@@ -80,21 +80,21 @@ generation in the boot menu, `git restore flake.lock`, and `boot` again.
      github.com/dox187/hypr-window-rotate/tags (without the `v`) and `hash = lib.fakeHash;`, `build`,
      and paste the hash the error prints.
    - `sudo sbctl verify`: the NixOS files signed ([which ones](secure-boot.md#checking-it)).
-2. **`home-manager`**: `rebuild` is enough.
-3. **`lanzaboote`**: `boot`, then **`sudo sbctl verify` before rebooting**.
-4. **`flake-parts`**, then **`import-tree`**: just `build`. If `diff-closures` prints nothing, nothing
+2. `home-manager`: `rebuild` is enough.
+3. `lanzaboote`: `boot`, then `sudo sbctl verify` before rebooting.
+4. `flake-parts`, then `import-tree`: just `build`. If `diff-closures` prints nothing, nothing
    changed: commit the lock and move on.
-5. **Your dotfile repos**, only after you've pushed changes to them:
+5. Your dotfile repos, only after you've pushed changes to them:
    `nix flake update hypr quickshell` (whichever you changed), `rebuild`, then Super + R for Hyprland
    and the island.
 
-**3. Optional:**
+3. Optional:
 
 - The VS Code marketplace extensions (`qt-core`, `qt-qml`, `bun-vscode`) are pinned by version and hash
   in `modules/features/vscode/default.nix`. Bump them the same way as the plugin, with `lib.fakeHash`.
 - Once everything works, `clean` deletes every older generation and rewrites the boot menu.
 
-**4. The gaming PC** gets what you pushed with `git pull && rebuild` in `~/nixos-dotfiles` there.
+4. The gaming PC gets what you pushed with `git pull && rebuild` in `~/nixos-dotfiles` there.
 
 ### Everything at once
 

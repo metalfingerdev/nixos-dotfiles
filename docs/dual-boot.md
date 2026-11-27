@@ -6,24 +6,24 @@ Install NixOS beside Windows without losing it. Do the steps in order.
 
 ## Before touching disks
 
-1. **Back up** what matters. Resizing a disk is safe, but a typo is not.
-2. **Save the BitLocker recovery key** (account.microsoft.com/devices/recoverykey). Changing boot
+1. Back up what matters. Resizing a disk is safe, but a typo is not.
+2. Save the BitLocker recovery key (account.microsoft.com/devices/recoverykey). Changing boot
    settings or partitions can make Windows ask for it at next boot.
-3. In Windows, turn off **Fast Startup** (Control Panel → Power Options → Choose what the power buttons
+3. In Windows, turn off Fast Startup (Control Panel → Power Options → Choose what the power buttons
    do) and hibernation (`powercfg /h off` in an admin terminal). Otherwise Windows leaves its disk
    half-mounted and NixOS can't safely touch it.
-4. **Shrink the Windows partition from Windows** (Disk Management → right-click C: → Shrink Volume). Leave
+4. Shrink the Windows partition from Windows (Disk Management → right-click C: → Shrink Volume). Leave
    the space unallocated: 60 GB at least, more for a big Nix store. Don't create partitions here.
 
 ## The EFI partition and /boot
 
-Windows' EFI System Partition (ESP) is usually **100 MB**, shared by every OS. A NixOS generation puts
+Windows' EFI System Partition (ESP) is usually 100 MB, shared by every OS. A NixOS generation puts
 ~45 MB (kernel + initrd) on it, so it fills after two. Pick one:
 
-- **Big ESP** (omen's is 196 MB): keep everything on it and keep few generations. Set
+- Big ESP (omen's is 196 MB): keep everything on it and keep few generations. Set
   `boot.loader.systemd-boot.configurationLimit` (the `example` host sets 3). Check `df -h /boot` after the
   first build.
-- **Separate `/boot` (XBOOTLDR), recommended for 100 MB ESPs**: in the installer's partitioner create a
+- Separate `/boot` (XBOOTLDR), recommended for 100 MB ESPs: in the installer's partitioner create a
   1 GB FAT32 partition in the free space, mounted at `/boot`, and mount the existing Windows ESP at
   `/efi` (never format it). `nixos-generate-config` only writes the two `fileSystems` entries, so you
   must also tell the boot loader in your host's `<host>.nix`:
@@ -37,11 +37,15 @@ Windows' EFI System Partition (ESP) is usually **100 MB**, shared by every OS. A
   own docs recommend exactly these mount points (checked with `nix eval`). I haven't installed this
   layout on real hardware: do the first build with `nixos-rebuild build`, and boot only once it succeeds.
 
+  This works with plain systemd-boot only. lanzaboote (the `secure-boot` module) has no XBOOTLDR support and
+  keeps everything on one ESP. With Secure Boot you need a second ESP for NixOS instead, see
+  [Secure Boot](secure-boot.md#small-or-separate-esp).
+
 ## Installing
 
-1. Turn **Secure Boot off** in the firmware: the NixOS ISO isn't signed for it. Boot the ISO.
+1. Turn Secure Boot off in the firmware: the NixOS ISO isn't signed for it. Boot the ISO.
 2. Install into the free space (manual partitioning: `/` as ext4, the `/boot` above, the Windows ESP at
-   `/efi`, no changes to Windows partitions). Remember the **user name** you create.
+   `/efi`, no changes to Windows partitions). Remember the user name you create.
 3. Follow [A new machine](new-machine.md): copy `modules/users/changeme` and `modules/hosts/example`, and set
    `user` to that same name, replace `_hardware.nix` and build.
 4. Windows keeps its clock in local time, NixOS in UTC, so each flips the other's. Fix it on the NixOS

@@ -13,15 +13,15 @@ Claude's help with something the local model wrote, paste it into Claude Code yo
 
 ## Shared pieces
 
-- **Deny list** `modules/features/agent-policy/_policy.nix`: `nixos-rebuild switch|boot|test`, garbage
+- Deny list `modules/features/agent-policy/_policy.nix`: `nixos-rebuild switch|boot|test`, garbage
   collection, `sudo`/`doas`/`pkexec` and `rm -rf` on `/`, `~` and the repo. Crush reads it as
   `blocked_commands` (by command name, so it asks before a build too), Claude Code as `permissions.deny`,
   merged into `~/.claude/settings.json` on switch (`mutableSettings`). Prefix patterns, not a sandbox: the
   real stops are the sudo password and you running the switch.
-- **Memory** `~/.local/share/jarvis/memory.md`: yours, created once, never overwritten. Keep it under about
+- Memory `~/.local/share/jarvis/memory.md`: yours, created once, never overwritten. Keep it under about
   1,000 tokens: it is read at the start of every session, out of the local model's small window. The
   island agent's own notes are separate (`~/.config/nihil/nilo.md`, the Notes button in the conversation).
-- **Skills** in `.claude/skills/` (loaded by Claude Code in this repo): `add-nix-feature`, and `prompt-budget`
+- Skills in `.claude/skills/` (loaded by Claude Code in this repo): `add-nix-feature`, and `prompt-budget`
   (`PYTHONDONTWRITEBYTECODE=1 python3 -I .claude/skills/prompt-budget/measure.py chat --baseline N`).
   Chat-level baseline: 2,549 characters, about 637 tokens, for the island agent's prompt and tool schemas.
 

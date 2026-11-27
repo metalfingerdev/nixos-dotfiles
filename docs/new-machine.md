@@ -46,7 +46,7 @@ VS Code's settings the same way.
 nothing personal (no `agent` or `ai` bundle, no Secure Boot). Dual-booting Windows? Read
 [Dual-booting](dual-boot.md) first.
 
-1. **You**: copy the template user and make it yours. `user` is **the account the installer made**: a
+1. You: copy the template user and make it yours. `user` is the account the installer made: a
    different name is a new account with no password, and you can't log into it. Uncomment your git
    identity there.
 
@@ -54,7 +54,7 @@ nothing personal (no `agent` or `ai` bundle, no Secure Boot). Dual-booting Windo
    cp -r modules/users/changeme modules/users/alice      # then set user = "alice" in it
    ```
 
-2. **The machine**: copy the host and rename `example` everywhere in it (the folder, the module name, the
+2. The machine: copy the host and rename `example` everywhere in it (the folder, the module name, the
    `nixosConfigurations` name, `networking.hostName`):
 
    ```sh

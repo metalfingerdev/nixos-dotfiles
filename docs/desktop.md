@@ -4,7 +4,7 @@
 
 ## Logging in
 
-The **ly** login screen starts on boot. Pick the Hyprland (UWSM) session and log in as `admin`. Your
+The ly login screen starts on boot. Pick the Hyprland (UWSM) session and log in as `admin`. Your
 login also unlocks GNOME Keyring, where apps keep saved passwords.
 
 ## What starts with the session
@@ -15,7 +15,7 @@ Hyprland's config lives in the [hypr repo](dotfiles.md), deployed to `~/.config/
 - `awww-daemon`, the wallpaper daemon
 - `quickshell`, the island (top bar), notifications and lock screen
 
-**Super + R** reloads Hyprland's config and restarts both, waiting until the old ones have quit. Use it
+Super + R reloads Hyprland's config and restarts both, waiting until the old ones have quit. Use it
 after a rebuild that changed the hypr or quickshell config.
 
 `autoload.lua` runs every `.lua` file under `modules/` in path order. A file that errors shows a
@@ -70,7 +70,7 @@ Super is the Windows key.
 | Super + Space | Switch focus between tiled and floating windows |
 | Super + Ctrl + Space | Pseudo-tile |
 | Super + Alt + Space | Toggle split direction |
-| Super + A | Pin window **and** peek the island (two binds share this key) |
+| Super + A | Pin window and peek the island (two binds share this key) |
 | Super + Arrows or H/J/K/L | Move focus |
 | Super + Shift + Arrows or H/J/K/L | Move window |
 | Super + Alt + Arrows or H/J/K/L | Resize (hold to repeat) |

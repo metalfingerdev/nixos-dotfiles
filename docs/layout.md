@@ -2,8 +2,7 @@
 
 [Docs index](README.md)
 
-This flake follows the **dendritic pattern**, laid out like
-[voidarc's config](https://git.voidarc.co.uk/voidarc/nixos). Every file is a small
+This flake follows the dendritic pattern. Every file is a small
 [flake-parts](https://flake.parts) module that publishes named NixOS (and Home Manager) modules. Small
 modules are grouped into bigger ones, and the host imports a handful of names. Files never import each
 other by path.
@@ -17,7 +16,7 @@ outputs = inputs:
   inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
 ```
 
-import-tree loads **every `.nix` file under `modules/`**, in any subfolder, except paths with a part
+import-tree loads every `.nix` file under `modules/`, in any subfolder, except paths with a part
 starting with `_` (e.g. `_notes.nix` or `_old/`). Folders are only for you to find things.
 
 Each file publishes modules under a name:
@@ -215,7 +214,7 @@ A person is a module in `modules/users/<name>/`: the account, Home Manager's `st
 identity. Copy `modules/users/changeme`, set `user` in it, `git add` it, and list the name in each host
 they use. The module is named after the account, so `admin`'s is `admin`.
 
-Every feature's Home Manager part goes to **every** Home Manager user (`sharedModules`). For a second
+Every feature's Home Manager part goes to every Home Manager user (`sharedModules`). For a second
 user who should get different apps, that user's module would import those Home Manager modules
 directly instead.
 
@@ -223,22 +222,22 @@ directly instead.
 
 There is no custom option layer: a host sets them with NixOS's and Home Manager's own options.
 
-- **The account and git identity**: `users.users.<name>` and `home-manager.users.<name>`
+- The account and git identity: `users.users.<name>` and `home-manager.users.<name>`
   (`home.stateVersion`, `programs.git.settings.user`). Mine are the `admin` module (`modules/users/admin`),
   imported by omen and home; `modules/users/changeme` is the template a new person copies. No shared
   module needs the user's name:
   features reach every user through `home-manager.sharedModules`.
-- **Where this repo is checked out**: `home.sessionVariables.NIXOS_FLAKE`, defaulting to
+- Where this repo is checked out: `home.sessionVariables.NIXOS_FLAKE`, defaulting to
   `~/nixos-dotfiles` (`system/home-manager`). Nix only sees a store copy of the flake, so this is the one
   value that has to be stated. The rebuild aliases, the agents' rules and the quickshell unit read the
   option at build time.
-- **Machine-only settings** go in the host: for everyone on it through `home-manager.sharedModules`
+- Machine-only settings go in the host: for everyone on it through `home-manager.sharedModules`
   (monitors, in the example), or for one person through `home-manager.users.<name>`. A host can split
   these into files beside it, as all of them merge into its one module (`omen/vscode.nix`): omen links its VS Code
   settings (`xdg.configFile."Code/User/settings.json"`), adds an extension
   (`programs.vscode.profiles.default.extensions`, lists merge) and writes its monitors
   (`xdg.configFile."hypr-host/monitors.lua"`). `time.timeZone` is set per host.
-- **Pictures**: the island ships its defaults (the quickshell repo's `assets/`); people change them in its
+- Pictures: the island ships its defaults (the quickshell repo's `assets/`); people change them in its
   Settings, which fall back to the defaults.
 
 ## Using these modules from another flake

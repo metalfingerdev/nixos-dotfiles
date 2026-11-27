@@ -1,18 +1,18 @@
 # Docs
 
-A guide to this setup and to getting the most out of NixOS. New to NixOS? Read the first two pages in
-order; the rest you can dip into.
+A guide to this setup and to NixOS in general. If you're new to NixOS, read the first two pages in order.
+The rest you can read as needed.
 
 | Page | What it covers |
 |------|----------------|
-| [NixOS basics](nixos-basics.md) | Declarative config, generations and rollback, flakes and the lock file, Home Manager, and the habits that make NixOS pay off |
-| [Everyday use](everyday.md) | A command cheat sheet: rebuild, roll back, update, clean up, search and try packages, dev shells |
+| [NixOS basics](nixos-basics.md) | Declarative config, generations and rollback, flakes and the lock file, Home Manager, and habits that make NixOS easier to use |
+| [Everyday use](everyday.md) | Command cheat sheet: rebuild, roll back, update, clean up, search and try packages, dev shells |
 | [Agents](agents.md) | Claude Code, Crush and the island agent: what each is for, the shared deny list and memory file |
 | [Repo layout](layout.md) | The dendritic structure: how files become modules, how the host picks them, adding a feature, user or host |
 | [What's installed](whats-installed.md) | Every system module and feature, what it sets up, and what's available but switched off |
-| [The desktop](desktop.md) | Logging in, the Hyprland session, the Quickshell island, the theme, and every keybind |
+| [The desktop](desktop.md) | Logging in, the Hyprland session, the Quickshell island, the theme, every keybind |
 | [Dotfiles](dotfiles.md) | The config repos (hypr, kitty, nvim, quickshell, yazi) and the live-linked VS Code settings: editing, testing locally, publishing |
-| [Secure Boot](secure-boot.md) | How lanzaboote signs the system, checking it, and recovering if a boot is refused |
+| [Secure Boot](secure-boot.md) | How lanzaboote signs the system, how to check it, and what to do if a boot is refused |
 | [A new machine](new-machine.md) | Reinstalling omen, or installing on someone else's computer from the template user and host |
 | [Dual-booting](dual-boot.md) | Installing beside Windows 11: BitLocker, the EFI partition, boot order, recovery |
 | [Troubleshooting](troubleshooting.md) | Common errors and warnings, and what to do about them |
