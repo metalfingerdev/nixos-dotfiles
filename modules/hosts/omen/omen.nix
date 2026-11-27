@@ -8,6 +8,9 @@
     time.timeZone = "Asia/Kolkata";
     # VS Code's omen-only parts are in vscode.nix, beside this file.
     home-manager.users.admin = {
+      # Firefox's existing profile folder (signed-in accounts, history), so the shared firefox
+      # feature's wallpaper lands in it instead of in a new empty profile.
+      programs.firefox.profiles.default.path = "dj3zm109.default-1792208594279";
       # The laptop's own panel, loaded by hypr's monitors.lua (see its hyprland.lua). Outside
       # ~/.config/hypr, which is a read-only link to the hypr repo.
       # Caps Lock as Escape, read by hypr's input.lua; hl.config merges per key, so this is all it needs.

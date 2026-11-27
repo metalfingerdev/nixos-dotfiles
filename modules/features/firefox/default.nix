@@ -25,7 +25,7 @@
         '';
       };
     };
-    home.file."${config.programs.firefox.configPath}/default/chrome/wallpaper.gif".source = ../../../assets/firefox/marin.gif;
+    home.file."${config.programs.firefox.configPath}/${config.programs.firefox.profiles.default.path}/chrome/wallpaper.gif".source = ../../../assets/firefox/marin.gif;
 
     xdg.mimeApps.defaultApplications = lib.genAttrs [
       "x-scheme-handler/http" "x-scheme-handler/https" "x-scheme-handler/chrome"
