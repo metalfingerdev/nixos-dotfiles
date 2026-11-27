@@ -10,6 +10,7 @@
       amdgpu # Radeon Vega (Cezanne) iGPU
       nvidia # GeForce GTX 1650 Mobile
       swap
+      island-greeter      # the island's own login screen instead of ly; remove this line to go back
       desktop
       terminal
       development
