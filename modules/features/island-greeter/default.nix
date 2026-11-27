@@ -15,9 +15,22 @@
             --prefix QT_PLUGIN_PATH : ${pkgs.qt6.qtimageformats}/${pkgs.qt6.qtbase.qtPluginPrefix}
         '';
       };
-      user = "admin";
-      # The session ly starts: Hyprland under UWSM
+      # The accounts the greeter offers: the host's normal users, so a renamed or added account needs no edit
+      # here. The first by name is the default one and owns the pictures folder.
+      users = lib.attrNames (lib.filterAttrs (_: u: u.isNormalUser) config.users.users);
+      user = lib.head users;
+      # The session ly starts: Hyprland under UWSM. The text greeter's, and the island's default when the list below has it.
       sessionCommand = [ "uwsm" "start" "hyprland-uwsm.desktop" ];
+      # Every Wayland session the system installs (what ly lists), as [{ id, name, command }]: a desktop added
+      # later shows up in the greeter with no edit here. Built, not evaluated from the files, so no import-from-derivation.
+      sessions = pkgs.runCommand "island-greeter-sessions.json" { nativeBuildInputs = [ pkgs.jq ]; } ''
+        for f in ${config.services.displayManager.sessionData.desktops}/share/wayland-sessions/*.desktop; do
+          jq -n --arg id "$(basename "$f" .desktop)" \
+                --arg name "$(sed -n 's/^Name=//p' "$f" | head -1)" \
+                --arg exec "$(sed -n 's/^Exec=//p' "$f" | head -1)" \
+                '{ id: $id, name: $name, command: ($exec | split(" ") | map(select(. != ""))) }'
+        done | jq -s 'sort_by(.id)' > $out
+      '';
 
       # The login screen, with a way out: if Quickshell doesn't come up (a broken QML change, no GPU for
       # cage) or the greeter falls twice in a row, the text greeter takes over, so a bug here can never
@@ -28,6 +41,8 @@
         # leaves with the greeter user's runtime folder at login
         exec 2> >(${config.systemd.package}/bin/systemd-cat -t island-greeter) 1>&2
         export GREETER_USER=${user}
+        export GREETER_USERS='${builtins.toJSON users}'
+        export GREETER_SESSIONS=${sessions}
         export GREETER_SESSION='${builtins.toJSON sessionCommand}'
         run=''${XDG_RUNTIME_DIR:?}
         export GREETER_READY="$run/island-greeter-ready"
