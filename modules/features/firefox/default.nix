@@ -11,12 +11,16 @@
         "assets/firefox/marin.gif" = ../../../assets/firefox/marin.gif;
       };
     in {
+      # A fixed path (a store path changes with every edit, and an old one disappears with the next
+      # garbage collection), so a home page Firefox has saved keeps working across rebuilds.
+      environment.etc."firefox-start-page".source = startPage;
+
       programs.firefox = {
         enable = true;
         # A policy, not a profile: it reaches every profile and never replaces the ones people have.
         # It covers the home page and a new window, not Ctrl+T (Firefox has no policy for that).
         policies.Homepage = {
-          URL = "file://${startPage}/modules/features/firefox/index.html";
+          URL = "file:///etc/firefox-start-page/modules/features/firefox/index.html";
           StartPage = "homepage";
         };
       };
