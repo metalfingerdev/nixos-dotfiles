@@ -6,10 +6,12 @@
       # The start page: the wallpaper, full screen. The store folder repeats the repo's layout, so the
       # page's relative link to the picture works there and when index.html is opened from the repo
       # (assets/README.md says where the picture comes from).
-      startPage = pkgs.linkFarm "firefox-start-page" {
-        "modules/features/firefox/index.html" = ./index.html;
-        "assets/firefox/marin.gif" = ../../../assets/firefox/marin.gif;
-      };
+      # Copies, not links: Firefox won't load a file: picture that is a symlink to somewhere else, and
+      # linkFarm makes exactly those.
+      startPage = pkgs.runCommand "firefox-start-page" { } ''
+        install -D ${./index.html} $out/modules/features/firefox/index.html
+        install -D ${../../../assets/firefox/marin.gif} $out/assets/firefox/marin.gif
+      '';
     in {
       # A fixed path (a store path changes with every edit, and an old one disappears with the next
       # garbage collection), so a home page Firefox has saved keeps working across rebuilds.
