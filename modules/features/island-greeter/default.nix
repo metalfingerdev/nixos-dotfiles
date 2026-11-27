@@ -3,7 +3,7 @@
   # Optional: the island's own login screen (config/quickshell/greeter, a Quickshell program run by greetd
   # inside cage as the greeter user) in place of ly. No host takes it by default; to try it, add
   # `island-greeter` to a host's modules list (hosts/omen), and remove it to go back to ly.
-  flake.modules.nixos.island-greeter = { lib, pkgs, ... }:
+  flake.modules.nixos.island-greeter = { config, lib, pkgs, ... }:
     let
       # WebP is a Qt image plugin that nixpkgs' quickshell lacks (features/quickshell wraps it the same way)
       quickshell = pkgs.symlinkJoin {
@@ -24,6 +24,9 @@
       # lock you out. A finished login ends the greeter with a signal, which doesn't count as a fall.
       start = pkgs.writeShellScript "island-greeter" ''
         export PATH=${lib.makeBinPath [ pkgs.coreutils ]}:$PATH
+        # what the greeter says goes to the journal (journalctl -b -t island-greeter): its own log
+        # leaves with the greeter user's runtime folder at login
+        exec 2> >(${config.systemd.package}/bin/systemd-cat -t island-greeter) 1>&2
         export GREETER_USER=${user}
         export GREETER_SESSION='${builtins.toJSON sessionCommand}'
         run=''${XDG_RUNTIME_DIR:?}
