@@ -3,11 +3,12 @@
   # Firefox, as the default browser for links and HTML files.
   flake.modules.nixos.firefox = { pkgs, ... }:
     let
-      # The start page: the wallpaper, full screen. The picture sits beside the page in one store
-      # folder, so the relative URL works (assets/README.md says where it comes from).
+      # The start page: the wallpaper, full screen. The store folder repeats the repo's layout, so the
+      # page's relative link to the picture works there and when index.html is opened from the repo
+      # (assets/README.md says where the picture comes from).
       startPage = pkgs.linkFarm "firefox-start-page" {
-        "index.html" = ./index.html;
-        "wallpaper.gif" = ../../../assets/firefox/marin.gif;
+        "modules/features/firefox/index.html" = ./index.html;
+        "assets/firefox/marin.gif" = ../../../assets/firefox/marin.gif;
       };
     in {
       programs.firefox = {
@@ -34,7 +35,7 @@
                 const io = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
                 io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler)
                   .setSubstitution("nix-start-page", io.newFileURI(dir));
-                const css = ":root { --newtab-wallpaper: url('resource://nix-start-page/wallpaper.gif'); }";
+                const css = ":root { --newtab-wallpaper: url('resource://nix-start-page/assets/firefox/marin.gif'); }";
                 Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService)
                   .loadAndRegisterSheet(io.newURI("data:text/css," + encodeURIComponent(
                     "@-moz-document url(about:home), url(about:newtab) {" + css + "}")), 1);
@@ -44,7 +45,7 @@
         # A policy, not a profile: it reaches every profile and never replaces the ones people have.
         # It covers the home page and a new window; new tabs get the wallpaper from autoConfig above.
         policies.Homepage = {
-          URL = "file://${startPage}/index.html";
+          URL = "file://${startPage}/modules/features/firefox/index.html";
           StartPage = "homepage";
         };
       };
