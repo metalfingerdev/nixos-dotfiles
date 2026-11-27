@@ -13,37 +13,8 @@
     in {
       programs.firefox = {
         enable = true;
-        # The new tab wallpaper below needs Firefox's services, which AutoConfig scripts can't reach in
-        # their default sandbox, so the sandbox is off (the owner agreed). The only script that runs is
-        # the one below, a read-only file in the Nix store.
-        package = pkgs.firefox.override {
-          extraAutoConfig = ''pref("general.config.sandbox_enabled", false);'';
-        };
-        # The new tab page's wallpaper, for every profile. The page paints it from the CSS variable
-        # --newtab-wallpaper (its own `body` rule beats any user stylesheet, so only the variable is set),
-        # and a wallpaper picked in the customise panel replaces this default. The picture is served as
-        # resource:// because the new tab page may not load file: images. AutoConfig skips the first line.
-        autoConfig = ''
-          // omen
-          try {
-            Components.classes["@mozilla.org/observer-service;1"]
-              .getService(Components.interfaces.nsIObserverService)
-              .addObserver({ observe() {
-                const Cc = Components.classes, Ci = Components.interfaces;
-                const dir = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
-                dir.initWithPath("${startPage}");
-                const io = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
-                io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler)
-                  .setSubstitution("nix-start-page", io.newFileURI(dir));
-                const css = ":root { --newtab-wallpaper: url('resource://nix-start-page/assets/firefox/marin.gif'); }";
-                Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService)
-                  .loadAndRegisterSheet(io.newURI("data:text/css," + encodeURIComponent(
-                    "@-moz-document url(about:home), url(about:newtab) {" + css + "}")), 1);
-              } }, "final-ui-startup");
-          } catch (e) {}
-        '';
         # A policy, not a profile: it reaches every profile and never replaces the ones people have.
-        # It covers the home page and a new window; new tabs get the wallpaper from autoConfig above.
+        # It covers the home page and a new window, not Ctrl+T (Firefox has no policy for that).
         policies.Homepage = {
           URL = "file://${startPage}/modules/features/firefox/index.html";
           StartPage = "homepage";
