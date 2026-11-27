@@ -6,14 +6,7 @@
       # The start page: the wallpaper, full screen. The picture sits beside the page in one store
       # folder, so the relative URL works (assets/README.md says where it comes from).
       startPage = pkgs.linkFarm "firefox-start-page" {
-        "index.html" = pkgs.writeText "index.html" ''
-          <!doctype html>
-          <meta charset="utf-8">
-          <title>New tab</title>
-          <style>
-            html { height: 100%; background: #000 url("wallpaper.gif") center / cover no-repeat fixed; }
-          </style>
-        '';
+        "index.html" = ./index.html;
         "wallpaper.gif" = ../../../assets/firefox/marin.gif;
       };
     in {
